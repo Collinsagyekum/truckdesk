@@ -1,6 +1,7 @@
 import { supabase } from '../../lib/supabase';
 import type { User } from '../../types';
 import { mockDb } from '../../utils/mockDb';
+import { warnMockFallback } from '../../utils/devWarn';
 
 export async function getUserProfile(userId: string): Promise<User | null> {
   // If in mock environment, check the mock DB first
@@ -56,14 +57,18 @@ export async function getFleetDrivers(companyId: string): Promise<User[]> {
     return mockDb.getDrivers().filter((d) => d.company_id === companyId);
   }
 
+  // NOTE: the real `users` table has no company_id column, so filtering by it
+  // always errored and fell back to demo drivers. Single business = every
+  // driver belongs to this fleet; RLS is the real security boundary.
+  void companyId;
   const { data, error } = await supabase
     .from('users')
     .select('*')
-    .eq('company_id', companyId)
     .eq('role', 'driver');
 
   if (error || !data || data.length === 0) {
-    return mockDb.getDrivers().filter((d) => d.company_id === companyId);
+    warnMockFallback('getFleetDrivers', error);
+    return mockDb.getDrivers();
   }
 
   return data as User[];

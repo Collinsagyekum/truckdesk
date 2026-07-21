@@ -8,6 +8,7 @@ import { getFleetExpenses, updateExpense } from '../../services/supabase/expense
 import StatCard from '../../components/ui/StatCard';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { formatCurrency, formatMiles, getInitials } from '../../utils/formatting';
+import { withTimeout } from '../../utils/withTimeout';
 import type { User, Load, Expense } from '../../types';
 import { 
   Users, 
@@ -46,9 +47,9 @@ export default function OwnerDashboardPage() {
         const companyId = user.company_id || 'company-123';
         
         const [driversData, loadsData, expensesData] = await Promise.all([
-          getFleetDrivers(companyId),
-          getFleetLoads(companyId),
-          getFleetExpenses(companyId),
+          withTimeout(getFleetDrivers(companyId), [], 'getFleetDrivers'),
+          withTimeout(getFleetLoads(companyId), [], 'getFleetLoads'),
+          withTimeout(getFleetExpenses(companyId), [], 'getFleetExpenses'),
         ]);
 
         setDrivers(driversData);
