@@ -37,7 +37,8 @@ export default function OwnerDashboardPage() {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
+    // Without clearing loading here, a null user leaves the page spinning forever.
+    if (!user) { setLoading(false); return; }
 
     const fetchData = async () => {
       try {

@@ -36,7 +36,8 @@ export default function FleetPage() {
   const [statusFilter, setStatusFilter] = useState<'All' | 'Active' | 'Idle' | 'Review'>('All');
 
   useEffect(() => {
-    if (!user) return;
+    // Without clearing loading here, a null user leaves the page spinning forever.
+    if (!user) { setLoading(false); return; }
 
     const fetchData = async () => {
       try {
