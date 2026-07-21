@@ -1,0 +1,24 @@
+{
+  "name": "TruckDesk",
+  "short_name": "TruckDesk",
+  "description": "Premium fleet dispatch and driver workflow platform",
+  "start_url": "/driver/home",
+  "theme_color": "#0A1628",
+  "background_color": "#0A1628",
+  "display": "standalone",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
