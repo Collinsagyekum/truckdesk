@@ -116,6 +116,11 @@ export default function LoginPage() {
       else navigate('/owner/dashboard');
     } catch (err: any) {
       showError(err.message || 'Invalid verification code.');
+    } finally {
+      // Always clear the spinner. Previously this only ran on error, so if the
+      // post-login redirect bounced back to /login (e.g. the role couldn't be
+      // read because RLS blocks `users`), the button hung on "Verifying..."
+      // forever with no feedback.
       setLoading(false);
     }
   };
