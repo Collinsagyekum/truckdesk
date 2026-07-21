@@ -124,15 +124,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
-      if (session?.user) {
-        const profile = await resolveProfile(session.user);
-        setUser(profile);
-        setRole(profile?.role ?? null);
-      } else {
+      try {
+        if (session?.user) {
+          // Never let a slow/hanging profile lookup freeze the app on a loading
+          // screen — fall back to a minimal profile rather than blocking.
+          const profile = await Promise.race([
+            resolveProfile(session.user),
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
+          ]);
+          if (profile) {
+            setUser(profile);
+            setRole(profile.role ?? null);
+          } else {
+            console.warn('[TruckDesk] Profile lookup failed or timed out; continuing without a profile.');
+            setUser(null);
+            setRole(null);
+          }
+        } else {
+          setUser(null);
+          setRole(null);
+        }
+      } catch (err) {
+        console.warn('[TruckDesk] Auth state change error:', err);
         setUser(null);
         setRole(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => {
