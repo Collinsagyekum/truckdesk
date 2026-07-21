@@ -1,6 +1,7 @@
 import { supabase } from '../../lib/supabase';
 import type { Expense } from '../../types';
 import { mockDb } from '../../utils/mockDb';
+import { warnMockFallback } from '../../utils/devWarn';
 
 // ─── DB ↔ APP ADAPTERS ────────────────────────────────────────────────────────
 // The real Supabase `expenses` table uses different column names than the app's
@@ -24,7 +25,7 @@ function rowToExpense(row: any): Expense {
     created_at: row.created_at,
     flagged: row.flagged ?? undefined,
     flag_reason: row.flag_reason ?? undefined,
-    driver_name: row.driver_name ?? undefined,
+    driver_name: row.users?.full_name ?? row.driver_name ?? undefined,
   };
 }
 
@@ -54,6 +55,7 @@ export async function getExpenses(driverId: string): Promise<Expense[]> {
     .order('expense_date', { ascending: false });
 
   if (error || !data || data.length === 0) {
+    warnMockFallback('getExpenses', error);
     return mockDb.getDriverExpenses(driverId);
   }
   return data.map(rowToExpense);
@@ -115,13 +117,16 @@ export async function getFleetExpenses(companyId: string): Promise<Expense[]> {
     return mockDb.getExpenses();
   }
 
-  // Assuming expenses table has a driver relation to filter by company_id, or we query all expenses and filter
+  // NOTE: the real `users` table has no company_id column, so we can't scope by
+  // company. Single business = owner sees every driver's expenses; RLS is the
+  // real security boundary here.
+  void companyId;
   const { data, error } = await supabase
     .from('expenses')
-    .select('*, users!inner(company_id)')
-    .eq('users.company_id', companyId);
+    .select('*, users(full_name)');
 
   if (error || !data || data.length === 0) {
+    warnMockFallback('getFleetExpenses', error);
     return mockDb.getExpenses();
   }
 
@@ -211,6 +216,7 @@ export async function getRetirementLogs(driverId: string): Promise<any[]> {
     .order('created_at', { ascending: false });
 
   if (error || !data || data.length === 0) {
+    warnMockFallback('getRetirementLogs', error);
     return mock;
   }
   return data.map(rowToRetirement);

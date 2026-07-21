@@ -1,6 +1,7 @@
 import { supabase } from '../../lib/supabase';
 import type { Load } from '../../types';
 import { mockDb } from '../../utils/mockDb';
+import { warnMockFallback } from '../../utils/devWarn';
 
 // ─── DB ↔ APP ADAPTERS ────────────────────────────────────────────────────────
 // The real `loads` table splits the route into city/state columns and has no
@@ -37,6 +38,7 @@ function rowToLoad(row: any): Load {
   return {
     id: row.id,
     driver_id: row.driver_id,
+    driver_name: row.users?.full_name ?? undefined,
     broker_name: row.broker_name ?? '',
     origin: joinPlace(row.origin_city, row.origin_state),
     destination: joinPlace(row.destination_city, row.destination_state),
@@ -88,6 +90,7 @@ export async function getLoads(driverId: string): Promise<Load[]> {
     .order('pickup_date', { ascending: false });
 
   if (error || !data || data.length === 0) {
+    warnMockFallback('getLoads', error);
     return mockDb.getDriverLoads(driverId);
   }
   return data.map(rowToLoad);
@@ -191,12 +194,16 @@ export async function getFleetLoads(companyId: string): Promise<Load[]> {
     return mockDb.getLoads();
   }
 
+  // NOTE: the real `users` table has no company_id column (no multi-tenancy in
+  // the DB today), so we can't scope by company. Single business = owner sees
+  // every driver's loads; RLS is the real security boundary here.
+  void companyId;
   const { data, error } = await supabase
     .from('loads')
-    .select('*, users!inner(company_id)')
-    .eq('users.company_id', companyId);
+    .select('*, users(full_name)');
 
   if (error || !data || data.length === 0) {
+    warnMockFallback('getFleetLoads', error);
     return mockDb.getLoads();
   }
 

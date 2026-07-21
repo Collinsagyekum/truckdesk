@@ -1,6 +1,7 @@
 import { supabase } from '../../lib/supabase';
 import type { Invoice } from '../../types';
 import { mockDb } from '../../utils/mockDb';
+import { warnMockFallback } from '../../utils/devWarn';
 
 // ─── DB ↔ APP ADAPTERS ────────────────────────────────────────────────────────
 // The real `invoices` table has no `status` column — status is derived from
@@ -29,7 +30,7 @@ function rowToInvoice(row: any): Invoice {
     client_name: row.client_name ?? undefined,
     driver_id: row.driver_id ?? undefined,
     invoice_number: row.invoice_number ?? undefined,
-    driver_name: row.driver_name ?? undefined,
+    driver_name: row.users?.full_name ?? row.driver_name ?? undefined,
   };
 }
 
@@ -55,12 +56,16 @@ export async function getFleetInvoices(companyId: string): Promise<Invoice[]> {
     return mockDb.getInvoices();
   }
 
+  // NOTE: the real `users` table has no company_id column, so we can't scope by
+  // company. Single business = owner sees every invoice; RLS is the real
+  // security boundary here.
+  void companyId;
   const { data, error } = await supabase
     .from('invoices')
-    .select('*, loads!inner(users!inner(company_id))')
-    .eq('loads.users.company_id', companyId);
+    .select('*, users(full_name)');
 
   if (error || !data || data.length === 0) {
+    warnMockFallback('getFleetInvoices', error);
     return mockDb.getInvoices();
   }
 
