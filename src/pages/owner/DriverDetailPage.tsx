@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Receipt, DollarSign, Calendar, Truck, PiggyBank, MapPin } from 'lucide-react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Receipt, DollarSign, Calendar, Truck, PiggyBank, MapPin, Eye } from 'lucide-react';
+import { useAuth } from '../../hooks/useAuth';
 import { getUserProfile } from '../../services/supabase/users';
 import { getLoads } from '../../services/supabase/loads';
 import { getExpenses, getRetirementLogs } from '../../services/supabase/expenses';
@@ -29,6 +30,8 @@ function fmtDate(d: string): string {
 
 export default function DriverDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { impersonateDriver } = useAuth();
 
   const [driver, setDriver] = useState<User | null>(null);
   const [loads, setLoads] = useState<Load[]>([]);
@@ -84,12 +87,20 @@ export default function DriverDetailPage() {
           <div className="w-14 h-14 rounded-full bg-brand-green/15 border border-brand-green/30 flex items-center justify-center text-brand-green font-bold text-lg shrink-0">
             {getInitials(driver?.full_name || 'Driver')}
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className="text-2xl font-extrabold text-white truncate">{driver?.full_name || 'Driver'}</h1>
             <p className="text-sm text-gray-400">
               {driver?.phone || 'No phone'}{driver?.email ? ` · ${driver.email}` : ''}
             </p>
           </div>
+          {driver && (
+            <button
+              onClick={() => { impersonateDriver(driver); navigate('/driver/home'); }}
+              className="shrink-0 inline-flex items-center gap-2 bg-brand-green/15 border border-brand-green/30 text-brand-green hover:bg-brand-green/25 transition-colors rounded-xl px-4 py-2 text-sm font-semibold"
+            >
+              <Eye className="w-4 h-4" /> Open driver view
+            </button>
+          )}
         </div>
       </div>
 

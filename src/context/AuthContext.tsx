@@ -4,15 +4,24 @@ import type { User as AppUser, UserRole } from '../types';
 import type { Session, User as SupabaseUser } from '@supabase/supabase-js';
 
 interface AuthContextType {
-  user: AppUser | null;
+  user: AppUser | null;          // effective user (the impersonated driver when impersonating)
+  realUser: AppUser | null;      // the actually-logged-in account
   session: Session | null;
-  role: UserRole | null;
+  role: UserRole | null;         // effective role
   loading: boolean;
+  isImpersonating: boolean;
+  impersonateDriver: (driver: AppUser) => void;
+  stopImpersonating: () => void;
   signInWithPhone: (phone: string) => Promise<{ error: Error | null }>;
   verifyOtp: (phone: string, token: string) => Promise<{ error: Error | null }>;
   signInWithEmail: (email: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
+
+// Admin "view as driver": keeps the real (owner) Supabase session — so RLS still
+// grants owner-level read access — while the app renders as the chosen driver.
+// Persisted in sessionStorage so it survives navigation/HMR within the tab.
+const IMPERSONATE_KEY = 'truckdesk.impersonateDriver';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -81,6 +90,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [loading, setLoading] = useState(true);
+  const [impersonated, setImpersonated] = useState<AppUser | null>(() => {
+    try {
+      const raw = sessionStorage.getItem(IMPERSONATE_KEY);
+      return raw ? (JSON.parse(raw) as AppUser) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const impersonateDriver = (driver: AppUser) => {
+    const asDriver = { ...driver, role: 'driver' as UserRole };
+    sessionStorage.setItem(IMPERSONATE_KEY, JSON.stringify(asDriver));
+    setImpersonated(asDriver);
+  };
+
+  const stopImpersonating = () => {
+    sessionStorage.removeItem(IMPERSONATE_KEY);
+    setImpersonated(null);
+  };
 
   useEffect(() => {
     // Dev bypass short-circuit
@@ -188,15 +216,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    stopImpersonating();
     await supabase.auth.signOut();
     setUser(null);
     setRole(null);
     setSession(null);
   };
 
+  // Only a real owner may impersonate; otherwise ignore any stored value.
+  const canImpersonate = role === 'owner';
+  const effectiveImpersonated = canImpersonate ? impersonated : null;
+  const isImpersonating = !!effectiveImpersonated;
+  const effectiveUser = effectiveImpersonated ?? user;
+  const effectiveRole = effectiveImpersonated ? 'driver' : role;
+
   return (
     <AuthContext.Provider
-      value={{ user, session, role, loading, signInWithPhone, verifyOtp, signInWithEmail, signOut }}
+      value={{
+        user: effectiveUser,
+        realUser: user,
+        session,
+        role: effectiveRole,
+        loading,
+        isImpersonating,
+        impersonateDriver,
+        stopImpersonating,
+        signInWithPhone,
+        verifyOtp,
+        signInWithEmail,
+        signOut,
+      }}
     >
       {children}
     </AuthContext.Provider>

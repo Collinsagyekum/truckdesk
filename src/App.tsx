@@ -29,6 +29,7 @@ import FleetPage from './pages/owner/FleetPage';
 import DriverDetailPage from './pages/owner/DriverDetailPage';
 import OwnerCompliancePage from './pages/owner/OwnerCompliancePage';
 import InvoicesPage from './pages/owner/InvoicesPage';
+import ImpersonationBanner from './components/ui/ImpersonationBanner';
 
 // ---------------------------------------------------------------------------
 // Route guards
@@ -96,6 +97,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <ToastProvider>
+          <ImpersonationBanner />
           <Routes>
             {/* Public */}
             <Route
