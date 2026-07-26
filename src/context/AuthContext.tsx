@@ -122,35 +122,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
     init();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    // NOTE: the callback itself is intentionally NOT async. Making a Supabase
+    // DB call synchronously inside onAuthStateChange deadlocks on supabase-js's
+    // internal auth lock — the DB request waits for a lock the callback still
+    // holds, so `resolveProfile` hangs until our timeout. Deferring the async
+    // work with setTimeout(0) lets the callback return and the lock release
+    // first, so the profile read runs normally.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
-      try {
-        if (session?.user) {
-          // Never let a slow/hanging profile lookup freeze the app on a loading
-          // screen — fall back to a minimal profile rather than blocking.
-          const profile = await Promise.race([
-            resolveProfile(session.user),
-            new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
-          ]);
-          if (profile) {
-            setUser(profile);
-            setRole(profile.role ?? null);
+      setTimeout(async () => {
+        try {
+          if (session?.user) {
+            // Safety net: still guard against any slow lookup so the app never
+            // hangs on the loading screen.
+            const profile = await Promise.race([
+              resolveProfile(session.user),
+              new Promise<null>((resolve) => setTimeout(() => resolve(null), 8000)),
+            ]);
+            if (profile) {
+              setUser(profile);
+              setRole(profile.role ?? null);
+            } else {
+              console.warn('[TruckDesk] Profile lookup failed or timed out; continuing without a profile.');
+              setUser(null);
+              setRole(null);
+            }
           } else {
-            console.warn('[TruckDesk] Profile lookup failed or timed out; continuing without a profile.');
             setUser(null);
             setRole(null);
           }
-        } else {
+        } catch (err) {
+          console.warn('[TruckDesk] Auth state change error:', err);
           setUser(null);
           setRole(null);
+        } finally {
+          setLoading(false);
         }
-      } catch (err) {
-        console.warn('[TruckDesk] Auth state change error:', err);
-        setUser(null);
-        setRole(null);
-      } finally {
-        setLoading(false);
-      }
+      }, 0);
     });
 
     return () => {
