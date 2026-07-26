@@ -2,19 +2,19 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
-import { supabase } from '../lib/supabase';
-import { Truck, MessageSquare, Mail, Phone, ShieldCheck, ArrowLeft, Loader2, Lock } from 'lucide-react';
+import { Truck, MessageSquare, Mail, Phone, ShieldCheck, ArrowLeft, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const { signInWithPhone, signInWithEmail, verifyOtp, user, role } = useAuth();
   const { showSuccess, showError } = useToast();
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState<'driver' | 'owner' | 'dev'>('driver');
+  // Login method (not a role). The user's role is resolved from their `users`
+  // row after sign-in, so both owners and drivers use the same email/phone flow.
+  const [activeTab, setActiveTab] = useState<'driver' | 'owner'>('owner');
   const [phone, setPhone] = useState('');
   const [countryCode, setCountryCode] = useState('+1');
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState<string[]>(Array(6).fill(''));
@@ -26,26 +26,6 @@ export default function LoginPage() {
       else navigate('/driver/home');
     }
   }, [user, role, navigate]);
-
-  // After a successful auth, look up role directly and redirect (don't wait on context)
-  const redirectByRole = async (identifierEmail?: string) => {
-    try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      let resolvedRole: string | null = null;
-      if (authUser) {
-        const { data: row } = await supabase.from('users').select('role').eq('id', authUser.id).maybeSingle();
-        resolvedRole = row?.role ?? null;
-        if (!resolvedRole && identifierEmail) {
-          const { data: byEmail } = await supabase.from('users').select('role').eq('email', identifierEmail).maybeSingle();
-          resolvedRole = byEmail?.role ?? null;
-        }
-      }
-      if (resolvedRole === 'driver') navigate('/driver/home');
-      else navigate('/owner/dashboard');
-    } catch {
-      navigate('/owner/dashboard');
-    }
-  };
 
   const handleRequestAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,19 +48,6 @@ export default function LoginPage() {
     } catch (err: any) {
       showError(err.message || 'Failed to send login request.');
     } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDevLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) { showError(error.message); setLoading(false); return; }
-      await redirectByRole(email);
-    } catch (err: any) {
-      showError(err.message || 'Login failed.');
       setLoading(false);
     }
   };
@@ -148,77 +115,54 @@ export default function LoginPage() {
 
         {!otpSent ? (
           <>
-            <div className="grid grid-cols-3 bg-navy-900/60 p-1.5 rounded-2xl border border-white/5 mb-6">
-              <button type="button" onClick={() => { setActiveTab('driver'); setEmail(''); setPassword(''); }}
-                className={`py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'driver' ? 'bg-brand-green text-navy-900 shadow-lg' : 'text-gray-400 hover:text-white'}`}>
-                <Phone className="w-3.5 h-3.5" /> Driver
-              </button>
-              <button type="button" onClick={() => { setActiveTab('owner'); setPhone(''); setPassword(''); }}
+            <div className="grid grid-cols-2 bg-navy-900/60 p-1.5 rounded-2xl border border-white/5 mb-6">
+              <button type="button" onClick={() => { setActiveTab('owner'); setPhone(''); }}
                 className={`py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'owner' ? 'bg-brand-green text-navy-900 shadow-lg' : 'text-gray-400 hover:text-white'}`}>
-                <Mail className="w-3.5 h-3.5" /> Fleet Owner
+                <Mail className="w-3.5 h-3.5" /> Email
               </button>
-              <button type="button" onClick={() => { setActiveTab('dev'); setPhone(''); }}
-                className={`py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'dev' ? 'bg-brand-green text-navy-900 shadow-lg' : 'text-gray-400 hover:text-white'}`}>
-                <Lock className="w-3.5 h-3.5" /> Dev Login
+              <button type="button" onClick={() => { setActiveTab('driver'); setEmail(''); }}
+                className={`py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'driver' ? 'bg-brand-green text-navy-900 shadow-lg' : 'text-gray-400 hover:text-white'}`}>
+                <Phone className="w-3.5 h-3.5" /> Phone (SMS)
               </button>
             </div>
 
-            {activeTab === 'dev' ? (
-              <form onSubmit={handleDevLogin} className="space-y-5">
+            <form onSubmit={handleRequestAuth} className="space-y-5">
+              {activeTab === 'driver' ? (
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest font-sans mb-2">Email</label>
-                  <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-navy-900 border border-white/5 hover:border-white/10 rounded-xl px-4 py-3.5 text-white text-sm focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green"
-                    placeholder="cagyekum26@gmail.com" required />
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest font-sans mb-2">Mobile Phone Number</label>
+                  <div className="flex gap-2">
+                    <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)}
+                      className="bg-navy-900 border border-white/5 hover:border-white/10 rounded-xl px-2 py-3.5 text-white text-xs sm:text-sm focus:outline-none focus:border-brand-green/60 text-center font-semibold">
+                      <option value="+1">🇺🇸 +1</option>
+                      <option value="+44">🇬🇧 +44</option>
+                      <option value="+233">🇬🇭 +233</option>
+                      <option value="+234">🇳🇬 +234</option>
+                    </select>
+                    <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
+                      className="flex-1 bg-navy-900 border border-white/5 hover:border-white/10 rounded-xl px-4 py-3.5 text-white text-sm font-mono tracking-widest focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green"
+                      placeholder="e.g. 281-555-0199" required />
+                  </div>
+                  <p className="text-[10px] text-brand-amber mt-2 font-sans flex items-center gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5" /> SMS sign-in isn't enabled yet — use Email for now.
+                  </p>
                 </div>
+              ) : (
                 <div>
-                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest font-sans mb-2">Password</label>
-                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-navy-900 border border-white/5 hover:border-white/10 rounded-xl px-4 py-3.5 text-white text-sm focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green"
-                    placeholder="Password" required />
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest font-sans mb-2">Email Address</label>
+                  <div className="relative">
+                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                      className="w-full bg-navy-900 border border-white/5 hover:border-white/10 rounded-xl pl-11 pr-4 py-3.5 text-white text-sm focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green"
+                      placeholder="you@example.com" required />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  </div>
+                  <p className="text-[10px] text-gray-500 mt-2 font-sans flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-brand-green" /> A 6-digit code is emailed to you. Drivers and owners both sign in here.</p>
                 </div>
-                <button type="submit" disabled={loading}
-                  className="w-full bg-brand-green hover:bg-brand-green/95 text-navy-900 font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                  {loading ? (<><Loader2 className="w-4 h-4 animate-spin" /> Signing In...</>) : 'Sign In'}
-                </button>
-              </form>
-            ) : (
-              <form onSubmit={handleRequestAuth} className="space-y-5">
-                {activeTab === 'driver' ? (
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest font-sans mb-2">Mobile Phone Number</label>
-                    <div className="flex gap-2">
-                      <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)}
-                        className="bg-navy-900 border border-white/5 hover:border-white/10 rounded-xl px-2 py-3.5 text-white text-xs sm:text-sm focus:outline-none focus:border-brand-green/60 text-center font-semibold">
-                        <option value="+1">🇺🇸 +1</option>
-                        <option value="+44">🇬🇧 +44</option>
-                        <option value="+233">🇬🇭 +233</option>
-                        <option value="+234">🇳🇬 +234</option>
-                      </select>
-                      <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
-                        className="flex-1 bg-navy-900 border border-white/5 hover:border-white/10 rounded-xl px-4 py-3.5 text-white text-sm font-mono tracking-widest focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green"
-                        placeholder="e.g. 281-555-0199" required />
-                    </div>
-                    <p className="text-[10px] text-gray-500 mt-2 font-sans flex items-center gap-1.5"><MessageSquare className="w-3.5 h-3.5 text-brand-green" /> Verification code will be sent via SMS</p>
-                  </div>
-                ) : (
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest font-sans mb-2">Fleet Owner Email Address</label>
-                    <div className="relative">
-                      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                        className="w-full bg-navy-900 border border-white/5 hover:border-white/10 rounded-xl pl-11 pr-4 py-3.5 text-white text-sm focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green"
-                        placeholder="e.g. owner@fleetcompany.com" required />
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                    </div>
-                    <p className="text-[10px] text-gray-500 mt-2 font-sans flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-brand-green" /> Verification code sent to inbox</p>
-                  </div>
-                )}
-                <button type="submit" disabled={loading}
-                  className="w-full bg-brand-green hover:bg-brand-green/95 text-navy-900 font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                  {loading ? (<><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>) : activeTab === 'driver' ? 'Send OTP Code' : 'Send Magic Link'}
-                </button>
-              </form>
-            )}
+              )}
+              <button type="submit" disabled={loading}
+                className="w-full bg-brand-green hover:bg-brand-green/95 text-navy-900 font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                {loading ? (<><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>) : activeTab === 'driver' ? 'Send SMS Code' : 'Send Email Code'}
+              </button>
+            </form>
           </>
         ) : (
           <div className="space-y-6">
