@@ -343,35 +343,24 @@ export default function CompliancePage() {
     return 'Q4';
   };
 
+  // Real fuel purchases only. MilesBot records the purchase state and gallons
+  // on fuel expenses; anything missing a state is surfaced as "Unknown" rather
+  // than invented, so the IFTA summary always reflects actual filings data.
   const fuelPurchases = useMemo(() => {
-    const list = expenses.filter((e) => e.category === 'fuel') as any[];
-
-    // Ensure realistic state distributions if standard mock items are loaded
-    let parsed = list.map((e, idx) => ({
+    return (expenses.filter((e) => e.category === 'fuel') as any[]).map((e) => ({
       ...e,
       ifta_eligible: e.ifta_eligible !== undefined ? e.ifta_eligible : true,
-      state: e.state || ['IL', 'IN', 'OH', 'TX', 'MI'][idx % 5],
-      gallons: e.gallons || Math.round(e.amount / 3.8) || 92,
+      state: e.state || null,
+      gallons: typeof e.gallons === 'number' ? e.gallons : null,
     }));
-
-    // Pad with multi-quarter items for a robust planner demo
-    if (parsed.length <= 2) {
-      const simulated = [
-        { id: 'sim-f1', category: 'fuel', amount: 320.0, gallons: 85, state: 'IL', date: '2026-02-15', ifta_eligible: true },
-        { id: 'sim-f2', category: 'fuel', amount: 410.0, gallons: 110, state: 'IN', date: '2026-03-10', ifta_eligible: true },
-        { id: 'sim-f3', category: 'fuel', amount: 280.0, gallons: 75, state: 'OH', date: '2026-01-20', ifta_eligible: true },
-        { id: 'sim-f4', category: 'fuel', amount: 380.0, gallons: 100, state: 'TX', date: '2026-04-18', ifta_eligible: true },
-        { id: 'sim-f5', category: 'fuel', amount: 350.5, gallons: 92, state: 'IL', date: '2026-05-27', ifta_eligible: true },
-        { id: 'sim-f6', category: 'fuel', amount: 450.0, gallons: 120, state: 'OH', date: '2026-07-04', ifta_eligible: true },
-        { id: 'sim-f7', category: 'fuel', amount: 300.0, gallons: 80, state: 'MI', date: '2026-08-12', ifta_eligible: true },
-        { id: 'sim-f8', category: 'fuel', amount: 390.0, gallons: 102, state: 'TX', date: '2026-10-25', ifta_eligible: true },
-        { id: 'sim-f9', category: 'fuel', amount: 340.0, gallons: 90, state: 'IN', date: '2026-11-14', ifta_eligible: true },
-      ];
-      parsed = [...parsed, ...simulated.filter((s) => !parsed.some((p) => p.id === s.id))];
-    }
-
-    return parsed;
   }, [expenses]);
+
+  // Fuel stops that can't be attributed to a state yet — shown as a prompt so
+  // the driver knows what's missing from their IFTA report.
+  const unattributedFuelCount = useMemo(
+    () => fuelPurchases.filter((p) => !p.state).length,
+    [fuelPurchases]
+  );
 
   const groupedIFTAData = useMemo(() => {
     const filtered = fuelPurchases.filter((p) => {
@@ -385,7 +374,7 @@ export default function CompliancePage() {
       if (!groups[st]) {
         groups[st] = { state: st, gallons: 0, amount: 0, count: 0 };
       }
-      groups[st].gallons += p.gallons;
+      groups[st].gallons += p.gallons ?? 0;
       groups[st].amount += p.amount;
       groups[st].count += 1;
     });
@@ -888,6 +877,20 @@ export default function CompliancePage() {
               </Button>
             </div>
           </div>
+
+          {/* Fuel stops we couldn't attribute to a state */}
+          {unattributedFuelCount > 0 && (
+            <div className="card-premium border border-brand-amber/30 bg-brand-amber/5 p-4 flex items-start gap-3">
+              <Fuel className="w-4 h-4 text-brand-amber shrink-0 mt-0.5" />
+              <p className="text-xs text-gray-300 leading-relaxed">
+                <span className="font-semibold text-brand-amber">
+                  {unattributedFuelCount} fuel {unattributedFuelCount === 1 ? 'stop is' : 'stops are'} missing a state
+                </span>{' '}
+                and can't be counted toward IFTA. When logging fuel on WhatsApp, include the location —
+                e.g. <em>"paid $180 for fuel in Memphis TN"</em> — or send a photo of the receipt.
+              </p>
+            </div>
+          )}
 
           {/* Grouped Table */}
           <div className="card-premium overflow-hidden border border-white/5">

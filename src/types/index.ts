@@ -57,6 +57,12 @@ export interface Expense {
   flagged?: boolean;
   flag_reason?: string;
   driver_name?: string;
+  // Fuel/IFTA fields — populated by MilesBot for fuel purchases.
+  city?: string;
+  state?: string;
+  gallons?: number;
+  ifta_eligible?: boolean;
+  vendor?: string;
 }
 
 export type ExpenseCategory =

@@ -26,6 +26,12 @@ function rowToExpense(row: any): Expense {
     flagged: row.flagged ?? undefined,
     flag_reason: row.flag_reason ?? undefined,
     driver_name: row.users?.full_name ?? row.driver_name ?? undefined,
+    // Fuel/IFTA fields (MilesBot populates these on fuel purchases)
+    city: row.city ?? undefined,
+    state: row.state ?? undefined,
+    gallons: row.gallons != null ? Number(row.gallons) : undefined,
+    ifta_eligible: row.ifta_eligible ?? undefined,
+    vendor: row.vendor ?? undefined,
   };
 }
 
