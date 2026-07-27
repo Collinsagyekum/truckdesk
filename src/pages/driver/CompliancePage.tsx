@@ -9,6 +9,7 @@ import {
 } from '../../services/supabase/maintenance';
 import type { MaintenanceItem } from '../../services/supabase/maintenance';
 import { getExpenses } from '../../services/supabase/expenses';
+import { getComplianceDocs, saveComplianceDoc } from '../../services/supabase/compliance';
 import PageHeader from '../../components/ui/PageHeader';
 import Button from '../../components/ui/Button';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -69,6 +70,7 @@ export default function CompliancePage() {
   const [selectedDocForUpload, setSelectedDocForUpload] = useState<ComplianceDocument | null>(null);
   const [newExpiryDate, setNewExpiryDate] = useState('');
   const [uploadedFileName, setUploadedFileName] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
   // HOS states
@@ -94,44 +96,10 @@ export default function CompliancePage() {
       const expList = await getExpenses(driverId);
       setExpenses(expList);
 
-      // 4. Documents from localStorage or defaults
-      const localDocs = localStorage.getItem(`truckdesk_docs_${driverId}`);
-      if (localDocs) {
-        setDocuments(JSON.parse(localDocs));
-      } else {
-        const defaultDocs: ComplianceDocument[] = [
-          {
-            id: 'doc-cdl',
-            type: 'CDL',
-            title: "Commercial Driver's License (Class A)",
-            expiry_date: '2028-10-15',
-            document_url: '#',
-          },
-          {
-            id: 'doc-dot',
-            type: 'DOT Medical Card',
-            title: "DOT Medical Examiner's Certificate",
-            expiry_date: '2026-06-25',
-            document_url: '#',
-          },
-          {
-            id: 'doc-ins',
-            type: 'Vehicle Insurance',
-            title: 'Commercial Auto Liability Insurance Policy',
-            expiry_date: '2026-08-15',
-            document_url: '#',
-          },
-          {
-            id: 'doc-reg',
-            type: 'Registration',
-            title: 'Cab Card & Apportioned Registration',
-            expiry_date: '2027-02-28',
-            document_url: '#',
-          },
-        ];
-        setDocuments(defaultDocs);
-        localStorage.setItem(`truckdesk_docs_${driverId}`, JSON.stringify(defaultDocs));
-      }
+      // 4. Compliance documents (real, per-driver, from Supabase). Returns the
+      //    standard slots overlaid with whatever the driver has provided.
+      const docs = await getComplianceDocs(driverId);
+      setDocuments(docs);
     } catch (err) {
       console.error('Error fetching compliance data:', err);
       showError('Failed to load compliance data.');
@@ -236,33 +204,51 @@ export default function CompliancePage() {
     setSelectedDocForUpload(doc);
     setNewExpiryDate(doc.expiry_date);
     setUploadedFileName(doc.fileName || '');
+    setSelectedFile(null);
     setIsUploadOpen(true);
   };
 
-  // Handler: Submit document upload
-  const handleUploadSubmit = () => {
+  // Handler: Submit document upload — persists to Supabase + uploads the scan.
+  const handleUploadSubmit = async () => {
     if (!selectedDocForUpload || !newExpiryDate) return;
     setIsUploading(true);
+    try {
+      const saved = await saveComplianceDoc(
+        driverId,
+        {
+          type: selectedDocForUpload.type,
+          title: selectedDocForUpload.title,
+          expiry_date: newExpiryDate,
+        },
+        selectedFile
+      );
 
-    setTimeout(() => {
-      const updated = documents.map((doc) => {
-        if (doc.id === selectedDocForUpload.id) {
-          return {
-            ...doc,
-            expiry_date: newExpiryDate,
-            fileName: uploadedFileName || 'uploaded_document.pdf',
-            document_url: '#',
-          };
-        }
-        return doc;
-      });
+      // Update the on-screen card either from the saved row or optimistically.
+      setDocuments((prev) =>
+        prev.map((doc) =>
+          doc.type === selectedDocForUpload.type
+            ? {
+                ...doc,
+                ...(saved ?? {}),
+                expiry_date: newExpiryDate,
+                fileName: uploadedFileName || doc.fileName,
+              }
+            : doc
+        )
+      );
 
-      setDocuments(updated);
-      localStorage.setItem(`truckdesk_docs_${driverId}`, JSON.stringify(updated));
-      setIsUploading(false);
+      if (saved) {
+        showSuccess(`${selectedDocForUpload.type} saved.`);
+      } else {
+        showError('Saved on screen, but couldn\'t reach the database. Check that the compliance table and bucket exist.');
+      }
       setIsUploadOpen(false);
-      showSuccess(`${selectedDocForUpload.type} document updated successfully!`);
-    }, 1200);
+    } catch (err) {
+      console.error('Compliance save failed:', err);
+      showError('Failed to save document.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   // HOS calculations for progress circles
@@ -1072,6 +1058,7 @@ export default function CompliancePage() {
                     onChange={(e) => {
                       if (e.target.files && e.target.files[0]) {
                         setUploadedFileName(e.target.files[0].name);
+                        setSelectedFile(e.target.files[0]);
                       }
                     }}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
