@@ -113,6 +113,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setImpersonated(null);
   };
 
+  // The impersonated driver is cached in sessionStorage, so it can go stale
+  // (e.g. their profile changed in the DB since we captured it). Re-fetch the
+  // row on mount / when the impersonated driver changes so the driver view
+  // always reflects current data.
+  const impersonatedId = impersonated?.id;
+  useEffect(() => {
+    if (!impersonatedId) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', impersonatedId)
+        .maybeSingle();
+      if (cancelled || !data) return;
+      const fresh = { ...(data as AppUser), role: 'driver' as UserRole };
+      sessionStorage.setItem(IMPERSONATE_KEY, JSON.stringify(fresh));
+      setImpersonated(fresh);
+    })();
+    return () => { cancelled = true; };
+  }, [impersonatedId]);
+
   useEffect(() => {
     // Dev bypass short-circuit
     if (isDevBypass()) {
