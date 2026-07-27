@@ -142,8 +142,12 @@ export default function LoginPage() {
                       className="flex-1 bg-navy-900 border border-white/5 hover:border-white/10 rounded-xl px-4 py-3.5 text-white text-sm font-mono tracking-widest focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green"
                       placeholder="e.g. 281-555-0199" required />
                   </div>
-                  <p className="text-[10px] text-brand-amber mt-2 font-sans flex items-center gap-1.5">
-                    <MessageSquare className="w-3.5 h-3.5" /> SMS sign-in isn't enabled yet — use Email for now.
+                  <p className="text-[10px] text-brand-amber mt-2 font-sans flex items-start gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5 shrink-0 mt-px" />
+                    <span>
+                      SMS sign-in is not enabled on this project yet, so no code can be sent.
+                      Use the <strong>Email</strong> tab to sign in.
+                    </span>
                   </p>
                 </div>
               ) : (
@@ -158,9 +162,9 @@ export default function LoginPage() {
                   <p className="text-[10px] text-gray-500 mt-2 font-sans flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5 text-brand-green" /> A 6-digit code is emailed to you. Drivers and owners both sign in here.</p>
                 </div>
               )}
-              <button type="submit" disabled={loading}
+              <button type="submit" disabled={loading || activeTab === 'driver'}
                 className="w-full bg-brand-green hover:bg-brand-green/95 text-navy-900 font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                {loading ? (<><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>) : activeTab === 'driver' ? 'Send SMS Code' : 'Send Email Code'}
+                {loading ? (<><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>) : activeTab === 'driver' ? 'SMS Sign-In Unavailable' : 'Send Email Code'}
               </button>
             </form>
           </>
