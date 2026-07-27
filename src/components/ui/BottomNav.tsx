@@ -1,4 +1,4 @@
-import { Home, Truck, Receipt, Shield, Menu } from 'lucide-react';
+import { Home, Truck, Receipt, Shield, PiggyBank } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const navItems = [
@@ -6,7 +6,9 @@ const navItems = [
   { to: '/driver/loads', icon: Truck, label: 'Loads' },
   { to: '/driver/expenses', icon: Receipt, label: 'Expenses' },
   { to: '/driver/compliance', icon: Shield, label: 'Compliance' },
-  { to: '/driver/financial', icon: Menu, label: 'More' },
+  // Taxes + retirement. Previously labelled "More" behind a hamburger icon,
+  // which buried the page drivers most need to see.
+  { to: '/driver/financial', icon: PiggyBank, label: 'Taxes' },
 ];
 
 export default function BottomNav() {
