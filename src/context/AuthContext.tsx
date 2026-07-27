@@ -59,13 +59,16 @@ async function resolveProfile(supabaseUser: SupabaseUser): Promise<AppUser | nul
     }
     if (data) return data as AppUser;
 
-    // No row yet — create a default owner profile for this auth user
+    // No row yet — create a profile for this auth user. Default to `driver`
+    // (least privilege): an unknown account must never be auto-granted
+    // fleet-wide owner access. Owners are provisioned deliberately by setting
+    // role = 'owner' on their users row.
     const newProfile = {
       id: supabaseUser.id,
       email: supabaseUser.email ?? null,
       phone: supabaseUser.phone ?? null,
       full_name: supabaseUser.email?.split('@')[0] ?? 'New User',
-      role: 'owner' as UserRole,
+      role: 'driver' as UserRole,
     };
     const { data: inserted, error: insertErr } = await supabase
       .from('users')
