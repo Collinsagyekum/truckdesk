@@ -370,7 +370,11 @@ export default function CompliancePage() {
 
     const groups: Record<string, { state: string; gallons: number; amount: number; count: number }> = {};
     filtered.forEach((p) => {
-      const st = p.state || 'Unknown';
+      // Stops without a state can't be filed for IFTA and would distort the
+      // per-gallon math (no gallons recorded), so they're reported separately
+      // in the "missing a state" prompt rather than mixed into the table.
+      if (!p.state) return;
+      const st = p.state;
       if (!groups[st]) {
         groups[st] = { state: st, gallons: 0, amount: 0, count: 0 };
       }
@@ -393,7 +397,7 @@ export default function CompliancePage() {
     const rows = groupedIFTAData
       .map(
         (r) =>
-          `${r.state},${r.gallons},${r.amount.toFixed(2)},${(r.amount / r.gallons).toFixed(2)},${r.count}`
+          `${r.state},${r.gallons},${r.amount.toFixed(2)},${r.gallons > 0 ? (r.amount / r.gallons).toFixed(2) : ''},${r.count}`
       )
       .join('\n');
 
@@ -932,7 +936,7 @@ export default function CompliancePage() {
                           ${row.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                         <td className="py-4 px-6 text-right font-mono text-gray-400">
-                          ${(row.amount / row.gallons).toFixed(3)}
+                          {row.gallons > 0 ? `$${(row.amount / row.gallons).toFixed(3)}` : '—'}
                         </td>
                         <td className="py-4 px-6 text-right font-mono text-gray-400">
                           {row.count}
@@ -950,10 +954,11 @@ export default function CompliancePage() {
                         ${groupedIFTAData.reduce((acc, r) => acc + r.amount, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
                       <td className="py-4 px-6 text-right font-mono text-gray-400">
-                        ${(
-                          groupedIFTAData.reduce((acc, r) => acc + r.amount, 0) /
-                          (groupedIFTAData.reduce((acc, r) => acc + r.gallons, 0) || 1)
-                        ).toFixed(3)}
+                        {(() => {
+                          const gal = groupedIFTAData.reduce((acc, r) => acc + r.gallons, 0);
+                          const amt = groupedIFTAData.reduce((acc, r) => acc + r.amount, 0);
+                          return gal > 0 ? `$${(amt / gal).toFixed(3)}` : '—';
+                        })()}
                       </td>
                       <td className="py-4 px-6 text-right font-mono text-white">
                         {groupedIFTAData.reduce((acc, r) => acc + r.count, 0)}
