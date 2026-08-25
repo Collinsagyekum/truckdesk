@@ -5,6 +5,8 @@ import { useToast } from '../../hooks/useToast';
 import { getFleetDrivers } from '../../services/supabase/users';
 import { getFleetLoads } from '../../services/supabase/loads';
 import { getFleetExpenses, updateExpense } from '../../services/supabase/expenses';
+import { getFleetMileage } from '../../services/supabase/mileage';
+import type { DailyMileage } from '../../services/supabase/mileage';
 import StatCard from '../../components/ui/StatCard';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { formatCurrency, formatMiles, getInitials } from '../../utils/formatting';
@@ -32,6 +34,7 @@ export default function OwnerDashboardPage() {
   const [drivers, setDrivers] = useState<User[]>([]);
   const [loads, setLoads] = useState<Load[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [allMileage, setAllMileage] = useState<DailyMileage[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Copied Referral State
@@ -46,15 +49,17 @@ export default function OwnerDashboardPage() {
         setLoading(true);
         const companyId = user.company_id || 'company-123';
         
-        const [driversData, loadsData, expensesData] = await Promise.all([
+        const [driversData, loadsData, expensesData, mileageData] = await Promise.all([
           withTimeout(getFleetDrivers(companyId), [], 'getFleetDrivers'),
           withTimeout(getFleetLoads(companyId), [], 'getFleetLoads'),
           withTimeout(getFleetExpenses(companyId), [], 'getFleetExpenses'),
+          withTimeout(getFleetMileage(), [] as DailyMileage[], 'getFleetMileage'),
         ]);
 
         setDrivers(driversData);
         setLoads(loadsData);
         setExpenses(expensesData);
+        setAllMileage(mileageData);
       } catch (error) {
         console.error('Error fetching owner dashboard data:', error);
         showError('Failed to load dashboard data.');
@@ -85,8 +90,11 @@ export default function OwnerDashboardPage() {
   // Helper: Filter expenses this week
   const weeklyExpenses = expenses.filter((exp) => new Date(exp.date) >= startOfWeek);
 
-  // 1. KPI Fleet Miles (this week)
-  const totalFleetMiles = weeklyLoads.reduce((sum, l) => sum + l.miles, 0);
+  // 1. KPI Fleet Miles (this week) — loads + standalone mileage
+  const weeklyMileageEntries = allMileage.filter((m) => new Date(m.log_date) >= startOfWeek);
+  const fleetLoadMiles = weeklyLoads.reduce((sum, l) => sum + l.miles, 0);
+  const fleetStandaloneMiles = weeklyMileageEntries.reduce((sum, m) => sum + (m.miles || 0), 0);
+  const totalFleetMiles = fleetLoadMiles + fleetStandaloneMiles;
 
   // 2. KPI Fleet Revenue (this week)
   const totalFleetRevenue = weeklyLoads.reduce((sum, l) => sum + l.rate, 0);
@@ -109,7 +117,9 @@ export default function OwnerDashboardPage() {
       const driverExpenses = expenses.filter((e) => e.driver_id === driver.id);
       const driverWeeklyExpenses = driverExpenses.filter((e) => new Date(e.date) >= startOfWeek);
 
-      const milesThisWeek = driverWeeklyLoads.reduce((sum, l) => sum + l.miles, 0);
+      const driverMileageEntries = allMileage.filter((m) => m.driver_id === driver.id && new Date(m.log_date) >= startOfWeek);
+      const milesThisWeek = driverWeeklyLoads.reduce((sum, l) => sum + l.miles, 0)
+        + driverMileageEntries.reduce((sum, m) => sum + (m.miles || 0), 0);
       const revenueThisWeek = driverWeeklyLoads.reduce((sum, l) => sum + l.rate, 0);
       const expensesThisWeek = driverWeeklyExpenses.reduce((sum, e) => sum + e.amount, 0);
       const netProfitThisWeek = revenueThisWeek - expensesThisWeek;

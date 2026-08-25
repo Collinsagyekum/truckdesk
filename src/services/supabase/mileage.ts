@@ -20,6 +20,16 @@ export async function getDailyMileage(driverId: string): Promise<DailyMileage[]>
   return data as DailyMileage[];
 }
 
+export async function getFleetMileage(): Promise<DailyMileage[]> {
+  const { data, error } = await supabase
+    .from('daily_mileage')
+    .select('*')
+    .order('log_date', { ascending: false });
+
+  if (error || !data) return [];
+  return data as DailyMileage[];
+}
+
 export async function getWeeklyMileage(driverId: string): Promise<DailyMileage[]> {
   const startOfWeek = new Date();
   startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
