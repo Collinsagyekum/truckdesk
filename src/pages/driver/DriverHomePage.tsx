@@ -5,6 +5,8 @@ import { useToast } from '../../hooks/useToast';
 import { getWeeklyLoads } from '../../services/supabase/loads';
 import { getExpenses, getRetirementLogs, createRetirementLog } from '../../services/supabase/expenses';
 import { getOdometer, getMaintenanceSchedule } from '../../services/supabase/maintenance';
+import { getWeeklyMileage, getDailyMileage } from '../../services/supabase/mileage';
+import type { DailyMileage } from '../../services/supabase/mileage';
 import StatCard from '../../components/ui/StatCard';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { formatCurrency, formatMiles, formatDate, getInitials } from '../../utils/formatting';
@@ -26,7 +28,8 @@ import {
   Truck,
   Receipt,
   Calendar,
-  X
+  X,
+  MapPin,
 } from 'lucide-react';
 
 interface ActivityItem {
@@ -54,6 +57,8 @@ export default function DriverHomePage() {
   const [odometer, setOdometer] = useState<number | null>(null);
   const [maintenanceSchedule, setMaintenanceSchedule] = useState<MaintenanceItem[]>([]);
   const [retirementLogs, setRetirementLogs] = useState<RetirementLog[]>([]);
+  const [weeklyMileageEntries, setWeeklyMileageEntries] = useState<DailyMileage[]>([]);
+  const [recentMileage, setRecentMileage] = useState<DailyMileage[]>([]);
   const [loading, setLoading] = useState(true);
 
   // UI state
@@ -70,12 +75,14 @@ export default function DriverHomePage() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [loadsData, expensesData, odometerData, maintenanceData, retirementData] = await Promise.all([
+        const [loadsData, expensesData, odometerData, maintenanceData, retirementData, weeklyMileageData, allMileageData] = await Promise.all([
           getWeeklyLoads(user.id),
           getExpenses(user.id),
           getOdometer(user.id),
           getMaintenanceSchedule(user.id),
           getRetirementLogs(user.id),
+          getWeeklyMileage(user.id),
+          getDailyMileage(user.id),
         ]);
 
         setWeeklyLoads(loadsData);
@@ -83,6 +90,8 @@ export default function DriverHomePage() {
         setOdometer(odometerData);
         setMaintenanceSchedule(maintenanceData);
         setRetirementLogs(retirementData as RetirementLog[]);
+        setWeeklyMileageEntries(weeklyMileageData);
+        setRecentMileage(allMileageData.slice(0, 10));
       } catch (error) {
         console.error('Error fetching driver home page data:', error);
         showError('Failed to load dashboard data. Please try again.');
@@ -134,7 +143,9 @@ export default function DriverHomePage() {
   const totalWeeklyExpenses = weeklyExpenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
   const netProfit = totalWeeklyRates - totalWeeklyExpenses;
 
-  const totalMiles = weeklyLoads.reduce((sum, load) => sum + (load.miles || 0), 0);
+  const loadMiles = weeklyLoads.reduce((sum, load) => sum + (load.miles || 0), 0);
+  const standaloneMiles = weeklyMileageEntries.reduce((sum, entry) => sum + (entry.miles || 0), 0);
+  const totalMiles = loadMiles + standaloneMiles;
 
   const activeLoadsCount = weeklyLoads.filter(
     (load) => load.status === 'active' || load.status === 'upcoming'
@@ -382,7 +393,7 @@ export default function DriverHomePage() {
           value={formatMiles(totalMiles)}
           trend="+8.5%"
           trendDirection="up"
-          subtext="Across active/done loads"
+          subtext={standaloneMiles > 0 ? `${formatMiles(loadMiles)} from loads + ${formatMiles(standaloneMiles)} logged` : 'Across active/done loads'}
         />
         <StatCard
           label="Active & Upcoming Loads"
@@ -552,6 +563,54 @@ export default function DriverHomePage() {
           </div>
         </section>
       </div>
+
+      {/* DAILY MILEAGE LOG */}
+      {recentMileage.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-base font-bold text-gray-400 uppercase tracking-widest font-sans">
+              Daily Mileage Log
+            </h2>
+            <span className="text-xs text-gray-500 font-sans">
+              Logged via MilesBot
+            </span>
+          </div>
+          <div className="bg-navy-800 border border-white/5 rounded-2xl p-4 shadow-lg">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-widest font-sans py-2 pr-4">Date</th>
+                    <th className="text-right text-xs font-semibold text-gray-400 uppercase tracking-widest font-sans py-2 pr-4">Miles</th>
+                    <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-widest font-sans py-2">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentMileage.map((entry) => (
+                    <tr key={entry.id} className="border-b border-white/5 last:border-0">
+                      <td className="py-2.5 pr-4 text-xs text-gray-300 font-sans flex items-center gap-1.5">
+                        <Calendar className="w-3 h-3 text-gray-600" />
+                        {formatDate(entry.log_date)}
+                      </td>
+                      <td className="py-2.5 pr-4 text-right text-xs font-bold text-white font-mono">
+                        {entry.miles != null ? formatMiles(entry.miles) : '—'}
+                      </td>
+                      <td className="py-2.5 text-xs text-gray-400 font-sans">
+                        {entry.notes ? (
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-gray-600" />
+                            {entry.notes}
+                          </span>
+                        ) : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* INTERACTIVE RETIREMENT CONTRIBUTION MODAL */}
       {contributionModalOpen && (
