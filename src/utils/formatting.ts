@@ -20,7 +20,11 @@ export function formatMiles(miles: number): string {
  * Formats a date string, object, or timestamp to a readable date (e.g., 'May 28, 2026').
  */
 export function formatDate(date: Date | string | number): string {
-  const d = new Date(date);
+  let input = date;
+  if (typeof input === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input)) {
+    input = input + 'T12:00:00';
+  }
+  const d = new Date(input);
   if (isNaN(d.getTime())) return '';
   return d.toLocaleDateString('en-US', {
     month: 'short',
@@ -33,7 +37,11 @@ export function formatDate(date: Date | string | number): string {
  * Formats a date string, object, or timestamp to a short date (e.g., 'May 28').
  */
 export function formatShortDate(date: Date | string | number): string {
-  const d = new Date(date);
+  let input = date;
+  if (typeof input === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input)) {
+    input = input + 'T12:00:00';
+  }
+  const d = new Date(input);
   if (isNaN(d.getTime())) return '';
   return d.toLocaleDateString('en-US', {
     month: 'short',

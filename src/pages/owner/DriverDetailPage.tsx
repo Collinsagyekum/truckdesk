@@ -25,7 +25,10 @@ interface RetirementLog {
 
 function fmtDate(d: string): string {
   if (!d) return '—';
-  const parsed = new Date(d);
+  // Date-only strings ("2026-08-24") are parsed as UTC midnight by `new Date()`,
+  // which shifts back a day in US timezones. Append T12:00 to keep the date stable.
+  const safe = /^\d{4}-\d{2}-\d{2}$/.test(d) ? d + 'T12:00:00' : d;
+  const parsed = new Date(safe);
   if (isNaN(parsed.getTime())) return d;
   return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
 }
