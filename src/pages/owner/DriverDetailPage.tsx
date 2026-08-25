@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Receipt, DollarSign, Calendar, Truck, PiggyBank, MapPin, Eye } from 'lucide-react';
+import { ArrowLeft, Receipt, DollarSign, Calendar, Truck, PiggyBank, MapPin, Eye, Navigation } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { getUserProfile } from '../../services/supabase/users';
 import { getLoads } from '../../services/supabase/loads';
 import { getExpenses, getRetirementLogs } from '../../services/supabase/expenses';
+import { getDailyMileage } from '../../services/supabase/mileage';
+import type { DailyMileage } from '../../services/supabase/mileage';
 import { withTimeout } from '../../utils/withTimeout';
 import { formatCurrency, formatMiles, getInitials } from '../../utils/formatting';
 import type { User, Load, Expense } from '../../types';
@@ -37,6 +39,7 @@ export default function DriverDetailPage() {
   const [loads, setLoads] = useState<Load[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [retirement, setRetirement] = useState<RetirementLog[]>([]);
+  const [mileage, setMileage] = useState<DailyMileage[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -45,16 +48,18 @@ export default function DriverDetailPage() {
     const load = async () => {
       try {
         setLoading(true);
-        const [d, l, e, r] = await Promise.all([
+        const [d, l, e, r, m] = await Promise.all([
           withTimeout(getUserProfile(id), null, 'getUserProfile'),
           withTimeout(getLoads(id), [], 'getLoads'),
           withTimeout(getExpenses(id), [], 'getExpenses'),
           withTimeout(getRetirementLogs(id), [], 'getRetirementLogs'),
+          withTimeout(getDailyMileage(id), [] as DailyMileage[], 'getDailyMileage'),
         ]);
         setDriver(d);
         setLoads(l);
         setExpenses(e);
         setRetirement(r as RetirementLog[]);
+        setMileage(m);
       } finally {
         setLoading(false);
       }
@@ -70,7 +75,9 @@ export default function DriverDetailPage() {
     );
   }
 
-  const totalMiles = loads.reduce((s, l) => s + l.miles, 0);
+  const loadMiles = loads.reduce((s, l) => s + l.miles, 0);
+  const standaloneMiles = mileage.reduce((s, m) => s + (m.miles || 0), 0);
+  const totalMiles = loadMiles + standaloneMiles;
   const grossRevenue = loads.reduce((s, l) => s + l.rate, 0);
   const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
   const netProfit = grossRevenue - totalExpenses;
@@ -189,6 +196,51 @@ export default function DriverDetailPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+      </section>
+
+      {/* Daily Mileage */}
+      <section>
+        <h2 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-gray-400 mb-3">
+          <Navigation className="w-4 h-4" /> Daily Mileage Log
+        </h2>
+        {mileage.length === 0 ? (
+          <EmptyState icon={Navigation} title="No mileage entries" message="This driver has no standalone mileage logged via MilesBot yet." />
+        ) : (
+          <div className="bg-navy-800 border border-white/5 rounded-2xl p-4">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-widest py-2 pr-4">Date</th>
+                    <th className="text-right text-xs font-semibold text-gray-400 uppercase tracking-widest py-2 pr-4">Miles</th>
+                    <th className="text-left text-xs font-semibold text-gray-400 uppercase tracking-widest py-2">State / Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mileage.map((entry) => (
+                    <tr key={entry.id} className="border-b border-white/5 last:border-0">
+                      <td className="py-2.5 pr-4 text-xs text-gray-300 flex items-center gap-1.5">
+                        <Calendar className="w-3 h-3 text-gray-600" />
+                        {fmtDate(entry.log_date)}
+                      </td>
+                      <td className="py-2.5 pr-4 text-right text-sm font-bold text-white font-mono">
+                        {entry.miles != null ? formatMiles(entry.miles) : '—'}
+                      </td>
+                      <td className="py-2.5 text-xs text-gray-400">
+                        {entry.notes ? (
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-gray-600" />
+                            {entry.notes}
+                          </span>
+                        ) : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </section>
