@@ -1,0 +1,383 @@
+{
+  "source": "Experian",
+  "version": "2024Q4",
+  "description": "Experian credit bureau tradeline and inquiry attributes commonly used in consumer lending models.",
+  "portfolios": ["auto_loan", "credit_card", "mortgage", "personal_loan"],
+  "attributes": [
+    {
+      "name": "FICOCV2",
+      "label": "FICO Score V2",
+      "description": "Experian/Fair Isaac Risk Model V2 score. Predicts likelihood of 90+ days past due in 24 months.",
+      "data_type": "integer",
+      "valid_range": [300, 850],
+      "special_values": { "-1": "No Score / Thin File", "-2": "Deceased", "-3": "Fraud Alert", "-7": "Not Available" },
+      "segment": "score",
+      "typical_stats": {
+        "auto_loan": { "min": 480, "max": 850, "mean": 695, "median": 710, "std": 72, "ks": 42.3, "psi": 0.018, "importance": 0.31 },
+        "credit_card": { "min": 520, "max": 850, "mean": 720, "median": 730, "std": 65, "ks": 38.1, "psi": 0.012, "importance": 0.28 },
+        "mortgage": { "min": 580, "max": 850, "mean": 745, "median": 755, "std": 55, "ks": 35.5, "psi": 0.009, "importance": 0.25 },
+        "personal_loan": { "min": 500, "max": 850, "mean": 680, "median": 690, "std": 78, "ks": 44.8, "psi": 0.022, "importance": 0.33 }
+      }
+    },
+    {
+      "name": "FICOCV3",
+      "label": "FICO Score V3",
+      "description": "Experian/Fair Isaac Risk Model V3 score with enhanced trended data.",
+      "data_type": "integer",
+      "valid_range": [300, 850],
+      "special_values": { "-1": "No Score / Thin File", "-2": "Deceased", "-7": "Not Available" },
+      "segment": "score",
+      "typical_stats": {
+        "auto_loan": { "min": 475, "max": 850, "mean": 690, "median": 705, "std": 74, "ks": 43.1, "psi": 0.020, "importance": 0.32 },
+        "credit_card": { "min": 515, "max": 850, "mean": 715, "median": 725, "std": 67, "ks": 39.0, "psi": 0.014, "importance": 0.29 },
+        "mortgage": { "min": 575, "max": 850, "mean": 740, "median": 750, "std": 57, "ks": 36.2, "psi": 0.010, "importance": 0.26 },
+        "personal_loan": { "min": 495, "max": 850, "mean": 675, "median": 685, "std": 80, "ks": 45.5, "psi": 0.024, "importance": 0.34 }
+      }
+    },
+    {
+      "name": "VANTAGE4",
+      "label": "VantageScore 4.0",
+      "description": "VantageScore 4.0 credit score using trended data and machine learning techniques.",
+      "data_type": "integer",
+      "valid_range": [300, 850],
+      "special_values": { "-1": "No Score", "-7": "Not Available" },
+      "segment": "score",
+      "typical_stats": {
+        "auto_loan": { "min": 470, "max": 850, "mean": 688, "median": 700, "std": 76, "ks": 40.5, "psi": 0.021, "importance": 0.27 },
+        "credit_card": { "min": 510, "max": 850, "mean": 712, "median": 722, "std": 68, "ks": 36.8, "psi": 0.015, "importance": 0.24 },
+        "mortgage": { "min": 570, "max": 850, "mean": 738, "median": 748, "std": 58, "ks": 33.9, "psi": 0.011, "importance": 0.22 },
+        "personal_loan": { "min": 490, "max": 850, "mean": 673, "median": 683, "std": 82, "ks": 43.2, "psi": 0.025, "importance": 0.29 }
+      }
+    },
+    {
+      "name": "TOT_OPEN_TL",
+      "label": "Total Open Tradelines",
+      "description": "Total number of currently open tradeline accounts on the credit file.",
+      "data_type": "integer",
+      "valid_range": [0, 999],
+      "special_values": { "-1": "No Data", "-7": "Not Available" },
+      "segment": "depth_of_file",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 85, "mean": 9.2, "median": 8, "std": 6.1, "ks": 12.4, "psi": 0.035, "importance": 0.08 },
+        "credit_card": { "min": 0, "max": 120, "mean": 12.5, "median": 11, "std": 7.8, "ks": 10.1, "psi": 0.028, "importance": 0.06 },
+        "mortgage": { "min": 1, "max": 90, "mean": 14.3, "median": 13, "std": 8.2, "ks": 8.9, "psi": 0.022, "importance": 0.05 },
+        "personal_loan": { "min": 0, "max": 95, "mean": 8.1, "median": 7, "std": 5.9, "ks": 14.2, "psi": 0.040, "importance": 0.09 }
+      }
+    },
+    {
+      "name": "TOT_TL",
+      "label": "Total Tradelines",
+      "description": "Total number of tradeline accounts (open and closed) on the credit file.",
+      "data_type": "integer",
+      "valid_range": [0, 999],
+      "special_values": { "-1": "No Data", "-7": "Not Available" },
+      "segment": "depth_of_file",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 150, "mean": 22.4, "median": 20, "std": 12.8, "ks": 8.5, "psi": 0.030, "importance": 0.06 },
+        "credit_card": { "min": 0, "max": 200, "mean": 28.1, "median": 25, "std": 14.5, "ks": 7.2, "psi": 0.025, "importance": 0.04 },
+        "mortgage": { "min": 1, "max": 180, "mean": 32.5, "median": 30, "std": 15.2, "ks": 6.1, "psi": 0.019, "importance": 0.03 },
+        "personal_loan": { "min": 0, "max": 160, "mean": 19.8, "median": 17, "std": 11.5, "ks": 10.3, "psi": 0.038, "importance": 0.07 }
+      }
+    },
+    {
+      "name": "OLDEST_TL_MTHS",
+      "label": "Age of Oldest Tradeline (Months)",
+      "description": "Number of months since the oldest tradeline was opened.",
+      "data_type": "integer",
+      "valid_range": [0, 999],
+      "special_values": { "-1": "No Tradelines", "-7": "Not Available" },
+      "segment": "time_on_file",
+      "typical_stats": {
+        "auto_loan": { "min": 1, "max": 600, "mean": 168, "median": 156, "std": 92, "ks": 18.7, "psi": 0.025, "importance": 0.11 },
+        "credit_card": { "min": 1, "max": 650, "mean": 192, "median": 180, "std": 98, "ks": 16.2, "psi": 0.020, "importance": 0.09 },
+        "mortgage": { "min": 6, "max": 700, "mean": 228, "median": 216, "std": 105, "ks": 14.5, "psi": 0.015, "importance": 0.08 },
+        "personal_loan": { "min": 1, "max": 580, "mean": 145, "median": 132, "std": 88, "ks": 20.1, "psi": 0.030, "importance": 0.12 }
+      }
+    },
+    {
+      "name": "REVOL_UTIL",
+      "label": "Revolving Utilization Ratio",
+      "description": "Total revolving balances divided by total revolving credit limits, expressed as a percentage.",
+      "data_type": "float",
+      "valid_range": [0, 999],
+      "special_values": { "-1": "No Revolving Accounts", "-7": "Not Available", "998": "Balance with Zero Limit" },
+      "segment": "utilization",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 999, "mean": 42.5, "median": 35, "std": 32.1, "ks": 28.3, "psi": 0.042, "importance": 0.14 },
+        "credit_card": { "min": 0, "max": 999, "mean": 38.2, "median": 30, "std": 30.5, "ks": 32.1, "psi": 0.035, "importance": 0.18 },
+        "mortgage": { "min": 0, "max": 999, "mean": 28.5, "median": 20, "std": 25.8, "ks": 22.6, "psi": 0.025, "importance": 0.10 },
+        "personal_loan": { "min": 0, "max": 999, "mean": 48.1, "median": 42, "std": 34.2, "ks": 30.5, "psi": 0.048, "importance": 0.16 }
+      }
+    },
+    {
+      "name": "TOT_BAL",
+      "label": "Total Balance All Tradelines",
+      "description": "Sum of current balances across all tradeline accounts.",
+      "data_type": "integer",
+      "valid_range": [0, 9999999],
+      "special_values": { "-1": "No Data", "-7": "Not Available" },
+      "segment": "balance",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 2500000, "mean": 85400, "median": 42000, "std": 125000, "ks": 15.2, "psi": 0.038, "importance": 0.07 },
+        "credit_card": { "min": 0, "max": 1500000, "mean": 52300, "median": 28000, "std": 78000, "ks": 12.8, "psi": 0.032, "importance": 0.05 },
+        "mortgage": { "min": 0, "max": 5000000, "mean": 285000, "median": 225000, "std": 245000, "ks": 10.5, "psi": 0.022, "importance": 0.04 },
+        "personal_loan": { "min": 0, "max": 1800000, "mean": 68500, "median": 35000, "std": 98000, "ks": 16.8, "psi": 0.045, "importance": 0.08 }
+      }
+    },
+    {
+      "name": "REVOL_BAL",
+      "label": "Total Revolving Balance",
+      "description": "Sum of current balances on all revolving tradeline accounts.",
+      "data_type": "integer",
+      "valid_range": [0, 9999999],
+      "special_values": { "-1": "No Revolving Accounts", "-7": "Not Available" },
+      "segment": "balance",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 500000, "mean": 18500, "median": 8200, "std": 28000, "ks": 22.1, "psi": 0.040, "importance": 0.10 },
+        "credit_card": { "min": 0, "max": 800000, "mean": 24300, "median": 12500, "std": 35000, "ks": 25.8, "psi": 0.035, "importance": 0.13 },
+        "mortgage": { "min": 0, "max": 600000, "mean": 21200, "median": 10800, "std": 30000, "ks": 18.5, "psi": 0.028, "importance": 0.07 },
+        "personal_loan": { "min": 0, "max": 450000, "mean": 20100, "median": 9500, "std": 29000, "ks": 24.3, "psi": 0.045, "importance": 0.12 }
+      }
+    },
+    {
+      "name": "INSTALL_BAL",
+      "label": "Total Installment Balance",
+      "description": "Sum of current balances on all installment tradeline accounts.",
+      "data_type": "integer",
+      "valid_range": [0, 9999999],
+      "special_values": { "-1": "No Installment Accounts", "-7": "Not Available" },
+      "segment": "balance",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 500000, "mean": 45200, "median": 28000, "std": 52000, "ks": 14.8, "psi": 0.032, "importance": 0.09 },
+        "credit_card": { "min": 0, "max": 400000, "mean": 22500, "median": 12000, "std": 32000, "ks": 10.2, "psi": 0.028, "importance": 0.04 },
+        "mortgage": { "min": 0, "max": 600000, "mean": 35800, "median": 20000, "std": 45000, "ks": 8.5, "psi": 0.022, "importance": 0.03 },
+        "personal_loan": { "min": 0, "max": 450000, "mean": 38500, "median": 22000, "std": 48000, "ks": 16.5, "psi": 0.038, "importance": 0.10 }
+      }
+    },
+    {
+      "name": "NUM_30DPD_12M",
+      "label": "Number of 30+ DPD in Last 12 Months",
+      "description": "Count of tradelines showing 30 or more days past due in the last 12 months.",
+      "data_type": "integer",
+      "valid_range": [0, 99],
+      "special_values": { "-1": "No Data", "-7": "Not Available" },
+      "segment": "delinquency",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 15, "mean": 0.45, "median": 0, "std": 1.2, "ks": 35.2, "psi": 0.055, "importance": 0.18 },
+        "credit_card": { "min": 0, "max": 20, "mean": 0.38, "median": 0, "std": 1.0, "ks": 30.8, "psi": 0.048, "importance": 0.15 },
+        "mortgage": { "min": 0, "max": 10, "mean": 0.15, "median": 0, "std": 0.6, "ks": 25.2, "psi": 0.035, "importance": 0.12 },
+        "personal_loan": { "min": 0, "max": 18, "mean": 0.52, "median": 0, "std": 1.4, "ks": 38.5, "psi": 0.062, "importance": 0.20 }
+      }
+    },
+    {
+      "name": "NUM_60DPD_12M",
+      "label": "Number of 60+ DPD in Last 12 Months",
+      "description": "Count of tradelines showing 60 or more days past due in the last 12 months.",
+      "data_type": "integer",
+      "valid_range": [0, 99],
+      "special_values": { "-1": "No Data", "-7": "Not Available" },
+      "segment": "delinquency",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 10, "mean": 0.22, "median": 0, "std": 0.8, "ks": 38.5, "psi": 0.060, "importance": 0.16 },
+        "credit_card": { "min": 0, "max": 12, "mean": 0.18, "median": 0, "std": 0.7, "ks": 34.2, "psi": 0.052, "importance": 0.13 },
+        "mortgage": { "min": 0, "max": 6, "mean": 0.08, "median": 0, "std": 0.4, "ks": 28.8, "psi": 0.038, "importance": 0.10 },
+        "personal_loan": { "min": 0, "max": 12, "mean": 0.28, "median": 0, "std": 0.9, "ks": 42.1, "psi": 0.068, "importance": 0.18 }
+      }
+    },
+    {
+      "name": "NUM_90DPD_24M",
+      "label": "Number of 90+ DPD in Last 24 Months",
+      "description": "Count of tradelines showing 90 or more days past due in the last 24 months.",
+      "data_type": "integer",
+      "valid_range": [0, 99],
+      "special_values": { "-1": "No Data", "-7": "Not Available" },
+      "segment": "delinquency",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 8, "mean": 0.15, "median": 0, "std": 0.6, "ks": 40.2, "psi": 0.065, "importance": 0.15 },
+        "credit_card": { "min": 0, "max": 10, "mean": 0.12, "median": 0, "std": 0.5, "ks": 36.5, "psi": 0.058, "importance": 0.12 },
+        "mortgage": { "min": 0, "max": 5, "mean": 0.05, "median": 0, "std": 0.3, "ks": 30.1, "psi": 0.042, "importance": 0.09 },
+        "personal_loan": { "min": 0, "max": 9, "mean": 0.20, "median": 0, "std": 0.7, "ks": 44.8, "psi": 0.072, "importance": 0.17 }
+      }
+    },
+    {
+      "name": "WORST_DPD_12M",
+      "label": "Worst Delinquency Status in Last 12 Months",
+      "description": "Highest delinquency status code across all tradelines in the past 12 months.",
+      "data_type": "categorical",
+      "valid_range": [0, 9],
+      "special_values": { "0": "Current", "1": "30 DPD", "2": "60 DPD", "3": "90 DPD", "4": "120 DPD", "5": "150+ DPD", "7": "Charge-off/Collection", "8": "Repossession", "9": "Foreclosure", "-1": "No Data", "-7": "Not Available" },
+      "segment": "delinquency",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 9, "mean": 0.52, "median": 0, "std": 1.3, "ks": 36.8, "psi": 0.050, "importance": 0.17 },
+        "credit_card": { "min": 0, "max": 7, "mean": 0.42, "median": 0, "std": 1.1, "ks": 32.5, "psi": 0.042, "importance": 0.14 },
+        "mortgage": { "min": 0, "max": 9, "mean": 0.18, "median": 0, "std": 0.7, "ks": 26.2, "psi": 0.032, "importance": 0.11 },
+        "personal_loan": { "min": 0, "max": 7, "mean": 0.60, "median": 0, "std": 1.5, "ks": 40.1, "psi": 0.058, "importance": 0.19 }
+      }
+    },
+    {
+      "name": "NUM_INQ_6M",
+      "label": "Number of Inquiries in Last 6 Months",
+      "description": "Count of hard credit inquiries in the past 6 months.",
+      "data_type": "integer",
+      "valid_range": [0, 99],
+      "special_values": { "-1": "No Data", "-7": "Not Available" },
+      "segment": "inquiry",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 25, "mean": 2.8, "median": 2, "std": 3.1, "ks": 18.5, "psi": 0.038, "importance": 0.09 },
+        "credit_card": { "min": 0, "max": 30, "mean": 1.5, "median": 1, "std": 2.2, "ks": 15.2, "psi": 0.030, "importance": 0.07 },
+        "mortgage": { "min": 0, "max": 20, "mean": 2.2, "median": 2, "std": 2.5, "ks": 12.8, "psi": 0.025, "importance": 0.06 },
+        "personal_loan": { "min": 0, "max": 28, "mean": 3.5, "median": 3, "std": 3.8, "ks": 20.2, "psi": 0.045, "importance": 0.10 }
+      }
+    },
+    {
+      "name": "NUM_NEW_TL_12M",
+      "label": "Number of New Tradelines in Last 12 Months",
+      "description": "Count of tradelines opened in the last 12 months.",
+      "data_type": "integer",
+      "valid_range": [0, 99],
+      "special_values": { "-1": "No Data", "-7": "Not Available" },
+      "segment": "new_credit",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 15, "mean": 2.1, "median": 2, "std": 2.3, "ks": 14.2, "psi": 0.032, "importance": 0.07 },
+        "credit_card": { "min": 0, "max": 20, "mean": 1.8, "median": 1, "std": 2.0, "ks": 12.5, "psi": 0.028, "importance": 0.06 },
+        "mortgage": { "min": 0, "max": 12, "mean": 1.2, "median": 1, "std": 1.5, "ks": 10.8, "psi": 0.022, "importance": 0.04 },
+        "personal_loan": { "min": 0, "max": 18, "mean": 2.5, "median": 2, "std": 2.8, "ks": 16.5, "psi": 0.038, "importance": 0.08 }
+      }
+    },
+    {
+      "name": "MONTHS_SINCE_DLQ",
+      "label": "Months Since Most Recent Delinquency",
+      "description": "Number of months since the most recent delinquency event on any tradeline.",
+      "data_type": "integer",
+      "valid_range": [0, 999],
+      "special_values": { "-1": "Never Delinquent", "-7": "Not Available" },
+      "segment": "delinquency",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 300, "mean": 42, "median": 28, "std": 45, "ks": 25.8, "psi": 0.042, "importance": 0.13 },
+        "credit_card": { "min": 0, "max": 350, "mean": 48, "median": 32, "std": 50, "ks": 22.5, "psi": 0.038, "importance": 0.11 },
+        "mortgage": { "min": 0, "max": 400, "mean": 62, "median": 45, "std": 58, "ks": 18.2, "psi": 0.030, "importance": 0.08 },
+        "personal_loan": { "min": 0, "max": 280, "mean": 38, "median": 24, "std": 42, "ks": 28.5, "psi": 0.048, "importance": 0.14 }
+      }
+    },
+    {
+      "name": "NUM_PUBLIC_RECORDS",
+      "label": "Number of Public Records",
+      "description": "Count of public record items including bankruptcies, tax liens, and civil judgments.",
+      "data_type": "integer",
+      "valid_range": [0, 99],
+      "special_values": { "-1": "No Data", "-7": "Not Available" },
+      "segment": "public_record",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 5, "mean": 0.12, "median": 0, "std": 0.4, "ks": 22.5, "psi": 0.038, "importance": 0.10 },
+        "credit_card": { "min": 0, "max": 5, "mean": 0.08, "median": 0, "std": 0.3, "ks": 18.2, "psi": 0.032, "importance": 0.08 },
+        "mortgage": { "min": 0, "max": 3, "mean": 0.04, "median": 0, "std": 0.2, "ks": 15.5, "psi": 0.025, "importance": 0.06 },
+        "personal_loan": { "min": 0, "max": 6, "mean": 0.15, "median": 0, "std": 0.5, "ks": 25.8, "psi": 0.045, "importance": 0.11 }
+      }
+    },
+    {
+      "name": "NUM_COLLECTIONS",
+      "label": "Number of Collection Accounts",
+      "description": "Count of tradelines currently in collection status.",
+      "data_type": "integer",
+      "valid_range": [0, 99],
+      "special_values": { "-1": "No Data", "-7": "Not Available" },
+      "segment": "derogatory",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 15, "mean": 0.85, "median": 0, "std": 1.8, "ks": 28.5, "psi": 0.050, "importance": 0.12 },
+        "credit_card": { "min": 0, "max": 12, "mean": 0.62, "median": 0, "std": 1.5, "ks": 24.2, "psi": 0.042, "importance": 0.09 },
+        "mortgage": { "min": 0, "max": 8, "mean": 0.25, "median": 0, "std": 0.8, "ks": 18.8, "psi": 0.032, "importance": 0.07 },
+        "personal_loan": { "min": 0, "max": 18, "mean": 1.05, "median": 0, "std": 2.2, "ks": 32.1, "psi": 0.058, "importance": 0.14 }
+      }
+    },
+    {
+      "name": "PCT_TL_CURRENT",
+      "label": "Percent Tradelines Current",
+      "description": "Percentage of all tradelines that are currently in good standing (current).",
+      "data_type": "float",
+      "valid_range": [0, 100],
+      "special_values": { "-1": "No Tradelines", "-7": "Not Available" },
+      "segment": "payment_history",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 100, "mean": 88.5, "median": 95, "std": 18.2, "ks": 30.2, "psi": 0.038, "importance": 0.15 },
+        "credit_card": { "min": 0, "max": 100, "mean": 91.2, "median": 97, "std": 15.5, "ks": 26.8, "psi": 0.032, "importance": 0.12 },
+        "mortgage": { "min": 0, "max": 100, "mean": 95.5, "median": 100, "std": 10.2, "ks": 20.5, "psi": 0.025, "importance": 0.09 },
+        "personal_loan": { "min": 0, "max": 100, "mean": 86.2, "median": 93, "std": 20.5, "ks": 33.8, "psi": 0.045, "importance": 0.16 }
+      }
+    },
+    {
+      "name": "TOT_HI_CRED",
+      "label": "Total High Credit/Credit Limit",
+      "description": "Sum of high credit or credit limit amounts across all tradelines.",
+      "data_type": "integer",
+      "valid_range": [0, 9999999],
+      "special_values": { "-1": "No Data", "-7": "Not Available" },
+      "segment": "credit_capacity",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 3000000, "mean": 125000, "median": 72000, "std": 168000, "ks": 10.5, "psi": 0.028, "importance": 0.05 },
+        "credit_card": { "min": 0, "max": 2500000, "mean": 95000, "median": 55000, "std": 125000, "ks": 8.8, "psi": 0.022, "importance": 0.04 },
+        "mortgage": { "min": 0, "max": 8000000, "mean": 420000, "median": 325000, "std": 380000, "ks": 7.2, "psi": 0.018, "importance": 0.03 },
+        "personal_loan": { "min": 0, "max": 2200000, "mean": 105000, "median": 58000, "std": 145000, "ks": 12.2, "psi": 0.032, "importance": 0.06 }
+      }
+    },
+    {
+      "name": "TOT_MONTHLY_PMT",
+      "label": "Total Monthly Payment Amount",
+      "description": "Sum of scheduled monthly payment amounts across all tradelines.",
+      "data_type": "integer",
+      "valid_range": [0, 999999],
+      "special_values": { "-1": "No Data", "-7": "Not Available" },
+      "segment": "payment",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 25000, "mean": 1850, "median": 1200, "std": 2100, "ks": 12.8, "psi": 0.035, "importance": 0.06 },
+        "credit_card": { "min": 0, "max": 15000, "mean": 980, "median": 550, "std": 1200, "ks": 10.2, "psi": 0.028, "importance": 0.04 },
+        "mortgage": { "min": 0, "max": 35000, "mean": 3200, "median": 2400, "std": 2800, "ks": 8.5, "psi": 0.022, "importance": 0.03 },
+        "personal_loan": { "min": 0, "max": 20000, "mean": 1520, "median": 950, "std": 1800, "ks": 14.5, "psi": 0.040, "importance": 0.07 }
+      }
+    },
+    {
+      "name": "NUM_BANKRUPT",
+      "label": "Number of Bankruptcies",
+      "description": "Total count of bankruptcy public records (Chapter 7, 11, or 13).",
+      "data_type": "integer",
+      "valid_range": [0, 10],
+      "special_values": { "-1": "No Data", "-7": "Not Available" },
+      "segment": "public_record",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 4, "mean": 0.08, "median": 0, "std": 0.3, "ks": 20.5, "psi": 0.035, "importance": 0.09 },
+        "credit_card": { "min": 0, "max": 3, "mean": 0.05, "median": 0, "std": 0.2, "ks": 16.8, "psi": 0.028, "importance": 0.07 },
+        "mortgage": { "min": 0, "max": 2, "mean": 0.02, "median": 0, "std": 0.1, "ks": 14.2, "psi": 0.022, "importance": 0.05 },
+        "personal_loan": { "min": 0, "max": 5, "mean": 0.10, "median": 0, "std": 0.4, "ks": 24.2, "psi": 0.042, "importance": 0.10 }
+      }
+    },
+    {
+      "name": "MTHS_SINCE_BANKRUPT",
+      "label": "Months Since Most Recent Bankruptcy",
+      "description": "Number of months since the most recent bankruptcy filing.",
+      "data_type": "integer",
+      "valid_range": [0, 999],
+      "special_values": { "-1": "No Bankruptcy", "-7": "Not Available" },
+      "segment": "public_record",
+      "typical_stats": {
+        "auto_loan": { "min": 0, "max": 240, "mean": 68, "median": 55, "std": 48, "ks": 18.2, "psi": 0.032, "importance": 0.08 },
+        "credit_card": { "min": 0, "max": 240, "mean": 72, "median": 60, "std": 50, "ks": 15.5, "psi": 0.028, "importance": 0.06 },
+        "mortgage": { "min": 0, "max": 240, "mean": 85, "median": 72, "std": 55, "ks": 12.8, "psi": 0.022, "importance": 0.05 },
+        "personal_loan": { "min": 0, "max": 240, "mean": 62, "median": 48, "std": 45, "ks": 20.5, "psi": 0.038, "importance": 0.09 }
+      }
+    },
+    {
+      "name": "AVG_TL_AGE_MTHS",
+      "label": "Average Tradeline Age (Months)",
+      "description": "Average age in months across all tradeline accounts.",
+      "data_type": "float",
+      "valid_range": [0, 999],
+      "special_values": { "-1": "No Tradelines", "-7": "Not Available" },
+      "segment": "time_on_file",
+      "typical_stats": {
+        "auto_loan": { "min": 1, "max": 400, "mean": 85, "median": 72, "std": 55, "ks": 16.5, "psi": 0.030, "importance": 0.10 },
+        "credit_card": { "min": 1, "max": 450, "mean": 98, "median": 85, "std": 60, "ks": 14.2, "psi": 0.025, "importance": 0.08 },
+        "mortgage": { "min": 3, "max": 500, "mean": 118, "median": 105, "std": 65, "ks": 12.5, "psi": 0.020, "importance": 0.06 },
+        "personal_loan": { "min": 1, "max": 380, "mean": 78, "median": 65, "std": 52, "ks": 18.8, "psi": 0.035, "importance": 0.11 }
+      }
+    }
+  ]
+}

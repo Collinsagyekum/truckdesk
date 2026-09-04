@@ -1,0 +1,103 @@
+source,attribute,label,segment,data_type,n_records,n_missing,pct_missing,actual_min,actual_max,actual_mean,actual_std,dict_ks,dict_psi,dict_importance
+Experian,FICOCV2,FICO Score V2,score,integer,4842,158,3.16,492.0,850.0,762.8,63.66,38.1,0.012,0.28
+Experian,FICOCV3,FICO Score V3,score,integer,4831,169,3.38,425.0,850.0,762.17,66.95,39.0,0.014,0.29
+Experian,VANTAGE4,VantageScore 4.0,score,integer,4849,151,3.02,473.0,850.0,751.67,67.04,36.8,0.015,0.24
+Experian,TOT_OPEN_TL,Total Open Tradelines,depth_of_file,integer,4864,136,2.72,0.0,39.0,12.76,7.49,10.1,0.028,0.06
+Experian,TOT_TL,Total Tradelines,depth_of_file,integer,4877,123,2.46,0.0,83.0,28.49,14.17,7.2,0.025,0.04
+Experian,OLDEST_TL_MTHS,Age of Oldest Tradeline (Months),time_on_file,integer,4854,146,2.92,0.0,531.0,193.8,96.49,16.2,0.02,0.09
+Experian,REVOL_UTIL,Revolving Utilization Ratio,utilization,float,4849,151,3.02,0.0,151.06,39.69,27.64,32.1,0.035,0.18
+Experian,TOT_BAL,Total Balance All Tradelines,balance,integer,4835,165,3.3,0.0,301800.0,64688.92,61605.43,12.8,0.032,0.05
+Experian,REVOL_BAL,Total Revolving Balance,balance,integer,4853,147,2.94,0.0,144217.0,29422.84,28025.7,25.8,0.035,0.13
+Experian,INSTALL_BAL,Total Installment Balance,balance,integer,4866,134,2.68,0.0,130111.0,26722.4,25611.02,10.2,0.028,0.04
+Experian,NUM_30DPD_12M,Number of 30+ DPD in Last 12 Months,delinquency,integer,4860,140,2.8,0.0,4.0,0.51,0.72,30.8,0.048,0.15
+Experian,NUM_60DPD_12M,Number of 60+ DPD in Last 12 Months,delinquency,integer,4847,153,3.06,0.0,3.0,0.3,0.5,34.2,0.052,0.13
+Experian,NUM_90DPD_24M,Number of 90+ DPD in Last 24 Months,delinquency,integer,4849,151,3.02,0.0,2.0,0.2,0.41,36.5,0.058,0.12
+Experian,WORST_DPD_12M,Worst Delinquency Status in Last 12 Months,delinquency,categorical,4864,136,2.72,0.0,4.0,0.66,0.81,32.5,0.042,0.14
+Experian,NUM_INQ_6M,Number of Inquiries in Last 6 Months,inquiry,integer,4850,150,3.0,0.0,10.0,1.83,1.76,15.2,0.03,0.07
+Experian,NUM_NEW_TL_12M,Number of New Tradelines in Last 12 Months,new_credit,integer,4850,150,3.0,0.0,9.0,1.99,1.73,12.5,0.028,0.06
+Experian,MONTHS_SINCE_DLQ,Months Since Most Recent Delinquency,delinquency,integer,4842,158,3.16,0.0,192.0,49.04,42.69,22.5,0.038,0.11
+Experian,NUM_PUBLIC_RECORDS,Number of Public Records,public_record,integer,4850,150,3.0,0.0,1.0,0.08,0.27,18.2,0.032,0.08
+Experian,NUM_COLLECTIONS,Number of Collection Accounts,derogatory,integer,4856,144,2.88,0.0,7.0,0.97,1.12,24.2,0.042,0.09
+Experian,PCT_TL_CURRENT,Percent Tradelines Current,payment_history,float,4837,163,3.26,26.0,100.0,88.48,11.99,26.8,0.032,0.12
+Experian,TOT_HI_CRED,Total High Credit/Credit Limit,credit_capacity,integer,4875,125,2.5,0.0,593923.0,109073.23,101104.64,8.8,0.022,0.04
+Experian,TOT_MONTHLY_PMT,Total Monthly Payment Amount,payment,integer,4835,165,3.3,0.0,5789.0,1146.99,999.13,10.2,0.028,0.04
+Experian,NUM_BANKRUPT,Number of Bankruptcies,public_record,integer,4848,152,3.04,0.0,1.0,0.01,0.11,16.8,0.028,0.07
+Experian,MTHS_SINCE_BANKRUPT,Months Since Most Recent Bankruptcy,public_record,integer,4850,150,3.0,0.0,246.0,72.94,46.71,15.5,0.028,0.06
+Experian,AVG_TL_AGE_MTHS,Average Tradeline Age (Months),time_on_file,float,4841,159,3.18,0.0,336.73,100.45,57.71,14.2,0.025,0.08
+Equifax,EFX_BEACON_5,Equifax Beacon 5.0 Score,score,integer,4832,168,3.36,414.0,850.0,763.69,62.75,37.5,0.011,0.27
+Equifax,EFX_BEACON_9,Equifax Beacon 9.0 Score,score,integer,4865,135,2.7,482.0,850.0,762.43,65.29,38.5,0.013,0.28
+Equifax,EFX_TOT_REV_TL,Total Revolving Tradelines,depth_of_file,integer,4867,133,2.66,0.0,33.0,9.82,5.85,8.5,0.025,0.05
+Equifax,EFX_TOT_INST_TL,Total Installment Tradelines,depth_of_file,integer,4841,159,3.18,0.0,15.0,4.67,3.05,7.8,0.025,0.04
+Equifax,EFX_REV_UTIL_PCT,Revolving Utilization Percentage,utilization,float,4848,152,3.04,0.0,144.61,39.54,27.65,31.5,0.033,0.17
+Equifax,EFX_MTHS_OLDEST_TL,Months Since Oldest Tradeline Opened,time_on_file,integer,4854,146,2.92,0.0,576.0,197.78,94.58,15.8,0.019,0.08
+Equifax,EFX_NUM_SATISF_TL,Number of Satisfactory Tradelines,payment_history,integer,4835,165,3.3,0.0,59.0,18.84,10.7,10.2,0.022,0.06
+Equifax,EFX_NUM_DEROG_TL,Number of Derogatory Tradelines,derogatory,integer,4845,155,3.1,0.0,5.0,0.75,0.9,26.5,0.045,0.11
+Equifax,EFX_TOT_BAL_EXCL_MORT,Total Balance Excluding Mortgage,balance,integer,4843,157,3.14,0.0,174990.0,38276.07,34395.48,12.2,0.03,0.05
+Equifax,EFX_NUM_DPD30_EVER,Number of 30+ DPD Ever,delinquency,integer,4848,152,3.04,0.0,12.0,1.77,1.91,24.8,0.038,0.1
+Equifax,EFX_MAX_DPD_24M,Maximum Days Past Due in Last 24 Months,delinquency,integer,4851,149,2.98,0.0,102.0,15.2,18.76,31.5,0.048,0.13
+Equifax,EFX_NUM_INQ_3M,Number of Inquiries in Last 3 Months,inquiry,integer,4850,150,3.0,0.0,5.0,1.0,1.05,12.8,0.028,0.06
+Equifax,EFX_NUM_INQ_12M,Number of Inquiries in Last 12 Months,inquiry,integer,4850,150,3.0,0.0,12.0,2.52,2.33,12.2,0.025,0.05
+Equifax,EFX_OPEN_AUTO_TL,Number of Open Auto Tradelines,auto_specific,integer,4833,167,3.34,0.0,4.0,0.68,0.71,8.5,0.02,0.03
+Equifax,EFX_OPEN_MTG_TL,Number of Open Mortgage Tradelines,mortgage_specific,integer,4839,161,3.22,0.0,3.0,0.66,0.67,6.8,0.018,0.02
+Equifax,EFX_TOT_PAST_DUE_AMT,Total Past Due Amount,delinquency,integer,4843,157,3.14,0.0,9885.0,1072.73,1537.76,28.2,0.05,0.12
+Equifax,EFX_DEBT_TO_INC_RATIO,Estimated Debt to Income Ratio,capacity,float,4842,158,3.16,0.0,102.73,31.69,18.91,18.2,0.032,0.09
+TransUnion,TU_FICO8,TransUnion FICO Score 8,score,integer,4845,155,3.1,489.0,850.0,764.57,63.22,37.8,0.012,0.27
+TransUnion,TU_FICO_AUTO8,TransUnion FICO Auto Score 8,score,integer,4847,153,3.06,456.0,900.0,744.35,72.47,35.2,0.015,0.18
+TransUnion,TU_CV_LINK_SCORE,CreditVision Link Score,score,integer,4862,138,2.76,392.0,850.0,752.65,68.81,36.5,0.016,0.25
+TransUnion,TU_TOT_OPEN_TL,Total Open Tradelines (TU),depth_of_file,integer,4867,133,2.66,0.0,38.0,12.36,7.19,9.8,0.027,0.05
+TransUnion,TU_REVOL_UTIL,Revolving Utilization (TU),utilization,float,4854,146,2.92,0.0,155.41,41.13,28.13,31.8,0.034,0.17
+TransUnion,TU_NUM_30DPD_24M,Number of 30+ DPD in Last 24 Months (TU),delinquency,integer,4842,158,3.16,0.0,5.0,0.74,0.94,30.2,0.045,0.14
+TransUnion,TU_NUM_90DPD_EVER,Number of 90+ DPD Ever (TU),delinquency,integer,4858,142,2.84,0.0,3.0,0.49,0.67,32.5,0.05,0.12
+TransUnion,TU_CV_PAYMENT_VELOCITY,CreditVision Payment Velocity,trended_data,float,4834,166,3.32,0.0,100.0,58.29,19.4,25.8,0.028,0.13
+TransUnion,TU_CV_BAL_TREND_24M,CreditVision Balance Trend 24 Months,trended_data,categorical,4872,128,2.56,1.0,4.0,2.03,0.78,20.2,0.028,0.12
+TransUnion,TU_MTHS_SINCE_OLDEST,Months Since Oldest Tradeline (TU),time_on_file,integer,4859,141,2.82,0.0,600.0,195.61,96.53,16.0,0.02,0.08
+TransUnion,TU_NUM_COLLECTIONS,Number of Collection Accounts (TU),derogatory,integer,4852,148,2.96,0.0,6.0,0.92,1.05,23.8,0.041,0.09
+TransUnion,TU_NUM_NEW_TL_6M,New Tradelines in Last 6 Months (TU),new_credit,integer,4849,151,3.02,0.0,6.0,0.95,0.99,10.5,0.025,0.05
+TransUnion,TU_TOT_BAL,Total Balance (TU),balance,integer,4850,150,3.0,0.0,310691.0,63185.42,60152.38,12.5,0.031,0.05
+TransUnion,TU_NUM_BANKRUPT,Number of Bankruptcies (TU),public_record,integer,4825,175,3.5,0.0,1.0,0.01,0.11,16.5,0.027,0.07
+TransUnion,TU_PCT_TL_NEVER_DLQ,Percent Tradelines Never Delinquent (TU),payment_history,float,4862,138,2.76,16.7,100.0,83.6,15.21,25.2,0.034,0.11
+LexisNexis,LN_RISKVIEW_SCORE,RiskView Score,alternative_score,integer,4855,145,2.9,501.0,900.0,752.6,73.8,32.2,0.022,0.19
+LexisNexis,LN_RISKVIEW_LIENS_SCORE,RiskView Liens & Judgments Score,alternative_score,integer,4844,156,3.12,516.0,900.0,754.29,65.48,22.5,0.02,0.1
+LexisNexis,LN_ADDR_STABILITY,Address Stability Score,stability,integer,4844,156,3.12,0.0,100.0,65.17,19.08,15.5,0.028,0.07
+LexisNexis,LN_MTHS_AT_CURR_ADDR,Months at Current Address,stability,integer,4848,152,3.04,0.0,305.0,63.78,50.18,12.2,0.024,0.06
+LexisNexis,LN_NUM_ADDR_CHANGES_5Y,Number of Address Changes in 5 Years,stability,integer,4865,135,2.7,0.0,8.0,1.91,1.4,13.2,0.025,0.06
+LexisNexis,LN_PROPERTY_OWNER,Property Ownership Indicator,assets,categorical,4844,156,3.12,0.0,1.0,0.53,0.5,18.2,0.022,0.08
+LexisNexis,LN_EST_INCOME,Estimated Household Income,income,integer,4852,148,2.96,0.0,267854.0,79096.3,45659.35,14.2,0.025,0.07
+LexisNexis,LN_NUM_PROP_DEEDS,Number of Property Deeds,assets,integer,4839,161,3.22,0.0,5.0,1.06,1.03,12.5,0.022,0.05
+LexisNexis,LN_TOT_PROP_VALUE,Total Property Value,assets,integer,4844,156,3.12,0.0,1300218.0,243558.29,225377.14,10.8,0.024,0.05
+LexisNexis,LN_NUM_TAX_LIENS,Number of Tax Liens,derogatory,integer,4848,152,3.04,0.0,2.0,0.17,0.37,18.8,0.032,0.08
+LexisNexis,LN_NUM_EVICTIONS,Number of Eviction Filings,derogatory,integer,4853,147,2.94,0.0,1.0,0.08,0.27,16.5,0.028,0.06
+LexisNexis,LN_NUM_FELONIES,Number of Felony Records,criminal,integer,4855,145,2.9,0.0,1.0,0.01,0.12,14.8,0.025,0.05
+LexisNexis,LN_FRAUD_POINT_SCORE,FraudPoint Score,fraud,integer,4843,157,3.14,0.0,739.0,213.19,127.13,18.5,0.03,0.08
+LexisNexis,LN_ID_VERIFICATION,Identity Verification Level,identity,categorical,4849,151,3.02,1.0,5.0,1.66,0.74,12.2,0.022,0.06
+LexisNexis,LN_PHONE_VERIFICATION,Phone Verification Status,identity,categorical,4860,140,2.8,0.0,1.0,0.78,0.42,7.8,0.012,0.03
+LexisNexis,LN_NUM_ASSOC_ADDR,Number of Associated Addresses,stability,integer,4845,155,3.1,0.0,15.0,4.89,3.05,10.8,0.024,0.05
+LexisNexis,LN_PROF_LICENSE,Professional License Indicator,employment,categorical,4867,133,2.66,0.0,1.0,0.19,0.4,8.8,0.018,0.04
+Internal,INT_APP_REQUESTED_AMT,Requested Loan Amount,application,integer,4863,137,2.74,0.0,38234.0,9129.71,7172.98,8.2,0.02,0.05
+Internal,INT_APP_STATED_INCOME,Stated Annual Income,application,integer,4849,151,3.02,0.0,232108.0,75820.82,44771.46,15.2,0.025,0.1
+Internal,INT_DTI_RATIO,Debt-to-Income Ratio,capacity,float,4859,141,2.82,0.0,79.91,30.63,14.04,18.8,0.028,0.11
+Internal,INT_APP_CHANNEL,Application Channel,application,categorical,4854,146,2.92,1.0,6.0,2.87,1.3,6.2,0.018,0.04
+Internal,INT_EXISTING_CUST,Existing Customer Indicator,relationship,categorical,4855,145,2.9,0.0,1.0,0.46,0.5,10.2,0.02,0.06
+Internal,INT_MTHS_RELATIONSHIP,Months of Customer Relationship,relationship,integer,4846,154,3.08,0.0,250.0,48.81,44.94,12.8,0.025,0.07
+Internal,INT_NUM_EXISTING_ACCTS,Number of Existing Accounts,relationship,integer,4858,142,2.84,0.0,7.0,1.49,1.45,8.5,0.018,0.04
+Internal,INT_CHECKING_BAL_AVG_3M,Average Checking Balance Last 3 Months,deposit_behavior,float,4864,136,2.72,0.0,58449.72,9844.41,10795.16,15.2,0.028,0.08
+Internal,INT_NUM_NSF_6M,Number of NSF Events Last 6 Months,deposit_behavior,integer,4842,158,3.16,0.0,7.0,0.93,1.11,22.2,0.038,0.1
+Internal,INT_DIRECT_DEPOSIT,Direct Deposit Indicator,deposit_behavior,categorical,4853,147,2.94,0.0,1.0,0.39,0.49,12.8,0.022,0.06
+Internal,INT_EMPLOYMENT_LENGTH_YRS,Employment Length (Years),application,float,4844,156,3.12,0.0,28.78,6.58,5.13,12.5,0.025,0.06
+Internal,INT_HOUSING_STATUS,Housing Status,application,categorical,4873,127,2.54,1.0,5.0,2.41,0.97,8.8,0.018,0.04
+Internal,INT_PREV_APPS_12M,Previous Applications Last 12 Months,application,integer,4859,141,2.82,0.0,3.0,0.43,0.58,10.2,0.022,0.05
+Internal,INT_INTERNAL_SCORE,Internal Behavioral Score,behavioral,integer,4828,172,3.44,304.0,1000.0,707.4,108.54,28.2,0.03,0.16
+Internal,INT_COBORROWER_FLAG,Co-Borrower Present,application,categorical,4824,176,3.52,0.0,1.0,0.02,0.13,4.5,0.01,0.02
+Internal,INT_STATE,Application State,geography,categorical,4855,145,2.9,1.0,56.0,25.38,14.22,4.8,0.012,0.02
+Internal_Performance,PERF_TARGET_30DPD_12M,Target: 30+ DPD in 12 Months,target,binary,4841,159,3.18,0.0,1.0,0.06,0.24,,0.015,
+Internal_Performance,PERF_TARGET_60DPD_12M,Target: 60+ DPD in 12 Months,target,binary,4863,137,2.74,0.0,1.0,0.04,0.19,,0.012,
+Internal_Performance,PERF_TARGET_90DPD_24M,Target: 90+ DPD in 24 Months,target,binary,4826,174,3.48,0.0,1.0,0.04,0.18,,0.011,
+Internal_Performance,PERF_TARGET_CHARGEOFF_24M,Target: Charge-off in 24 Months,target,binary,4858,142,2.84,0.0,1.0,0.04,0.19,,0.013,
+Internal_Performance,PERF_WORST_DPD_12M,Worst Delinquency Status 12 Months,performance,ordinal,4857,143,2.86,0.0,3.0,0.27,0.47,,0.018,
+Internal_Performance,PERF_MONTHS_ON_BOOK,Months on Book,performance,integer,4848,152,3.04,0.0,153.0,42.66,27.83,,0.012,
+Internal_Performance,PERF_CURRENT_BAL,Current Outstanding Balance,performance,float,4858,142,2.84,0.0,29397.61,4981.65,4492.73,,0.018,
+Internal_Performance,PERF_NUM_PMTS_MADE,Number of Payments Made,performance,integer,4851,149,2.98,0.0,140.0,39.7,25.92,,0.012,
+Internal_Performance,PERF_NUM_MISSED_PMTS,Number of Missed Payments,performance,integer,4859,141,2.82,0.0,5.0,0.94,1.12,,0.022,
+Internal_Performance,PERF_LOSS_AMOUNT,Net Loss Amount,loss,float,4830,170,3.4,0.0,7609.1,1011.92,1371.54,,0.012,
+Internal_Performance,PERF_ACCOUNT_STATUS,Account Status,performance,categorical,4850,150,3.0,1.0,6.0,1.86,0.99,,0.018,
+Internal_Performance,PERF_INTEREST_RATE,Contract Interest Rate,pricing,float,4851,149,2.98,0.0,40.0,21.6,6.55,,0.018,
