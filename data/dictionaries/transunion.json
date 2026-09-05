@@ -2,232 +2,919 @@
   "source": "TransUnion",
   "version": "2024Q4",
   "description": "TransUnion CreditVision and standard credit bureau attributes used in consumer lending models.",
-  "portfolios": ["auto_loan", "credit_card", "mortgage", "personal_loan"],
+  "portfolios": [
+    "auto_loan",
+    "credit_card",
+    "mortgage",
+    "personal_loan"
+  ],
   "attributes": [
     {
       "name": "TU_FICO8",
       "label": "TransUnion FICO Score 8",
       "description": "FICO Score 8 calculated from TransUnion data. Industry-standard risk score predicting 90+ DPD in 24 months.",
       "data_type": "integer",
-      "valid_range": [300, 850],
-      "special_values": { "-1": "No Score / Thin File", "-2": "Deceased", "-4": "Frozen File", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        300,
+        850
+      ],
+      "special_values": {
+        "-1": "No Score / Thin File",
+        "-2": "Deceased",
+        "-4": "Frozen File",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "score",
       "typical_stats": {
-        "auto_loan": { "min": 485, "max": 850, "mean": 700, "median": 715, "std": 71, "ks": 42.0, "psi": 0.018, "importance": 0.30 },
-        "credit_card": { "min": 525, "max": 850, "mean": 724, "median": 734, "std": 64, "ks": 37.8, "psi": 0.012, "importance": 0.27 },
-        "mortgage": { "min": 585, "max": 850, "mean": 750, "median": 760, "std": 54, "ks": 35.0, "psi": 0.009, "importance": 0.24 },
-        "personal_loan": { "min": 505, "max": 850, "mean": 684, "median": 694, "std": 77, "ks": 44.5, "psi": 0.022, "importance": 0.32 }
-      }
+        "auto_loan": {
+          "min": 485,
+          "max": 850,
+          "mean": 700,
+          "median": 715,
+          "std": 71,
+          "ks": 42.0,
+          "psi": 0.018,
+          "importance": 0.3
+        },
+        "credit_card": {
+          "min": 525,
+          "max": 850,
+          "mean": 724,
+          "median": 734,
+          "std": 64,
+          "ks": 37.8,
+          "psi": 0.012,
+          "importance": 0.27
+        },
+        "mortgage": {
+          "min": 585,
+          "max": 850,
+          "mean": 750,
+          "median": 760,
+          "std": 54,
+          "ks": 35.0,
+          "psi": 0.009,
+          "importance": 0.24
+        },
+        "personal_loan": {
+          "min": 505,
+          "max": 850,
+          "mean": 684,
+          "median": 694,
+          "std": 77,
+          "ks": 44.5,
+          "psi": 0.022,
+          "importance": 0.32
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "TransUnion is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "TU_FICO_AUTO8",
       "label": "TransUnion FICO Auto Score 8",
       "description": "Industry-specific FICO auto score from TransUnion. Optimized for auto lending risk prediction.",
       "data_type": "integer",
-      "valid_range": [250, 900],
-      "special_values": { "-1": "No Score", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        250,
+        900
+      ],
+      "special_values": {
+        "-1": "No Score",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "score",
       "typical_stats": {
-        "auto_loan": { "min": 310, "max": 900, "mean": 665, "median": 680, "std": 82, "ks": 44.5, "psi": 0.020, "importance": 0.33 },
-        "credit_card": { "min": 350, "max": 900, "mean": 710, "median": 725, "std": 72, "ks": 35.2, "psi": 0.015, "importance": 0.18 },
-        "mortgage": { "min": 400, "max": 900, "mean": 740, "median": 755, "std": 62, "ks": 30.5, "psi": 0.010, "importance": 0.14 },
-        "personal_loan": { "min": 330, "max": 900, "mean": 650, "median": 665, "std": 88, "ks": 42.2, "psi": 0.024, "importance": 0.25 }
-      }
+        "auto_loan": {
+          "min": 310,
+          "max": 900,
+          "mean": 665,
+          "median": 680,
+          "std": 82,
+          "ks": 44.5,
+          "psi": 0.02,
+          "importance": 0.33
+        },
+        "credit_card": {
+          "min": 350,
+          "max": 900,
+          "mean": 710,
+          "median": 725,
+          "std": 72,
+          "ks": 35.2,
+          "psi": 0.015,
+          "importance": 0.18
+        },
+        "mortgage": {
+          "min": 400,
+          "max": 900,
+          "mean": 740,
+          "median": 755,
+          "std": 62,
+          "ks": 30.5,
+          "psi": 0.01,
+          "importance": 0.14
+        },
+        "personal_loan": {
+          "min": 330,
+          "max": 900,
+          "mean": 650,
+          "median": 665,
+          "std": 88,
+          "ks": 42.2,
+          "psi": 0.024,
+          "importance": 0.25
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "TransUnion is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "TU_CV_LINK_SCORE",
       "label": "CreditVision Link Score",
       "description": "TransUnion CreditVision Link score leveraging trended credit data and alternative data sources.",
       "data_type": "integer",
-      "valid_range": [300, 850],
-      "special_values": { "-1": "No Score", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        300,
+        850
+      ],
+      "special_values": {
+        "-1": "No Score",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "score",
       "typical_stats": {
-        "auto_loan": { "min": 380, "max": 850, "mean": 685, "median": 700, "std": 78, "ks": 40.2, "psi": 0.022, "importance": 0.28 },
-        "credit_card": { "min": 420, "max": 850, "mean": 712, "median": 725, "std": 70, "ks": 36.5, "psi": 0.016, "importance": 0.25 },
-        "mortgage": { "min": 460, "max": 850, "mean": 738, "median": 748, "std": 60, "ks": 33.2, "psi": 0.012, "importance": 0.22 },
-        "personal_loan": { "min": 360, "max": 850, "mean": 668, "median": 680, "std": 85, "ks": 43.8, "psi": 0.026, "importance": 0.30 }
-      }
+        "auto_loan": {
+          "min": 380,
+          "max": 850,
+          "mean": 685,
+          "median": 700,
+          "std": 78,
+          "ks": 40.2,
+          "psi": 0.022,
+          "importance": 0.28
+        },
+        "credit_card": {
+          "min": 420,
+          "max": 850,
+          "mean": 712,
+          "median": 725,
+          "std": 70,
+          "ks": 36.5,
+          "psi": 0.016,
+          "importance": 0.25
+        },
+        "mortgage": {
+          "min": 460,
+          "max": 850,
+          "mean": 738,
+          "median": 748,
+          "std": 60,
+          "ks": 33.2,
+          "psi": 0.012,
+          "importance": 0.22
+        },
+        "personal_loan": {
+          "min": 360,
+          "max": 850,
+          "mean": 668,
+          "median": 680,
+          "std": 85,
+          "ks": 43.8,
+          "psi": 0.026,
+          "importance": 0.3
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "TransUnion is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "TU_TOT_OPEN_TL",
       "label": "Total Open Tradelines (TU)",
       "description": "Total count of currently open tradelines on the TransUnion credit file.",
       "data_type": "integer",
-      "valid_range": [0, 999],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        999
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "depth_of_file",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 82, "mean": 9.0, "median": 8, "std": 5.9, "ks": 12.2, "psi": 0.034, "importance": 0.07 },
-        "credit_card": { "min": 0, "max": 115, "mean": 12.2, "median": 10, "std": 7.5, "ks": 9.8, "psi": 0.027, "importance": 0.05 },
-        "mortgage": { "min": 1, "max": 88, "mean": 14.0, "median": 12, "std": 8.0, "ks": 8.5, "psi": 0.021, "importance": 0.04 },
-        "personal_loan": { "min": 0, "max": 92, "mean": 7.8, "median": 7, "std": 5.7, "ks": 13.8, "psi": 0.039, "importance": 0.08 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 82,
+          "mean": 9.0,
+          "median": 8,
+          "std": 5.9,
+          "ks": 12.2,
+          "psi": 0.034,
+          "importance": 0.07
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 115,
+          "mean": 12.2,
+          "median": 10,
+          "std": 7.5,
+          "ks": 9.8,
+          "psi": 0.027,
+          "importance": 0.05
+        },
+        "mortgage": {
+          "min": 1,
+          "max": 88,
+          "mean": 14.0,
+          "median": 12,
+          "std": 8.0,
+          "ks": 8.5,
+          "psi": 0.021,
+          "importance": 0.04
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 92,
+          "mean": 7.8,
+          "median": 7,
+          "std": 5.7,
+          "ks": 13.8,
+          "psi": 0.039,
+          "importance": 0.08
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "TransUnion is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "TU_REVOL_UTIL",
       "label": "Revolving Utilization (TU)",
       "description": "Total revolving balances divided by total revolving limits on the TransUnion file.",
       "data_type": "float",
-      "valid_range": [0, 999],
-      "special_values": { "-1": "No Revolving Trades", "-5": "No Hit", "-7": "Not Available", "998": "Balance with $0 Limit" },
+      "valid_range": [
+        0,
+        999
+      ],
+      "special_values": {
+        "-1": "No Revolving Trades",
+        "-5": "No Hit",
+        "-7": "Not Available",
+        "998": "Balance with $0 Limit"
+      },
       "segment": "utilization",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 999, "mean": 43.0, "median": 36, "std": 32.5, "ks": 28.0, "psi": 0.041, "importance": 0.13 },
-        "credit_card": { "min": 0, "max": 999, "mean": 38.8, "median": 31, "std": 30.8, "ks": 31.8, "psi": 0.034, "importance": 0.17 },
-        "mortgage": { "min": 0, "max": 999, "mean": 29.0, "median": 20, "std": 26.0, "ks": 22.4, "psi": 0.025, "importance": 0.09 },
-        "personal_loan": { "min": 0, "max": 999, "mean": 48.5, "median": 42, "std": 34.5, "ks": 30.8, "psi": 0.047, "importance": 0.15 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 999,
+          "mean": 43.0,
+          "median": 36,
+          "std": 32.5,
+          "ks": 28.0,
+          "psi": 0.041,
+          "importance": 0.13
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 999,
+          "mean": 38.8,
+          "median": 31,
+          "std": 30.8,
+          "ks": 31.8,
+          "psi": 0.034,
+          "importance": 0.17
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 999,
+          "mean": 29.0,
+          "median": 20,
+          "std": 26.0,
+          "ks": 22.4,
+          "psi": 0.025,
+          "importance": 0.09
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 999,
+          "mean": 48.5,
+          "median": 42,
+          "std": 34.5,
+          "ks": 30.8,
+          "psi": 0.047,
+          "importance": 0.15
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "TransUnion is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "TU_NUM_30DPD_24M",
       "label": "Number of 30+ DPD in Last 24 Months (TU)",
       "description": "Count of tradelines reported 30+ days past due in the last 24 months on TransUnion.",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "delinquency",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 18, "mean": 0.72, "median": 0, "std": 1.6, "ks": 34.5, "psi": 0.052, "importance": 0.17 },
-        "credit_card": { "min": 0, "max": 22, "mean": 0.58, "median": 0, "std": 1.3, "ks": 30.2, "psi": 0.045, "importance": 0.14 },
-        "mortgage": { "min": 0, "max": 12, "mean": 0.22, "median": 0, "std": 0.7, "ks": 24.5, "psi": 0.033, "importance": 0.11 },
-        "personal_loan": { "min": 0, "max": 20, "mean": 0.88, "median": 0, "std": 1.9, "ks": 38.2, "psi": 0.060, "importance": 0.19 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 18,
+          "mean": 0.72,
+          "median": 0,
+          "std": 1.6,
+          "ks": 34.5,
+          "psi": 0.052,
+          "importance": 0.17
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 22,
+          "mean": 0.58,
+          "median": 0,
+          "std": 1.3,
+          "ks": 30.2,
+          "psi": 0.045,
+          "importance": 0.14
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 12,
+          "mean": 0.22,
+          "median": 0,
+          "std": 0.7,
+          "ks": 24.5,
+          "psi": 0.033,
+          "importance": 0.11
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 20,
+          "mean": 0.88,
+          "median": 0,
+          "std": 1.9,
+          "ks": 38.2,
+          "psi": 0.06,
+          "importance": 0.19
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "TransUnion is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "TU_NUM_90DPD_EVER",
       "label": "Number of 90+ DPD Ever (TU)",
       "description": "Total count of tradelines that have ever been 90+ days past due on TransUnion file.",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "delinquency",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 12, "mean": 0.45, "median": 0, "std": 1.1, "ks": 36.8, "psi": 0.058, "importance": 0.15 },
-        "credit_card": { "min": 0, "max": 15, "mean": 0.35, "median": 0, "std": 0.9, "ks": 32.5, "psi": 0.050, "importance": 0.12 },
-        "mortgage": { "min": 0, "max": 8, "mean": 0.12, "median": 0, "std": 0.5, "ks": 26.2, "psi": 0.038, "importance": 0.09 },
-        "personal_loan": { "min": 0, "max": 14, "mean": 0.58, "median": 0, "std": 1.3, "ks": 40.5, "psi": 0.065, "importance": 0.17 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 12,
+          "mean": 0.45,
+          "median": 0,
+          "std": 1.1,
+          "ks": 36.8,
+          "psi": 0.058,
+          "importance": 0.15
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 15,
+          "mean": 0.35,
+          "median": 0,
+          "std": 0.9,
+          "ks": 32.5,
+          "psi": 0.05,
+          "importance": 0.12
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 8,
+          "mean": 0.12,
+          "median": 0,
+          "std": 0.5,
+          "ks": 26.2,
+          "psi": 0.038,
+          "importance": 0.09
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 14,
+          "mean": 0.58,
+          "median": 0,
+          "std": 1.3,
+          "ks": 40.5,
+          "psi": 0.065,
+          "importance": 0.17
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "TransUnion is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "TU_CV_PAYMENT_VELOCITY",
       "label": "CreditVision Payment Velocity",
       "description": "TransUnion CreditVision trended metric measuring the velocity of balance paydown over 24 months. Higher values indicate faster paydown.",
       "data_type": "float",
-      "valid_range": [0, 100],
-      "special_values": { "-1": "Insufficient Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        100
+      ],
+      "special_values": {
+        "-1": "Insufficient Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "trended_data",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 100, "mean": 52.5, "median": 55, "std": 22, "ks": 22.5, "psi": 0.030, "importance": 0.11 },
-        "credit_card": { "min": 0, "max": 100, "mean": 58.2, "median": 62, "std": 20, "ks": 25.8, "psi": 0.028, "importance": 0.13 },
-        "mortgage": { "min": 0, "max": 100, "mean": 65.5, "median": 70, "std": 18, "ks": 20.2, "psi": 0.022, "importance": 0.08 },
-        "personal_loan": { "min": 0, "max": 100, "mean": 48.8, "median": 50, "std": 24, "ks": 26.5, "psi": 0.035, "importance": 0.14 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 100,
+          "mean": 52.5,
+          "median": 55,
+          "std": 22,
+          "ks": 22.5,
+          "psi": 0.03,
+          "importance": 0.11
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 100,
+          "mean": 58.2,
+          "median": 62,
+          "std": 20,
+          "ks": 25.8,
+          "psi": 0.028,
+          "importance": 0.13
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 100,
+          "mean": 65.5,
+          "median": 70,
+          "std": 18,
+          "ks": 20.2,
+          "psi": 0.022,
+          "importance": 0.08
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 100,
+          "mean": 48.8,
+          "median": 50,
+          "std": 24,
+          "ks": 26.5,
+          "psi": 0.035,
+          "importance": 0.14
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "TransUnion is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "TU_CV_BAL_TREND_24M",
       "label": "CreditVision Balance Trend 24 Months",
       "description": "TransUnion CreditVision indicator of balance trajectory over 24 months. Categories: 1=Decreasing, 2=Stable, 3=Increasing, 4=Highly Increasing.",
       "data_type": "categorical",
-      "valid_range": [1, 4],
-      "special_values": { "1": "Decreasing", "2": "Stable", "3": "Increasing", "4": "Highly Increasing", "-1": "Insufficient Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        1,
+        4
+      ],
+      "special_values": {
+        "1": "Decreasing",
+        "2": "Stable",
+        "3": "Increasing",
+        "4": "Highly Increasing",
+        "-1": "Insufficient Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "trended_data",
       "typical_stats": {
-        "auto_loan": { "min": 1, "max": 4, "mean": 2.1, "median": 2, "std": 0.9, "ks": 18.5, "psi": 0.032, "importance": 0.10 },
-        "credit_card": { "min": 1, "max": 4, "mean": 2.0, "median": 2, "std": 0.8, "ks": 20.2, "psi": 0.028, "importance": 0.12 },
-        "mortgage": { "min": 1, "max": 4, "mean": 1.8, "median": 2, "std": 0.7, "ks": 15.5, "psi": 0.022, "importance": 0.07 },
-        "personal_loan": { "min": 1, "max": 4, "mean": 2.2, "median": 2, "std": 0.9, "ks": 22.8, "psi": 0.038, "importance": 0.13 }
-      }
+        "auto_loan": {
+          "min": 1,
+          "max": 4,
+          "mean": 2.1,
+          "median": 2,
+          "std": 0.9,
+          "ks": 18.5,
+          "psi": 0.032,
+          "importance": 0.1
+        },
+        "credit_card": {
+          "min": 1,
+          "max": 4,
+          "mean": 2.0,
+          "median": 2,
+          "std": 0.8,
+          "ks": 20.2,
+          "psi": 0.028,
+          "importance": 0.12
+        },
+        "mortgage": {
+          "min": 1,
+          "max": 4,
+          "mean": 1.8,
+          "median": 2,
+          "std": 0.7,
+          "ks": 15.5,
+          "psi": 0.022,
+          "importance": 0.07
+        },
+        "personal_loan": {
+          "min": 1,
+          "max": 4,
+          "mean": 2.2,
+          "median": 2,
+          "std": 0.9,
+          "ks": 22.8,
+          "psi": 0.038,
+          "importance": 0.13
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "TransUnion is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "TU_MTHS_SINCE_OLDEST",
       "label": "Months Since Oldest Tradeline (TU)",
       "description": "Number of months since the oldest tradeline was opened on TransUnion.",
       "data_type": "integer",
-      "valid_range": [0, 999],
-      "special_values": { "-1": "No Tradelines", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        999
+      ],
+      "special_values": {
+        "-1": "No Tradelines",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "time_on_file",
       "typical_stats": {
-        "auto_loan": { "min": 1, "max": 615, "mean": 170, "median": 158, "std": 91, "ks": 18.5, "psi": 0.025, "importance": 0.10 },
-        "credit_card": { "min": 1, "max": 655, "mean": 194, "median": 182, "std": 97, "ks": 16.0, "psi": 0.020, "importance": 0.08 },
-        "mortgage": { "min": 6, "max": 710, "mean": 230, "median": 218, "std": 104, "ks": 14.3, "psi": 0.015, "importance": 0.07 },
-        "personal_loan": { "min": 1, "max": 585, "mean": 146, "median": 134, "std": 87, "ks": 19.9, "psi": 0.029, "importance": 0.11 }
-      }
+        "auto_loan": {
+          "min": 1,
+          "max": 615,
+          "mean": 170,
+          "median": 158,
+          "std": 91,
+          "ks": 18.5,
+          "psi": 0.025,
+          "importance": 0.1
+        },
+        "credit_card": {
+          "min": 1,
+          "max": 655,
+          "mean": 194,
+          "median": 182,
+          "std": 97,
+          "ks": 16.0,
+          "psi": 0.02,
+          "importance": 0.08
+        },
+        "mortgage": {
+          "min": 6,
+          "max": 710,
+          "mean": 230,
+          "median": 218,
+          "std": 104,
+          "ks": 14.3,
+          "psi": 0.015,
+          "importance": 0.07
+        },
+        "personal_loan": {
+          "min": 1,
+          "max": 585,
+          "mean": 146,
+          "median": 134,
+          "std": 87,
+          "ks": 19.9,
+          "psi": 0.029,
+          "importance": 0.11
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "TransUnion is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "TU_NUM_COLLECTIONS",
       "label": "Number of Collection Accounts (TU)",
       "description": "Count of accounts in collection status on the TransUnion credit file.",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "derogatory",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 14, "mean": 0.82, "median": 0, "std": 1.7, "ks": 28.2, "psi": 0.049, "importance": 0.12 },
-        "credit_card": { "min": 0, "max": 11, "mean": 0.60, "median": 0, "std": 1.4, "ks": 23.8, "psi": 0.041, "importance": 0.09 },
-        "mortgage": { "min": 0, "max": 7, "mean": 0.23, "median": 0, "std": 0.7, "ks": 18.5, "psi": 0.031, "importance": 0.06 },
-        "personal_loan": { "min": 0, "max": 17, "mean": 1.02, "median": 0, "std": 2.1, "ks": 31.8, "psi": 0.057, "importance": 0.14 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 14,
+          "mean": 0.82,
+          "median": 0,
+          "std": 1.7,
+          "ks": 28.2,
+          "psi": 0.049,
+          "importance": 0.12
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 11,
+          "mean": 0.6,
+          "median": 0,
+          "std": 1.4,
+          "ks": 23.8,
+          "psi": 0.041,
+          "importance": 0.09
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 7,
+          "mean": 0.23,
+          "median": 0,
+          "std": 0.7,
+          "ks": 18.5,
+          "psi": 0.031,
+          "importance": 0.06
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 17,
+          "mean": 1.02,
+          "median": 0,
+          "std": 2.1,
+          "ks": 31.8,
+          "psi": 0.057,
+          "importance": 0.14
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "TransUnion is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "TU_NUM_NEW_TL_6M",
       "label": "New Tradelines in Last 6 Months (TU)",
       "description": "Count of tradelines opened in the last 6 months on TransUnion.",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "new_credit",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 10, "mean": 1.2, "median": 1, "std": 1.5, "ks": 12.8, "psi": 0.030, "importance": 0.06 },
-        "credit_card": { "min": 0, "max": 12, "mean": 0.8, "median": 0, "std": 1.2, "ks": 10.5, "psi": 0.025, "importance": 0.05 },
-        "mortgage": { "min": 0, "max": 8, "mean": 0.5, "median": 0, "std": 0.8, "ks": 8.2, "psi": 0.020, "importance": 0.03 },
-        "personal_loan": { "min": 0, "max": 12, "mean": 1.5, "median": 1, "std": 1.8, "ks": 14.5, "psi": 0.035, "importance": 0.07 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 10,
+          "mean": 1.2,
+          "median": 1,
+          "std": 1.5,
+          "ks": 12.8,
+          "psi": 0.03,
+          "importance": 0.06
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 12,
+          "mean": 0.8,
+          "median": 0,
+          "std": 1.2,
+          "ks": 10.5,
+          "psi": 0.025,
+          "importance": 0.05
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 8,
+          "mean": 0.5,
+          "median": 0,
+          "std": 0.8,
+          "ks": 8.2,
+          "psi": 0.02,
+          "importance": 0.03
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 12,
+          "mean": 1.5,
+          "median": 1,
+          "std": 1.8,
+          "ks": 14.5,
+          "psi": 0.035,
+          "importance": 0.07
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "TransUnion is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "TU_TOT_BAL",
       "label": "Total Balance (TU)",
       "description": "Sum of current balances across all tradelines on TransUnion.",
       "data_type": "integer",
-      "valid_range": [0, 9999999],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        9999999
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "balance",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 2400000, "mean": 84200, "median": 41000, "std": 122000, "ks": 15.0, "psi": 0.037, "importance": 0.07 },
-        "credit_card": { "min": 0, "max": 1450000, "mean": 51500, "median": 27000, "std": 76000, "ks": 12.5, "psi": 0.031, "importance": 0.05 },
-        "mortgage": { "min": 0, "max": 4800000, "mean": 282000, "median": 222000, "std": 242000, "ks": 10.2, "psi": 0.021, "importance": 0.04 },
-        "personal_loan": { "min": 0, "max": 1750000, "mean": 67200, "median": 34000, "std": 96000, "ks": 16.5, "psi": 0.044, "importance": 0.08 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 2400000,
+          "mean": 84200,
+          "median": 41000,
+          "std": 122000,
+          "ks": 15.0,
+          "psi": 0.037,
+          "importance": 0.07
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 1450000,
+          "mean": 51500,
+          "median": 27000,
+          "std": 76000,
+          "ks": 12.5,
+          "psi": 0.031,
+          "importance": 0.05
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 4800000,
+          "mean": 282000,
+          "median": 222000,
+          "std": 242000,
+          "ks": 10.2,
+          "psi": 0.021,
+          "importance": 0.04
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 1750000,
+          "mean": 67200,
+          "median": 34000,
+          "std": 96000,
+          "ks": 16.5,
+          "psi": 0.044,
+          "importance": 0.08
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "TransUnion is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "TU_NUM_BANKRUPT",
       "label": "Number of Bankruptcies (TU)",
       "description": "Count of bankruptcy public records on the TransUnion file.",
       "data_type": "integer",
-      "valid_range": [0, 10],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        10
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "public_record",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 4, "mean": 0.07, "median": 0, "std": 0.3, "ks": 20.2, "psi": 0.034, "importance": 0.09 },
-        "credit_card": { "min": 0, "max": 3, "mean": 0.05, "median": 0, "std": 0.2, "ks": 16.5, "psi": 0.027, "importance": 0.07 },
-        "mortgage": { "min": 0, "max": 2, "mean": 0.02, "median": 0, "std": 0.1, "ks": 14.0, "psi": 0.021, "importance": 0.05 },
-        "personal_loan": { "min": 0, "max": 5, "mean": 0.09, "median": 0, "std": 0.4, "ks": 23.8, "psi": 0.041, "importance": 0.10 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 4,
+          "mean": 0.07,
+          "median": 0,
+          "std": 0.3,
+          "ks": 20.2,
+          "psi": 0.034,
+          "importance": 0.09
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 3,
+          "mean": 0.05,
+          "median": 0,
+          "std": 0.2,
+          "ks": 16.5,
+          "psi": 0.027,
+          "importance": 0.07
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 2,
+          "mean": 0.02,
+          "median": 0,
+          "std": 0.1,
+          "ks": 14.0,
+          "psi": 0.021,
+          "importance": 0.05
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 5,
+          "mean": 0.09,
+          "median": 0,
+          "std": 0.4,
+          "ks": 23.8,
+          "psi": 0.041,
+          "importance": 0.1
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "TransUnion is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "TU_PCT_TL_NEVER_DLQ",
       "label": "Percent Tradelines Never Delinquent (TU)",
       "description": "Percentage of all tradelines that have never been reported delinquent.",
       "data_type": "float",
-      "valid_range": [0, 100],
-      "special_values": { "-1": "No Tradelines", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        100
+      ],
+      "special_values": {
+        "-1": "No Tradelines",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "payment_history",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 100, "mean": 82.5, "median": 90, "std": 22.0, "ks": 28.5, "psi": 0.040, "importance": 0.14 },
-        "credit_card": { "min": 0, "max": 100, "mean": 86.2, "median": 93, "std": 18.5, "ks": 25.2, "psi": 0.034, "importance": 0.11 },
-        "mortgage": { "min": 0, "max": 100, "mean": 92.5, "median": 98, "std": 12.5, "ks": 19.8, "psi": 0.026, "importance": 0.08 },
-        "personal_loan": { "min": 0, "max": 100, "mean": 80.2, "median": 88, "std": 24.0, "ks": 32.2, "psi": 0.048, "importance": 0.15 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 100,
+          "mean": 82.5,
+          "median": 90,
+          "std": 22.0,
+          "ks": 28.5,
+          "psi": 0.04,
+          "importance": 0.14
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 100,
+          "mean": 86.2,
+          "median": 93,
+          "std": 18.5,
+          "ks": 25.2,
+          "psi": 0.034,
+          "importance": 0.11
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 100,
+          "mean": 92.5,
+          "median": 98,
+          "std": 12.5,
+          "ks": 19.8,
+          "psi": 0.026,
+          "importance": 0.08
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 100,
+          "mean": 80.2,
+          "median": 88,
+          "std": 24.0,
+          "ks": 32.2,
+          "psi": 0.048,
+          "importance": 0.15
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "TransUnion is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     }
   ]
 }

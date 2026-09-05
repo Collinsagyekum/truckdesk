@@ -99,6 +99,8 @@ def flatten_attributes(d, source_name):
             "Valid Range Min": vr[0],
             "Valid Range Max": vr[1],
             "Special Values": sv_str,
+            "FCRA Regulated": "Yes" if attr.get("fcra_regulated", False) else "No",
+            "FCRA Note": attr.get("fcra_note", ""),
         }
 
         for port in PORTFOLIOS:
@@ -228,6 +230,7 @@ def add_portfolio_view_sheet(wb, all_rows, portfolio):
     headers = [
         "Source", "Attribute Name", "Label", "Description", "Data Type",
         "Segment", "Valid Range Min", "Valid Range Max", "Special Values",
+        "FCRA Regulated", "FCRA Note",
         "Min", "Max", "Mean", "Median", "Std", "KS", "PSI", "Importance",
     ]
     for ci, h in enumerate(headers, 1):
@@ -249,14 +252,16 @@ def add_portfolio_view_sheet(wb, all_rows, portfolio):
         ws.cell(row=ri, column=7, value=row["Valid Range Min"])
         ws.cell(row=ri, column=8, value=row["Valid Range Max"])
         ws.cell(row=ri, column=9, value=row["Special Values"])
-        ws.cell(row=ri, column=10, value=row.get(f"{pfx}_Min"))
-        ws.cell(row=ri, column=11, value=row.get(f"{pfx}_Max"))
-        ws.cell(row=ri, column=12, value=row.get(f"{pfx}_Mean"))
-        ws.cell(row=ri, column=13, value=row.get(f"{pfx}_Median"))
-        ws.cell(row=ri, column=14, value=row.get(f"{pfx}_Std"))
-        ws.cell(row=ri, column=15, value=row.get(f"{pfx}_KS"))
-        ws.cell(row=ri, column=16, value=row.get(f"{pfx}_PSI"))
-        ws.cell(row=ri, column=17, value=row.get(f"{pfx}_Importance"))
+        ws.cell(row=ri, column=10, value=row.get("FCRA Regulated", ""))
+        ws.cell(row=ri, column=11, value=row.get("FCRA Note", ""))
+        ws.cell(row=ri, column=12, value=row.get(f"{pfx}_Min"))
+        ws.cell(row=ri, column=13, value=row.get(f"{pfx}_Max"))
+        ws.cell(row=ri, column=14, value=row.get(f"{pfx}_Mean"))
+        ws.cell(row=ri, column=15, value=row.get(f"{pfx}_Median"))
+        ws.cell(row=ri, column=16, value=row.get(f"{pfx}_Std"))
+        ws.cell(row=ri, column=17, value=row.get(f"{pfx}_KS"))
+        ws.cell(row=ri, column=18, value=row.get(f"{pfx}_PSI"))
+        ws.cell(row=ri, column=19, value=row.get(f"{pfx}_Importance"))
 
         segment = row.get("Segment", "")
         seg_color = SEGMENT_COLORS.get(segment)
@@ -266,15 +271,24 @@ def add_portfolio_view_sheet(wb, all_rows, portfolio):
             cell = ws.cell(row=ri, column=ci)
             cell.font = DATA_FONT
             cell.border = THIN_BORDER
-            if ci in (4, 9):
+            if ci in (4, 9, 11):
                 cell.alignment = WRAP_ALIGN
             else:
                 cell.alignment = TOP_ALIGN
-            if seg_fill and ci >= 10:
+            if seg_fill and ci >= 12:
                 cell.fill = seg_fill
 
+            if ci == 10:
+                fcra_val = cell.value
+                if fcra_val == "Yes":
+                    cell.fill = PatternFill(start_color="FFCDD2", end_color="FFCDD2", fill_type="solid")
+                    cell.font = Font(name="Calibri", size=10, bold=True, color="B71C1C")
+                elif fcra_val == "No":
+                    cell.fill = PatternFill(start_color="C8E6C9", end_color="C8E6C9", fill_type="solid")
+                    cell.font = Font(name="Calibri", size=10, bold=True, color="1B5E20")
+
         # color importance column by value
-        imp_cell = ws.cell(row=ri, column=17)
+        imp_cell = ws.cell(row=ri, column=19)
         imp_val = imp_cell.value
         if imp_val and isinstance(imp_val, (int, float)):
             if imp_val >= 0.20:
@@ -294,6 +308,8 @@ def add_portfolio_view_sheet(wb, all_rows, portfolio):
     auto_width(ws, len(headers), ri)
     ws.column_dimensions[get_column_letter(4)].width = 55
     ws.column_dimensions[get_column_letter(9)].width = 50
+    ws.column_dimensions[get_column_letter(10)].width = 14
+    ws.column_dimensions[get_column_letter(11)].width = 50
     return ws
 
 

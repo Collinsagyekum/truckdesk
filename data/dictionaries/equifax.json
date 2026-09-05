@@ -2,262 +2,1035 @@
   "source": "Equifax",
   "version": "2024Q4",
   "description": "Equifax credit bureau attributes from the Consumer Credit File used in consumer lending and risk assessment models.",
-  "portfolios": ["auto_loan", "credit_card", "mortgage", "personal_loan"],
+  "portfolios": [
+    "auto_loan",
+    "credit_card",
+    "mortgage",
+    "personal_loan"
+  ],
   "attributes": [
     {
       "name": "EFX_BEACON_5",
       "label": "Equifax Beacon 5.0 Score",
       "description": "Equifax Beacon 5.0 FICO score. Predicts likelihood of serious delinquency (90+ DPD) within 24 months.",
       "data_type": "integer",
-      "valid_range": [300, 850],
-      "special_values": { "-1": "No Score / Insufficient History", "-2": "Deceased", "-3": "Fraud Alert on File", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        300,
+        850
+      ],
+      "special_values": {
+        "-1": "No Score / Insufficient History",
+        "-2": "Deceased",
+        "-3": "Fraud Alert on File",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "score",
       "typical_stats": {
-        "auto_loan": { "min": 482, "max": 850, "mean": 698, "median": 712, "std": 70, "ks": 41.8, "psi": 0.017, "importance": 0.30 },
-        "credit_card": { "min": 522, "max": 850, "mean": 722, "median": 732, "std": 63, "ks": 37.5, "psi": 0.011, "importance": 0.27 },
-        "mortgage": { "min": 582, "max": 850, "mean": 748, "median": 758, "std": 53, "ks": 34.8, "psi": 0.008, "importance": 0.24 },
-        "personal_loan": { "min": 502, "max": 850, "mean": 682, "median": 692, "std": 76, "ks": 44.2, "psi": 0.021, "importance": 0.32 }
-      }
+        "auto_loan": {
+          "min": 482,
+          "max": 850,
+          "mean": 698,
+          "median": 712,
+          "std": 70,
+          "ks": 41.8,
+          "psi": 0.017,
+          "importance": 0.3
+        },
+        "credit_card": {
+          "min": 522,
+          "max": 850,
+          "mean": 722,
+          "median": 732,
+          "std": 63,
+          "ks": 37.5,
+          "psi": 0.011,
+          "importance": 0.27
+        },
+        "mortgage": {
+          "min": 582,
+          "max": 850,
+          "mean": 748,
+          "median": 758,
+          "std": 53,
+          "ks": 34.8,
+          "psi": 0.008,
+          "importance": 0.24
+        },
+        "personal_loan": {
+          "min": 502,
+          "max": 850,
+          "mean": 682,
+          "median": 692,
+          "std": 76,
+          "ks": 44.2,
+          "psi": 0.021,
+          "importance": 0.32
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "Equifax is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "EFX_BEACON_9",
       "label": "Equifax Beacon 9.0 Score",
       "description": "Equifax Beacon 9.0 score with enhanced predictive power using trended credit data.",
       "data_type": "integer",
-      "valid_range": [300, 850],
-      "special_values": { "-1": "No Score", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        300,
+        850
+      ],
+      "special_values": {
+        "-1": "No Score",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "score",
       "typical_stats": {
-        "auto_loan": { "min": 478, "max": 850, "mean": 692, "median": 708, "std": 73, "ks": 42.5, "psi": 0.019, "importance": 0.31 },
-        "credit_card": { "min": 518, "max": 850, "mean": 718, "median": 728, "std": 66, "ks": 38.5, "psi": 0.013, "importance": 0.28 },
-        "mortgage": { "min": 578, "max": 850, "mean": 742, "median": 752, "std": 56, "ks": 35.8, "psi": 0.009, "importance": 0.25 },
-        "personal_loan": { "min": 498, "max": 850, "mean": 678, "median": 688, "std": 79, "ks": 45.2, "psi": 0.023, "importance": 0.33 }
-      }
+        "auto_loan": {
+          "min": 478,
+          "max": 850,
+          "mean": 692,
+          "median": 708,
+          "std": 73,
+          "ks": 42.5,
+          "psi": 0.019,
+          "importance": 0.31
+        },
+        "credit_card": {
+          "min": 518,
+          "max": 850,
+          "mean": 718,
+          "median": 728,
+          "std": 66,
+          "ks": 38.5,
+          "psi": 0.013,
+          "importance": 0.28
+        },
+        "mortgage": {
+          "min": 578,
+          "max": 850,
+          "mean": 742,
+          "median": 752,
+          "std": 56,
+          "ks": 35.8,
+          "psi": 0.009,
+          "importance": 0.25
+        },
+        "personal_loan": {
+          "min": 498,
+          "max": 850,
+          "mean": 678,
+          "median": 688,
+          "std": 79,
+          "ks": 45.2,
+          "psi": 0.023,
+          "importance": 0.33
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "Equifax is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "EFX_TOT_REV_TL",
       "label": "Total Revolving Tradelines",
       "description": "Total count of revolving credit tradeline accounts on the Equifax file.",
       "data_type": "integer",
-      "valid_range": [0, 999],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        999
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "depth_of_file",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 60, "mean": 6.8, "median": 6, "std": 4.5, "ks": 10.8, "psi": 0.032, "importance": 0.06 },
-        "credit_card": { "min": 0, "max": 80, "mean": 9.5, "median": 8, "std": 6.2, "ks": 8.5, "psi": 0.025, "importance": 0.05 },
-        "mortgage": { "min": 0, "max": 65, "mean": 10.8, "median": 10, "std": 6.8, "ks": 7.2, "psi": 0.020, "importance": 0.04 },
-        "personal_loan": { "min": 0, "max": 55, "mean": 5.8, "median": 5, "std": 4.2, "ks": 12.5, "psi": 0.038, "importance": 0.07 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 60,
+          "mean": 6.8,
+          "median": 6,
+          "std": 4.5,
+          "ks": 10.8,
+          "psi": 0.032,
+          "importance": 0.06
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 80,
+          "mean": 9.5,
+          "median": 8,
+          "std": 6.2,
+          "ks": 8.5,
+          "psi": 0.025,
+          "importance": 0.05
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 65,
+          "mean": 10.8,
+          "median": 10,
+          "std": 6.8,
+          "ks": 7.2,
+          "psi": 0.02,
+          "importance": 0.04
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 55,
+          "mean": 5.8,
+          "median": 5,
+          "std": 4.2,
+          "ks": 12.5,
+          "psi": 0.038,
+          "importance": 0.07
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "Equifax is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "EFX_TOT_INST_TL",
       "label": "Total Installment Tradelines",
       "description": "Total count of installment tradeline accounts on the Equifax file.",
       "data_type": "integer",
-      "valid_range": [0, 999],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        999
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "depth_of_file",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 40, "mean": 5.2, "median": 4, "std": 3.8, "ks": 9.5, "psi": 0.030, "importance": 0.05 },
-        "credit_card": { "min": 0, "max": 35, "mean": 4.5, "median": 4, "std": 3.2, "ks": 7.8, "psi": 0.025, "importance": 0.04 },
-        "mortgage": { "min": 0, "max": 30, "mean": 5.8, "median": 5, "std": 3.5, "ks": 6.5, "psi": 0.018, "importance": 0.03 },
-        "personal_loan": { "min": 0, "max": 42, "mean": 4.8, "median": 4, "std": 3.5, "ks": 11.2, "psi": 0.035, "importance": 0.06 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 40,
+          "mean": 5.2,
+          "median": 4,
+          "std": 3.8,
+          "ks": 9.5,
+          "psi": 0.03,
+          "importance": 0.05
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 35,
+          "mean": 4.5,
+          "median": 4,
+          "std": 3.2,
+          "ks": 7.8,
+          "psi": 0.025,
+          "importance": 0.04
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 30,
+          "mean": 5.8,
+          "median": 5,
+          "std": 3.5,
+          "ks": 6.5,
+          "psi": 0.018,
+          "importance": 0.03
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 42,
+          "mean": 4.8,
+          "median": 4,
+          "std": 3.5,
+          "ks": 11.2,
+          "psi": 0.035,
+          "importance": 0.06
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "Equifax is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "EFX_REV_UTIL_PCT",
       "label": "Revolving Utilization Percentage",
       "description": "Aggregate revolving balance divided by aggregate revolving credit limit on the Equifax file.",
       "data_type": "float",
-      "valid_range": [0, 999],
-      "special_values": { "-1": "No Revolving Trades", "-5": "No Hit", "-7": "Not Available", "998": "Balance with $0 Limit" },
+      "valid_range": [
+        0,
+        999
+      ],
+      "special_values": {
+        "-1": "No Revolving Trades",
+        "-5": "No Hit",
+        "-7": "Not Available",
+        "998": "Balance with $0 Limit"
+      },
       "segment": "utilization",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 999, "mean": 41.8, "median": 34, "std": 31.5, "ks": 27.8, "psi": 0.040, "importance": 0.13 },
-        "credit_card": { "min": 0, "max": 999, "mean": 37.5, "median": 29, "std": 30.2, "ks": 31.5, "psi": 0.033, "importance": 0.17 },
-        "mortgage": { "min": 0, "max": 999, "mean": 27.8, "median": 19, "std": 25.2, "ks": 22.1, "psi": 0.024, "importance": 0.09 },
-        "personal_loan": { "min": 0, "max": 999, "mean": 47.5, "median": 41, "std": 33.8, "ks": 30.1, "psi": 0.046, "importance": 0.15 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 999,
+          "mean": 41.8,
+          "median": 34,
+          "std": 31.5,
+          "ks": 27.8,
+          "psi": 0.04,
+          "importance": 0.13
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 999,
+          "mean": 37.5,
+          "median": 29,
+          "std": 30.2,
+          "ks": 31.5,
+          "psi": 0.033,
+          "importance": 0.17
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 999,
+          "mean": 27.8,
+          "median": 19,
+          "std": 25.2,
+          "ks": 22.1,
+          "psi": 0.024,
+          "importance": 0.09
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 999,
+          "mean": 47.5,
+          "median": 41,
+          "std": 33.8,
+          "ks": 30.1,
+          "psi": 0.046,
+          "importance": 0.15
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "Equifax is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "EFX_MTHS_OLDEST_TL",
       "label": "Months Since Oldest Tradeline Opened",
       "description": "Age in months of the oldest tradeline on the Equifax credit file.",
       "data_type": "integer",
-      "valid_range": [0, 999],
-      "special_values": { "-1": "No Tradelines", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        999
+      ],
+      "special_values": {
+        "-1": "No Tradelines",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "time_on_file",
       "typical_stats": {
-        "auto_loan": { "min": 1, "max": 620, "mean": 172, "median": 160, "std": 90, "ks": 18.2, "psi": 0.024, "importance": 0.10 },
-        "credit_card": { "min": 1, "max": 660, "mean": 196, "median": 184, "std": 96, "ks": 15.8, "psi": 0.019, "importance": 0.08 },
-        "mortgage": { "min": 6, "max": 720, "mean": 232, "median": 220, "std": 102, "ks": 14.2, "psi": 0.014, "importance": 0.07 },
-        "personal_loan": { "min": 1, "max": 590, "mean": 148, "median": 135, "std": 86, "ks": 19.8, "psi": 0.028, "importance": 0.11 }
-      }
+        "auto_loan": {
+          "min": 1,
+          "max": 620,
+          "mean": 172,
+          "median": 160,
+          "std": 90,
+          "ks": 18.2,
+          "psi": 0.024,
+          "importance": 0.1
+        },
+        "credit_card": {
+          "min": 1,
+          "max": 660,
+          "mean": 196,
+          "median": 184,
+          "std": 96,
+          "ks": 15.8,
+          "psi": 0.019,
+          "importance": 0.08
+        },
+        "mortgage": {
+          "min": 6,
+          "max": 720,
+          "mean": 232,
+          "median": 220,
+          "std": 102,
+          "ks": 14.2,
+          "psi": 0.014,
+          "importance": 0.07
+        },
+        "personal_loan": {
+          "min": 1,
+          "max": 590,
+          "mean": 148,
+          "median": 135,
+          "std": 86,
+          "ks": 19.8,
+          "psi": 0.028,
+          "importance": 0.11
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "Equifax is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "EFX_NUM_SATISF_TL",
       "label": "Number of Satisfactory Tradelines",
       "description": "Count of tradelines rated as satisfactory (never delinquent or fully paid as agreed).",
       "data_type": "integer",
-      "valid_range": [0, 999],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        999
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "payment_history",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 80, "mean": 15.2, "median": 13, "std": 9.5, "ks": 12.5, "psi": 0.028, "importance": 0.08 },
-        "credit_card": { "min": 0, "max": 100, "mean": 18.5, "median": 16, "std": 11.2, "ks": 10.2, "psi": 0.022, "importance": 0.06 },
-        "mortgage": { "min": 0, "max": 90, "mean": 22.8, "median": 20, "std": 12.5, "ks": 8.8, "psi": 0.018, "importance": 0.05 },
-        "personal_loan": { "min": 0, "max": 75, "mean": 13.5, "median": 11, "std": 8.8, "ks": 14.2, "psi": 0.032, "importance": 0.09 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 80,
+          "mean": 15.2,
+          "median": 13,
+          "std": 9.5,
+          "ks": 12.5,
+          "psi": 0.028,
+          "importance": 0.08
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 100,
+          "mean": 18.5,
+          "median": 16,
+          "std": 11.2,
+          "ks": 10.2,
+          "psi": 0.022,
+          "importance": 0.06
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 90,
+          "mean": 22.8,
+          "median": 20,
+          "std": 12.5,
+          "ks": 8.8,
+          "psi": 0.018,
+          "importance": 0.05
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 75,
+          "mean": 13.5,
+          "median": 11,
+          "std": 8.8,
+          "ks": 14.2,
+          "psi": 0.032,
+          "importance": 0.09
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "Equifax is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "EFX_NUM_DEROG_TL",
       "label": "Number of Derogatory Tradelines",
       "description": "Count of tradelines with derogatory status (charge-off, repossession, foreclosure, collection).",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "derogatory",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 12, "mean": 0.65, "median": 0, "std": 1.5, "ks": 30.2, "psi": 0.052, "importance": 0.14 },
-        "credit_card": { "min": 0, "max": 10, "mean": 0.48, "median": 0, "std": 1.2, "ks": 26.5, "psi": 0.045, "importance": 0.11 },
-        "mortgage": { "min": 0, "max": 6, "mean": 0.18, "median": 0, "std": 0.6, "ks": 20.2, "psi": 0.035, "importance": 0.08 },
-        "personal_loan": { "min": 0, "max": 15, "mean": 0.82, "median": 0, "std": 1.8, "ks": 34.5, "psi": 0.060, "importance": 0.16 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 12,
+          "mean": 0.65,
+          "median": 0,
+          "std": 1.5,
+          "ks": 30.2,
+          "psi": 0.052,
+          "importance": 0.14
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 10,
+          "mean": 0.48,
+          "median": 0,
+          "std": 1.2,
+          "ks": 26.5,
+          "psi": 0.045,
+          "importance": 0.11
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 6,
+          "mean": 0.18,
+          "median": 0,
+          "std": 0.6,
+          "ks": 20.2,
+          "psi": 0.035,
+          "importance": 0.08
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 15,
+          "mean": 0.82,
+          "median": 0,
+          "std": 1.8,
+          "ks": 34.5,
+          "psi": 0.06,
+          "importance": 0.16
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "Equifax is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "EFX_TOT_BAL_EXCL_MORT",
       "label": "Total Balance Excluding Mortgage",
       "description": "Sum of current balances across all non-mortgage tradelines.",
       "data_type": "integer",
-      "valid_range": [0, 9999999],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        9999999
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "balance",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 800000, "mean": 42500, "median": 25000, "std": 55000, "ks": 14.5, "psi": 0.035, "importance": 0.07 },
-        "credit_card": { "min": 0, "max": 600000, "mean": 32800, "median": 18000, "std": 42000, "ks": 12.2, "psi": 0.030, "importance": 0.05 },
-        "mortgage": { "min": 0, "max": 500000, "mean": 28500, "median": 15000, "std": 38000, "ks": 10.5, "psi": 0.022, "importance": 0.04 },
-        "personal_loan": { "min": 0, "max": 750000, "mean": 38200, "median": 22000, "std": 50000, "ks": 16.2, "psi": 0.042, "importance": 0.08 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 800000,
+          "mean": 42500,
+          "median": 25000,
+          "std": 55000,
+          "ks": 14.5,
+          "psi": 0.035,
+          "importance": 0.07
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 600000,
+          "mean": 32800,
+          "median": 18000,
+          "std": 42000,
+          "ks": 12.2,
+          "psi": 0.03,
+          "importance": 0.05
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 500000,
+          "mean": 28500,
+          "median": 15000,
+          "std": 38000,
+          "ks": 10.5,
+          "psi": 0.022,
+          "importance": 0.04
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 750000,
+          "mean": 38200,
+          "median": 22000,
+          "std": 50000,
+          "ks": 16.2,
+          "psi": 0.042,
+          "importance": 0.08
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "Equifax is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "EFX_NUM_DPD30_EVER",
       "label": "Number of 30+ DPD Ever",
       "description": "Total count of tradelines that have ever been 30 or more days past due.",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "delinquency",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 25, "mean": 1.8, "median": 1, "std": 2.8, "ks": 28.5, "psi": 0.045, "importance": 0.13 },
-        "credit_card": { "min": 0, "max": 30, "mean": 1.5, "median": 0, "std": 2.5, "ks": 24.8, "psi": 0.038, "importance": 0.10 },
-        "mortgage": { "min": 0, "max": 15, "mean": 0.6, "median": 0, "std": 1.2, "ks": 19.5, "psi": 0.028, "importance": 0.07 },
-        "personal_loan": { "min": 0, "max": 28, "mean": 2.2, "median": 1, "std": 3.2, "ks": 32.2, "psi": 0.052, "importance": 0.15 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 25,
+          "mean": 1.8,
+          "median": 1,
+          "std": 2.8,
+          "ks": 28.5,
+          "psi": 0.045,
+          "importance": 0.13
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 30,
+          "mean": 1.5,
+          "median": 0,
+          "std": 2.5,
+          "ks": 24.8,
+          "psi": 0.038,
+          "importance": 0.1
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 15,
+          "mean": 0.6,
+          "median": 0,
+          "std": 1.2,
+          "ks": 19.5,
+          "psi": 0.028,
+          "importance": 0.07
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 28,
+          "mean": 2.2,
+          "median": 1,
+          "std": 3.2,
+          "ks": 32.2,
+          "psi": 0.052,
+          "importance": 0.15
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "Equifax is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "EFX_MAX_DPD_24M",
       "label": "Maximum Days Past Due in Last 24 Months",
       "description": "Worst delinquency rating in days past due across all tradelines in the last 24 months.",
       "data_type": "integer",
-      "valid_range": [0, 999],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        999
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "delinquency",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 210, "mean": 12.5, "median": 0, "std": 32, "ks": 35.8, "psi": 0.055, "importance": 0.16 },
-        "credit_card": { "min": 0, "max": 180, "mean": 9.8, "median": 0, "std": 28, "ks": 31.5, "psi": 0.048, "importance": 0.13 },
-        "mortgage": { "min": 0, "max": 150, "mean": 4.2, "median": 0, "std": 18, "ks": 25.2, "psi": 0.035, "importance": 0.10 },
-        "personal_loan": { "min": 0, "max": 240, "mean": 15.8, "median": 0, "std": 38, "ks": 39.5, "psi": 0.062, "importance": 0.18 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 210,
+          "mean": 12.5,
+          "median": 0,
+          "std": 32,
+          "ks": 35.8,
+          "psi": 0.055,
+          "importance": 0.16
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 180,
+          "mean": 9.8,
+          "median": 0,
+          "std": 28,
+          "ks": 31.5,
+          "psi": 0.048,
+          "importance": 0.13
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 150,
+          "mean": 4.2,
+          "median": 0,
+          "std": 18,
+          "ks": 25.2,
+          "psi": 0.035,
+          "importance": 0.1
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 240,
+          "mean": 15.8,
+          "median": 0,
+          "std": 38,
+          "ks": 39.5,
+          "psi": 0.062,
+          "importance": 0.18
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "Equifax is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "EFX_NUM_INQ_3M",
       "label": "Number of Inquiries in Last 3 Months",
       "description": "Count of hard credit inquiries in the past 3 months on the Equifax file.",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "inquiry",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 15, "mean": 1.5, "median": 1, "std": 2.0, "ks": 16.2, "psi": 0.035, "importance": 0.08 },
-        "credit_card": { "min": 0, "max": 18, "mean": 0.8, "median": 0, "std": 1.3, "ks": 12.8, "psi": 0.028, "importance": 0.06 },
-        "mortgage": { "min": 0, "max": 12, "mean": 1.2, "median": 1, "std": 1.5, "ks": 10.5, "psi": 0.022, "importance": 0.05 },
-        "personal_loan": { "min": 0, "max": 20, "mean": 2.0, "median": 1, "std": 2.5, "ks": 18.5, "psi": 0.042, "importance": 0.09 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 15,
+          "mean": 1.5,
+          "median": 1,
+          "std": 2.0,
+          "ks": 16.2,
+          "psi": 0.035,
+          "importance": 0.08
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 18,
+          "mean": 0.8,
+          "median": 0,
+          "std": 1.3,
+          "ks": 12.8,
+          "psi": 0.028,
+          "importance": 0.06
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 12,
+          "mean": 1.2,
+          "median": 1,
+          "std": 1.5,
+          "ks": 10.5,
+          "psi": 0.022,
+          "importance": 0.05
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 20,
+          "mean": 2.0,
+          "median": 1,
+          "std": 2.5,
+          "ks": 18.5,
+          "psi": 0.042,
+          "importance": 0.09
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "Equifax is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "EFX_NUM_INQ_12M",
       "label": "Number of Inquiries in Last 12 Months",
       "description": "Count of hard credit inquiries in the past 12 months on the Equifax file.",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "inquiry",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 30, "mean": 3.5, "median": 3, "std": 3.8, "ks": 15.5, "psi": 0.032, "importance": 0.07 },
-        "credit_card": { "min": 0, "max": 35, "mean": 2.2, "median": 1, "std": 2.8, "ks": 12.2, "psi": 0.025, "importance": 0.05 },
-        "mortgage": { "min": 0, "max": 25, "mean": 3.0, "median": 2, "std": 3.2, "ks": 10.8, "psi": 0.020, "importance": 0.04 },
-        "personal_loan": { "min": 0, "max": 32, "mean": 4.5, "median": 4, "std": 4.5, "ks": 18.2, "psi": 0.038, "importance": 0.08 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 30,
+          "mean": 3.5,
+          "median": 3,
+          "std": 3.8,
+          "ks": 15.5,
+          "psi": 0.032,
+          "importance": 0.07
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 35,
+          "mean": 2.2,
+          "median": 1,
+          "std": 2.8,
+          "ks": 12.2,
+          "psi": 0.025,
+          "importance": 0.05
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 25,
+          "mean": 3.0,
+          "median": 2,
+          "std": 3.2,
+          "ks": 10.8,
+          "psi": 0.02,
+          "importance": 0.04
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 32,
+          "mean": 4.5,
+          "median": 4,
+          "std": 4.5,
+          "ks": 18.2,
+          "psi": 0.038,
+          "importance": 0.08
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "Equifax is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "EFX_OPEN_AUTO_TL",
       "label": "Number of Open Auto Tradelines",
       "description": "Count of currently open auto loan or lease tradelines.",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "auto_specific",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 8, "mean": 1.2, "median": 1, "std": 1.0, "ks": 22.5, "psi": 0.038, "importance": 0.12 },
-        "credit_card": { "min": 0, "max": 6, "mean": 0.6, "median": 0, "std": 0.8, "ks": 8.5, "psi": 0.020, "importance": 0.03 },
-        "mortgage": { "min": 0, "max": 5, "mean": 0.8, "median": 1, "std": 0.8, "ks": 6.2, "psi": 0.015, "importance": 0.02 },
-        "personal_loan": { "min": 0, "max": 7, "mean": 0.7, "median": 0, "std": 0.9, "ks": 10.5, "psi": 0.025, "importance": 0.04 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 8,
+          "mean": 1.2,
+          "median": 1,
+          "std": 1.0,
+          "ks": 22.5,
+          "psi": 0.038,
+          "importance": 0.12
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 6,
+          "mean": 0.6,
+          "median": 0,
+          "std": 0.8,
+          "ks": 8.5,
+          "psi": 0.02,
+          "importance": 0.03
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 5,
+          "mean": 0.8,
+          "median": 1,
+          "std": 0.8,
+          "ks": 6.2,
+          "psi": 0.015,
+          "importance": 0.02
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 7,
+          "mean": 0.7,
+          "median": 0,
+          "std": 0.9,
+          "ks": 10.5,
+          "psi": 0.025,
+          "importance": 0.04
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "Equifax is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "EFX_OPEN_MTG_TL",
       "label": "Number of Open Mortgage Tradelines",
       "description": "Count of currently open mortgage tradelines.",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "mortgage_specific",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 5, "mean": 0.5, "median": 0, "std": 0.7, "ks": 8.2, "psi": 0.022, "importance": 0.03 },
-        "credit_card": { "min": 0, "max": 5, "mean": 0.6, "median": 0, "std": 0.7, "ks": 6.8, "psi": 0.018, "importance": 0.02 },
-        "mortgage": { "min": 0, "max": 8, "mean": 1.4, "median": 1, "std": 1.0, "ks": 18.5, "psi": 0.032, "importance": 0.11 },
-        "personal_loan": { "min": 0, "max": 5, "mean": 0.4, "median": 0, "std": 0.6, "ks": 7.5, "psi": 0.020, "importance": 0.03 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 5,
+          "mean": 0.5,
+          "median": 0,
+          "std": 0.7,
+          "ks": 8.2,
+          "psi": 0.022,
+          "importance": 0.03
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 5,
+          "mean": 0.6,
+          "median": 0,
+          "std": 0.7,
+          "ks": 6.8,
+          "psi": 0.018,
+          "importance": 0.02
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 8,
+          "mean": 1.4,
+          "median": 1,
+          "std": 1.0,
+          "ks": 18.5,
+          "psi": 0.032,
+          "importance": 0.11
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 5,
+          "mean": 0.4,
+          "median": 0,
+          "std": 0.6,
+          "ks": 7.5,
+          "psi": 0.02,
+          "importance": 0.03
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "Equifax is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "EFX_TOT_PAST_DUE_AMT",
       "label": "Total Past Due Amount",
       "description": "Sum of past due amounts across all tradelines currently past due.",
       "data_type": "integer",
-      "valid_range": [0, 9999999],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        9999999
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "delinquency",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 85000, "mean": 520, "median": 0, "std": 3200, "ks": 32.5, "psi": 0.058, "importance": 0.15 },
-        "credit_card": { "min": 0, "max": 65000, "mean": 380, "median": 0, "std": 2500, "ks": 28.2, "psi": 0.050, "importance": 0.12 },
-        "mortgage": { "min": 0, "max": 120000, "mean": 250, "median": 0, "std": 4800, "ks": 22.8, "psi": 0.038, "importance": 0.09 },
-        "personal_loan": { "min": 0, "max": 75000, "mean": 650, "median": 0, "std": 3800, "ks": 36.2, "psi": 0.065, "importance": 0.17 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 85000,
+          "mean": 520,
+          "median": 0,
+          "std": 3200,
+          "ks": 32.5,
+          "psi": 0.058,
+          "importance": 0.15
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 65000,
+          "mean": 380,
+          "median": 0,
+          "std": 2500,
+          "ks": 28.2,
+          "psi": 0.05,
+          "importance": 0.12
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 120000,
+          "mean": 250,
+          "median": 0,
+          "std": 4800,
+          "ks": 22.8,
+          "psi": 0.038,
+          "importance": 0.09
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 75000,
+          "mean": 650,
+          "median": 0,
+          "std": 3800,
+          "ks": 36.2,
+          "psi": 0.065,
+          "importance": 0.17
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "Equifax is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     },
     {
       "name": "EFX_DEBT_TO_INC_RATIO",
       "label": "Estimated Debt to Income Ratio",
       "description": "Equifax-estimated debt-to-income ratio based on modeled income and bureau obligations.",
       "data_type": "float",
-      "valid_range": [0, 999],
-      "special_values": { "-1": "Unable to Calculate", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        999
+      ],
+      "special_values": {
+        "-1": "Unable to Calculate",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "capacity",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 200, "mean": 38.5, "median": 35, "std": 22, "ks": 20.5, "psi": 0.038, "importance": 0.11 },
-        "credit_card": { "min": 0, "max": 180, "mean": 32.2, "median": 28, "std": 20, "ks": 18.2, "psi": 0.032, "importance": 0.09 },
-        "mortgage": { "min": 0, "max": 150, "mean": 42.5, "median": 40, "std": 18, "ks": 22.8, "psi": 0.028, "importance": 0.13 },
-        "personal_loan": { "min": 0, "max": 220, "mean": 42.8, "median": 38, "std": 25, "ks": 22.5, "psi": 0.042, "importance": 0.12 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 200,
+          "mean": 38.5,
+          "median": 35,
+          "std": 22,
+          "ks": 20.5,
+          "psi": 0.038,
+          "importance": 0.11
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 180,
+          "mean": 32.2,
+          "median": 28,
+          "std": 20,
+          "ks": 18.2,
+          "psi": 0.032,
+          "importance": 0.09
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 150,
+          "mean": 42.5,
+          "median": 40,
+          "std": 18,
+          "ks": 22.8,
+          "psi": 0.028,
+          "importance": 0.13
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 220,
+          "mean": 42.8,
+          "median": 38,
+          "std": 25,
+          "ks": 22.5,
+          "psi": 0.042,
+          "importance": 0.12
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "Equifax is a consumer reporting agency (CRA). All attributes from the consumer credit file are FCRA-regulated."
     }
   ]
 }

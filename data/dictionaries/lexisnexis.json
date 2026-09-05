@@ -2,262 +2,1045 @@
   "source": "LexisNexis",
   "version": "2024Q4",
   "description": "LexisNexis RiskView and alternative data attributes used for identity verification, fraud screening, and credit risk assessment.",
-  "portfolios": ["auto_loan", "credit_card", "mortgage", "personal_loan"],
+  "portfolios": [
+    "auto_loan",
+    "credit_card",
+    "mortgage",
+    "personal_loan"
+  ],
   "attributes": [
     {
       "name": "LN_RISKVIEW_SCORE",
       "label": "RiskView Score",
       "description": "LexisNexis RiskView credit risk score derived from public records, property data, and alternative data. Used for thin-file and subprime populations.",
       "data_type": "integer",
-      "valid_range": [501, 900],
-      "special_values": { "-1": "No Score / Insufficient Data", "-3": "Identity Not Verified", "-5": "No Hit", "-7": "Not Available", "222": "Fraud Indicator" },
+      "valid_range": [
+        501,
+        900
+      ],
+      "special_values": {
+        "-1": "No Score / Insufficient Data",
+        "-3": "Identity Not Verified",
+        "-5": "No Hit",
+        "-7": "Not Available",
+        "222": "Fraud Indicator"
+      },
       "segment": "alternative_score",
       "typical_stats": {
-        "auto_loan": { "min": 520, "max": 900, "mean": 695, "median": 710, "std": 78, "ks": 35.5, "psi": 0.028, "importance": 0.22 },
-        "credit_card": { "min": 540, "max": 900, "mean": 718, "median": 730, "std": 72, "ks": 32.2, "psi": 0.022, "importance": 0.19 },
-        "mortgage": { "min": 580, "max": 900, "mean": 745, "median": 755, "std": 62, "ks": 28.5, "psi": 0.018, "importance": 0.15 },
-        "personal_loan": { "min": 510, "max": 900, "mean": 680, "median": 695, "std": 82, "ks": 38.2, "psi": 0.032, "importance": 0.25 }
-      }
+        "auto_loan": {
+          "min": 520,
+          "max": 900,
+          "mean": 695,
+          "median": 710,
+          "std": 78,
+          "ks": 35.5,
+          "psi": 0.028,
+          "importance": 0.22
+        },
+        "credit_card": {
+          "min": 540,
+          "max": 900,
+          "mean": 718,
+          "median": 730,
+          "std": 72,
+          "ks": 32.2,
+          "psi": 0.022,
+          "importance": 0.19
+        },
+        "mortgage": {
+          "min": 580,
+          "max": 900,
+          "mean": 745,
+          "median": 755,
+          "std": 62,
+          "ks": 28.5,
+          "psi": 0.018,
+          "importance": 0.15
+        },
+        "personal_loan": {
+          "min": 510,
+          "max": 900,
+          "mean": 680,
+          "median": 695,
+          "std": 82,
+          "ks": 38.2,
+          "psi": 0.032,
+          "importance": 0.25
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "LexisNexis RiskView operates as a CRA under FCRA when providing consumer reports for credit decisions."
     },
     {
       "name": "LN_RISKVIEW_LIENS_SCORE",
       "label": "RiskView Liens & Judgments Score",
       "description": "LexisNexis score based on lien filing history, tax liens, and judgment records.",
       "data_type": "integer",
-      "valid_range": [501, 900],
-      "special_values": { "-1": "No Score", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        501,
+        900
+      ],
+      "special_values": {
+        "-1": "No Score",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "alternative_score",
       "typical_stats": {
-        "auto_loan": { "min": 530, "max": 900, "mean": 720, "median": 735, "std": 72, "ks": 25.2, "psi": 0.025, "importance": 0.12 },
-        "credit_card": { "min": 550, "max": 900, "mean": 738, "median": 750, "std": 65, "ks": 22.5, "psi": 0.020, "importance": 0.10 },
-        "mortgage": { "min": 590, "max": 900, "mean": 762, "median": 775, "std": 55, "ks": 18.8, "psi": 0.015, "importance": 0.08 },
-        "personal_loan": { "min": 520, "max": 900, "mean": 708, "median": 720, "std": 78, "ks": 28.5, "psi": 0.030, "importance": 0.14 }
-      }
+        "auto_loan": {
+          "min": 530,
+          "max": 900,
+          "mean": 720,
+          "median": 735,
+          "std": 72,
+          "ks": 25.2,
+          "psi": 0.025,
+          "importance": 0.12
+        },
+        "credit_card": {
+          "min": 550,
+          "max": 900,
+          "mean": 738,
+          "median": 750,
+          "std": 65,
+          "ks": 22.5,
+          "psi": 0.02,
+          "importance": 0.1
+        },
+        "mortgage": {
+          "min": 590,
+          "max": 900,
+          "mean": 762,
+          "median": 775,
+          "std": 55,
+          "ks": 18.8,
+          "psi": 0.015,
+          "importance": 0.08
+        },
+        "personal_loan": {
+          "min": 520,
+          "max": 900,
+          "mean": 708,
+          "median": 720,
+          "std": 78,
+          "ks": 28.5,
+          "psi": 0.03,
+          "importance": 0.14
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "LexisNexis RiskView operates as a CRA under FCRA when providing consumer reports for credit decisions."
     },
     {
       "name": "LN_ADDR_STABILITY",
       "label": "Address Stability Score",
       "description": "Score indicating residential address stability based on length at current and previous addresses, number of address changes.",
       "data_type": "integer",
-      "valid_range": [0, 100],
-      "special_values": { "-1": "No Address History", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        100
+      ],
+      "special_values": {
+        "-1": "No Address History",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "stability",
       "typical_stats": {
-        "auto_loan": { "min": 5, "max": 100, "mean": 62, "median": 65, "std": 22, "ks": 18.2, "psi": 0.032, "importance": 0.09 },
-        "credit_card": { "min": 5, "max": 100, "mean": 65, "median": 68, "std": 20, "ks": 15.5, "psi": 0.028, "importance": 0.07 },
-        "mortgage": { "min": 10, "max": 100, "mean": 75, "median": 78, "std": 16, "ks": 12.8, "psi": 0.022, "importance": 0.05 },
-        "personal_loan": { "min": 3, "max": 100, "mean": 58, "median": 60, "std": 24, "ks": 20.5, "psi": 0.038, "importance": 0.10 }
-      }
+        "auto_loan": {
+          "min": 5,
+          "max": 100,
+          "mean": 62,
+          "median": 65,
+          "std": 22,
+          "ks": 18.2,
+          "psi": 0.032,
+          "importance": 0.09
+        },
+        "credit_card": {
+          "min": 5,
+          "max": 100,
+          "mean": 65,
+          "median": 68,
+          "std": 20,
+          "ks": 15.5,
+          "psi": 0.028,
+          "importance": 0.07
+        },
+        "mortgage": {
+          "min": 10,
+          "max": 100,
+          "mean": 75,
+          "median": 78,
+          "std": 16,
+          "ks": 12.8,
+          "psi": 0.022,
+          "importance": 0.05
+        },
+        "personal_loan": {
+          "min": 3,
+          "max": 100,
+          "mean": 58,
+          "median": 60,
+          "std": 24,
+          "ks": 20.5,
+          "psi": 0.038,
+          "importance": 0.1
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "LexisNexis RiskView operates as a CRA under FCRA when providing consumer reports for credit decisions."
     },
     {
       "name": "LN_MTHS_AT_CURR_ADDR",
       "label": "Months at Current Address",
       "description": "Number of months the applicant has resided at their current address per LexisNexis records.",
       "data_type": "integer",
-      "valid_range": [0, 999],
-      "special_values": { "-1": "Unknown", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        999
+      ],
+      "special_values": {
+        "-1": "Unknown",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "stability",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 480, "mean": 52, "median": 36, "std": 55, "ks": 14.5, "psi": 0.028, "importance": 0.07 },
-        "credit_card": { "min": 0, "max": 520, "mean": 58, "median": 42, "std": 58, "ks": 12.2, "psi": 0.024, "importance": 0.06 },
-        "mortgage": { "min": 0, "max": 600, "mean": 85, "median": 60, "std": 72, "ks": 10.5, "psi": 0.018, "importance": 0.04 },
-        "personal_loan": { "min": 0, "max": 450, "mean": 45, "median": 30, "std": 50, "ks": 16.2, "psi": 0.032, "importance": 0.08 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 480,
+          "mean": 52,
+          "median": 36,
+          "std": 55,
+          "ks": 14.5,
+          "psi": 0.028,
+          "importance": 0.07
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 520,
+          "mean": 58,
+          "median": 42,
+          "std": 58,
+          "ks": 12.2,
+          "psi": 0.024,
+          "importance": 0.06
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 600,
+          "mean": 85,
+          "median": 60,
+          "std": 72,
+          "ks": 10.5,
+          "psi": 0.018,
+          "importance": 0.04
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 450,
+          "mean": 45,
+          "median": 30,
+          "std": 50,
+          "ks": 16.2,
+          "psi": 0.032,
+          "importance": 0.08
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "LexisNexis RiskView operates as a CRA under FCRA when providing consumer reports for credit decisions."
     },
     {
       "name": "LN_NUM_ADDR_CHANGES_5Y",
       "label": "Number of Address Changes in 5 Years",
       "description": "Count of distinct residential address changes in the past 5 years.",
       "data_type": "integer",
-      "valid_range": [0, 50],
-      "special_values": { "-1": "No Address History", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        50
+      ],
+      "special_values": {
+        "-1": "No Address History",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "stability",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 12, "mean": 2.1, "median": 2, "std": 1.8, "ks": 15.8, "psi": 0.030, "importance": 0.08 },
-        "credit_card": { "min": 0, "max": 10, "mean": 1.8, "median": 1, "std": 1.5, "ks": 13.2, "psi": 0.025, "importance": 0.06 },
-        "mortgage": { "min": 0, "max": 8, "mean": 1.2, "median": 1, "std": 1.1, "ks": 10.5, "psi": 0.020, "importance": 0.04 },
-        "personal_loan": { "min": 0, "max": 15, "mean": 2.5, "median": 2, "std": 2.1, "ks": 18.2, "psi": 0.035, "importance": 0.09 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 12,
+          "mean": 2.1,
+          "median": 2,
+          "std": 1.8,
+          "ks": 15.8,
+          "psi": 0.03,
+          "importance": 0.08
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 10,
+          "mean": 1.8,
+          "median": 1,
+          "std": 1.5,
+          "ks": 13.2,
+          "psi": 0.025,
+          "importance": 0.06
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 8,
+          "mean": 1.2,
+          "median": 1,
+          "std": 1.1,
+          "ks": 10.5,
+          "psi": 0.02,
+          "importance": 0.04
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 15,
+          "mean": 2.5,
+          "median": 2,
+          "std": 2.1,
+          "ks": 18.2,
+          "psi": 0.035,
+          "importance": 0.09
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "LexisNexis RiskView operates as a CRA under FCRA when providing consumer reports for credit decisions."
     },
     {
       "name": "LN_PROPERTY_OWNER",
       "label": "Property Ownership Indicator",
       "description": "Indicator whether the individual is identified as a property owner through deed and tax records. 0=No, 1=Yes.",
       "data_type": "categorical",
-      "valid_range": [0, 1],
-      "special_values": { "0": "Not a Property Owner", "1": "Property Owner", "-1": "Unknown", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        1
+      ],
+      "special_values": {
+        "0": "Not a Property Owner",
+        "1": "Property Owner",
+        "-1": "Unknown",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "assets",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 1, "mean": 0.52, "median": 1, "std": 0.50, "ks": 20.5, "psi": 0.025, "importance": 0.10 },
-        "credit_card": { "min": 0, "max": 1, "mean": 0.55, "median": 1, "std": 0.50, "ks": 18.2, "psi": 0.022, "importance": 0.08 },
-        "mortgage": { "min": 0, "max": 1, "mean": 0.82, "median": 1, "std": 0.38, "ks": 15.5, "psi": 0.018, "importance": 0.06 },
-        "personal_loan": { "min": 0, "max": 1, "mean": 0.48, "median": 0, "std": 0.50, "ks": 22.8, "psi": 0.030, "importance": 0.11 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.52,
+          "median": 1,
+          "std": 0.5,
+          "ks": 20.5,
+          "psi": 0.025,
+          "importance": 0.1
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.55,
+          "median": 1,
+          "std": 0.5,
+          "ks": 18.2,
+          "psi": 0.022,
+          "importance": 0.08
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.82,
+          "median": 1,
+          "std": 0.38,
+          "ks": 15.5,
+          "psi": 0.018,
+          "importance": 0.06
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.48,
+          "median": 0,
+          "std": 0.5,
+          "ks": 22.8,
+          "psi": 0.03,
+          "importance": 0.11
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "LexisNexis RiskView operates as a CRA under FCRA when providing consumer reports for credit decisions."
     },
     {
       "name": "LN_EST_INCOME",
       "label": "Estimated Household Income",
       "description": "LexisNexis modeled estimate of household income based on property values, neighborhood data, and public records.",
       "data_type": "integer",
-      "valid_range": [0, 9999999],
-      "special_values": { "-1": "Unable to Estimate", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        9999999
+      ],
+      "special_values": {
+        "-1": "Unable to Estimate",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "income",
       "typical_stats": {
-        "auto_loan": { "min": 12000, "max": 800000, "mean": 72000, "median": 62000, "std": 45000, "ks": 16.5, "psi": 0.030, "importance": 0.08 },
-        "credit_card": { "min": 15000, "max": 900000, "mean": 78000, "median": 68000, "std": 48000, "ks": 14.2, "psi": 0.025, "importance": 0.07 },
-        "mortgage": { "min": 25000, "max": 1200000, "mean": 112000, "median": 95000, "std": 65000, "ks": 12.8, "psi": 0.020, "importance": 0.06 },
-        "personal_loan": { "min": 10000, "max": 750000, "mean": 65000, "median": 55000, "std": 42000, "ks": 18.5, "psi": 0.035, "importance": 0.09 }
-      }
+        "auto_loan": {
+          "min": 12000,
+          "max": 800000,
+          "mean": 72000,
+          "median": 62000,
+          "std": 45000,
+          "ks": 16.5,
+          "psi": 0.03,
+          "importance": 0.08
+        },
+        "credit_card": {
+          "min": 15000,
+          "max": 900000,
+          "mean": 78000,
+          "median": 68000,
+          "std": 48000,
+          "ks": 14.2,
+          "psi": 0.025,
+          "importance": 0.07
+        },
+        "mortgage": {
+          "min": 25000,
+          "max": 1200000,
+          "mean": 112000,
+          "median": 95000,
+          "std": 65000,
+          "ks": 12.8,
+          "psi": 0.02,
+          "importance": 0.06
+        },
+        "personal_loan": {
+          "min": 10000,
+          "max": 750000,
+          "mean": 65000,
+          "median": 55000,
+          "std": 42000,
+          "ks": 18.5,
+          "psi": 0.035,
+          "importance": 0.09
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "LexisNexis RiskView operates as a CRA under FCRA when providing consumer reports for credit decisions."
     },
     {
       "name": "LN_NUM_PROP_DEEDS",
       "label": "Number of Property Deeds",
       "description": "Count of property deeds on record for the individual.",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "assets",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 10, "mean": 0.8, "median": 1, "std": 1.1, "ks": 14.2, "psi": 0.025, "importance": 0.06 },
-        "credit_card": { "min": 0, "max": 12, "mean": 0.9, "median": 1, "std": 1.2, "ks": 12.5, "psi": 0.022, "importance": 0.05 },
-        "mortgage": { "min": 0, "max": 15, "mean": 1.5, "median": 1, "std": 1.5, "ks": 10.8, "psi": 0.018, "importance": 0.04 },
-        "personal_loan": { "min": 0, "max": 10, "mean": 0.7, "median": 0, "std": 1.0, "ks": 15.8, "psi": 0.028, "importance": 0.07 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 10,
+          "mean": 0.8,
+          "median": 1,
+          "std": 1.1,
+          "ks": 14.2,
+          "psi": 0.025,
+          "importance": 0.06
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 12,
+          "mean": 0.9,
+          "median": 1,
+          "std": 1.2,
+          "ks": 12.5,
+          "psi": 0.022,
+          "importance": 0.05
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 15,
+          "mean": 1.5,
+          "median": 1,
+          "std": 1.5,
+          "ks": 10.8,
+          "psi": 0.018,
+          "importance": 0.04
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 10,
+          "mean": 0.7,
+          "median": 0,
+          "std": 1.0,
+          "ks": 15.8,
+          "psi": 0.028,
+          "importance": 0.07
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "LexisNexis RiskView operates as a CRA under FCRA when providing consumer reports for credit decisions."
     },
     {
       "name": "LN_TOT_PROP_VALUE",
       "label": "Total Property Value",
       "description": "Aggregate assessed or estimated market value of all properties owned by the individual.",
       "data_type": "integer",
-      "valid_range": [0, 99999999],
-      "special_values": { "-1": "No Properties", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99999999
+      ],
+      "special_values": {
+        "-1": "No Properties",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "assets",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 5000000, "mean": 185000, "median": 120000, "std": 250000, "ks": 12.5, "psi": 0.028, "importance": 0.06 },
-        "credit_card": { "min": 0, "max": 5500000, "mean": 205000, "median": 140000, "std": 280000, "ks": 10.8, "psi": 0.024, "importance": 0.05 },
-        "mortgage": { "min": 0, "max": 10000000, "mean": 450000, "median": 320000, "std": 420000, "ks": 8.5, "psi": 0.018, "importance": 0.04 },
-        "personal_loan": { "min": 0, "max": 4500000, "mean": 165000, "median": 100000, "std": 230000, "ks": 14.2, "psi": 0.032, "importance": 0.07 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 5000000,
+          "mean": 185000,
+          "median": 120000,
+          "std": 250000,
+          "ks": 12.5,
+          "psi": 0.028,
+          "importance": 0.06
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 5500000,
+          "mean": 205000,
+          "median": 140000,
+          "std": 280000,
+          "ks": 10.8,
+          "psi": 0.024,
+          "importance": 0.05
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 10000000,
+          "mean": 450000,
+          "median": 320000,
+          "std": 420000,
+          "ks": 8.5,
+          "psi": 0.018,
+          "importance": 0.04
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 4500000,
+          "mean": 165000,
+          "median": 100000,
+          "std": 230000,
+          "ks": 14.2,
+          "psi": 0.032,
+          "importance": 0.07
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "LexisNexis RiskView operates as a CRA under FCRA when providing consumer reports for credit decisions."
     },
     {
       "name": "LN_NUM_TAX_LIENS",
       "label": "Number of Tax Liens",
       "description": "Count of federal and state tax liens filed against the individual.",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "derogatory",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 8, "mean": 0.15, "median": 0, "std": 0.5, "ks": 22.5, "psi": 0.038, "importance": 0.10 },
-        "credit_card": { "min": 0, "max": 6, "mean": 0.10, "median": 0, "std": 0.4, "ks": 18.8, "psi": 0.032, "importance": 0.08 },
-        "mortgage": { "min": 0, "max": 4, "mean": 0.05, "median": 0, "std": 0.2, "ks": 14.5, "psi": 0.025, "importance": 0.05 },
-        "personal_loan": { "min": 0, "max": 10, "mean": 0.20, "median": 0, "std": 0.6, "ks": 25.8, "psi": 0.045, "importance": 0.12 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 8,
+          "mean": 0.15,
+          "median": 0,
+          "std": 0.5,
+          "ks": 22.5,
+          "psi": 0.038,
+          "importance": 0.1
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 6,
+          "mean": 0.1,
+          "median": 0,
+          "std": 0.4,
+          "ks": 18.8,
+          "psi": 0.032,
+          "importance": 0.08
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 4,
+          "mean": 0.05,
+          "median": 0,
+          "std": 0.2,
+          "ks": 14.5,
+          "psi": 0.025,
+          "importance": 0.05
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 10,
+          "mean": 0.2,
+          "median": 0,
+          "std": 0.6,
+          "ks": 25.8,
+          "psi": 0.045,
+          "importance": 0.12
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "FCRA-regulated. Tax lien data from a CRA is subject to FCRA. Note: major CRAs removed most tax liens from credit files in 2018 due to data quality concerns."
     },
     {
       "name": "LN_NUM_EVICTIONS",
       "label": "Number of Eviction Filings",
       "description": "Count of eviction filings associated with the individual.",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "derogatory",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 5, "mean": 0.12, "median": 0, "std": 0.4, "ks": 20.2, "psi": 0.035, "importance": 0.08 },
-        "credit_card": { "min": 0, "max": 4, "mean": 0.08, "median": 0, "std": 0.3, "ks": 16.5, "psi": 0.028, "importance": 0.06 },
-        "mortgage": { "min": 0, "max": 3, "mean": 0.03, "median": 0, "std": 0.2, "ks": 12.8, "psi": 0.020, "importance": 0.04 },
-        "personal_loan": { "min": 0, "max": 6, "mean": 0.15, "median": 0, "std": 0.5, "ks": 23.5, "psi": 0.042, "importance": 0.10 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 5,
+          "mean": 0.12,
+          "median": 0,
+          "std": 0.4,
+          "ks": 20.2,
+          "psi": 0.035,
+          "importance": 0.08
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 4,
+          "mean": 0.08,
+          "median": 0,
+          "std": 0.3,
+          "ks": 16.5,
+          "psi": 0.028,
+          "importance": 0.06
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 3,
+          "mean": 0.03,
+          "median": 0,
+          "std": 0.2,
+          "ks": 12.8,
+          "psi": 0.02,
+          "importance": 0.04
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 6,
+          "mean": 0.15,
+          "median": 0,
+          "std": 0.5,
+          "ks": 23.5,
+          "psi": 0.042,
+          "importance": 0.1
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "FCRA-regulated. Eviction records from a CRA are subject to FCRA accuracy and dispute requirements. Some jurisdictions restrict use in credit decisions."
     },
     {
       "name": "LN_NUM_FELONIES",
       "label": "Number of Felony Records",
       "description": "Count of felony criminal records found for the individual.",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "criminal",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 5, "mean": 0.08, "median": 0, "std": 0.3, "ks": 18.5, "psi": 0.032, "importance": 0.07 },
-        "credit_card": { "min": 0, "max": 4, "mean": 0.05, "median": 0, "std": 0.2, "ks": 14.8, "psi": 0.025, "importance": 0.05 },
-        "mortgage": { "min": 0, "max": 2, "mean": 0.02, "median": 0, "std": 0.1, "ks": 10.2, "psi": 0.018, "importance": 0.03 },
-        "personal_loan": { "min": 0, "max": 6, "mean": 0.10, "median": 0, "std": 0.4, "ks": 22.2, "psi": 0.040, "importance": 0.09 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 5,
+          "mean": 0.08,
+          "median": 0,
+          "std": 0.3,
+          "ks": 18.5,
+          "psi": 0.032,
+          "importance": 0.07
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 4,
+          "mean": 0.05,
+          "median": 0,
+          "std": 0.2,
+          "ks": 14.8,
+          "psi": 0.025,
+          "importance": 0.05
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 2,
+          "mean": 0.02,
+          "median": 0,
+          "std": 0.1,
+          "ks": 10.2,
+          "psi": 0.018,
+          "importance": 0.03
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 6,
+          "mean": 0.1,
+          "median": 0,
+          "std": 0.4,
+          "ks": 22.2,
+          "psi": 0.04,
+          "importance": 0.09
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "FCRA-regulated. Criminal records from a CRA are subject to FCRA Section 605 time limits (7 years for arrests, 10 years for convictions in some states). Many states restrict use in credit decisions."
     },
     {
       "name": "LN_FRAUD_POINT_SCORE",
       "label": "FraudPoint Score",
       "description": "LexisNexis FraudPoint score indicating the likelihood of identity fraud. Higher scores indicate higher fraud risk.",
       "data_type": "integer",
-      "valid_range": [0, 999],
-      "special_values": { "-1": "Unable to Score", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        999
+      ],
+      "special_values": {
+        "-1": "Unable to Score",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "fraud",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 800, "mean": 185, "median": 150, "std": 120, "ks": 15.2, "psi": 0.025, "importance": 0.06 },
-        "credit_card": { "min": 0, "max": 850, "mean": 210, "median": 175, "std": 135, "ks": 18.5, "psi": 0.030, "importance": 0.08 },
-        "mortgage": { "min": 0, "max": 700, "mean": 145, "median": 120, "std": 100, "ks": 12.8, "psi": 0.020, "importance": 0.05 },
-        "personal_loan": { "min": 0, "max": 900, "mean": 225, "median": 190, "std": 145, "ks": 20.2, "psi": 0.035, "importance": 0.09 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 800,
+          "mean": 185,
+          "median": 150,
+          "std": 120,
+          "ks": 15.2,
+          "psi": 0.025,
+          "importance": 0.06
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 850,
+          "mean": 210,
+          "median": 175,
+          "std": 135,
+          "ks": 18.5,
+          "psi": 0.03,
+          "importance": 0.08
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 700,
+          "mean": 145,
+          "median": 120,
+          "std": 100,
+          "ks": 12.8,
+          "psi": 0.02,
+          "importance": 0.05
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 900,
+          "mean": 225,
+          "median": 190,
+          "std": 145,
+          "ks": 20.2,
+          "psi": 0.035,
+          "importance": 0.09
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "FCRA-regulated when used in credit decisions. Also subject to GLBA safeguards. Fraud scores from CRAs require permissible purpose."
     },
     {
       "name": "LN_ID_VERIFICATION",
       "label": "Identity Verification Level",
       "description": "Level of identity verification achieved. 1=Full Match, 2=Partial Match, 3=Name Only, 4=Address Only, 5=No Match.",
       "data_type": "categorical",
-      "valid_range": [1, 5],
-      "special_values": { "1": "Full Match (SSN+Name+DOB+Address)", "2": "Partial Match (3 of 4 elements)", "3": "Name Only Match", "4": "Address Only Match", "5": "No Match", "-1": "Unable to Verify", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        1,
+        5
+      ],
+      "special_values": {
+        "1": "Full Match (SSN+Name+DOB+Address)",
+        "2": "Partial Match (3 of 4 elements)",
+        "3": "Name Only Match",
+        "4": "Address Only Match",
+        "5": "No Match",
+        "-1": "Unable to Verify",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "identity",
       "typical_stats": {
-        "auto_loan": { "min": 1, "max": 5, "mean": 1.4, "median": 1, "std": 0.8, "ks": 10.5, "psi": 0.018, "importance": 0.05 },
-        "credit_card": { "min": 1, "max": 5, "mean": 1.5, "median": 1, "std": 0.9, "ks": 12.2, "psi": 0.022, "importance": 0.06 },
-        "mortgage": { "min": 1, "max": 5, "mean": 1.2, "median": 1, "std": 0.5, "ks": 8.5, "psi": 0.015, "importance": 0.03 },
-        "personal_loan": { "min": 1, "max": 5, "mean": 1.6, "median": 1, "std": 1.0, "ks": 14.5, "psi": 0.028, "importance": 0.07 }
-      }
+        "auto_loan": {
+          "min": 1,
+          "max": 5,
+          "mean": 1.4,
+          "median": 1,
+          "std": 0.8,
+          "ks": 10.5,
+          "psi": 0.018,
+          "importance": 0.05
+        },
+        "credit_card": {
+          "min": 1,
+          "max": 5,
+          "mean": 1.5,
+          "median": 1,
+          "std": 0.9,
+          "ks": 12.2,
+          "psi": 0.022,
+          "importance": 0.06
+        },
+        "mortgage": {
+          "min": 1,
+          "max": 5,
+          "mean": 1.2,
+          "median": 1,
+          "std": 0.5,
+          "ks": 8.5,
+          "psi": 0.015,
+          "importance": 0.03
+        },
+        "personal_loan": {
+          "min": 1,
+          "max": 5,
+          "mean": 1.6,
+          "median": 1,
+          "std": 1.0,
+          "ks": 14.5,
+          "psi": 0.028,
+          "importance": 0.07
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Not FCRA-regulated when used solely for identity verification/authentication under FCRA Section 604(a)(2) fraud prevention permissible purpose, separate from credit decisioning."
     },
     {
       "name": "LN_PHONE_VERIFICATION",
       "label": "Phone Verification Status",
       "description": "Whether the applicant's phone number is verified and matches known records. 0=Not Verified, 1=Verified.",
       "data_type": "categorical",
-      "valid_range": [0, 1],
-      "special_values": { "0": "Not Verified", "1": "Verified", "-1": "No Phone Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        1
+      ],
+      "special_values": {
+        "0": "Not Verified",
+        "1": "Verified",
+        "-1": "No Phone Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "identity",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 1, "mean": 0.78, "median": 1, "std": 0.42, "ks": 8.5, "psi": 0.015, "importance": 0.04 },
-        "credit_card": { "min": 0, "max": 1, "mean": 0.80, "median": 1, "std": 0.40, "ks": 7.8, "psi": 0.012, "importance": 0.03 },
-        "mortgage": { "min": 0, "max": 1, "mean": 0.88, "median": 1, "std": 0.32, "ks": 5.5, "psi": 0.010, "importance": 0.02 },
-        "personal_loan": { "min": 0, "max": 1, "mean": 0.75, "median": 1, "std": 0.43, "ks": 10.2, "psi": 0.020, "importance": 0.05 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.78,
+          "median": 1,
+          "std": 0.42,
+          "ks": 8.5,
+          "psi": 0.015,
+          "importance": 0.04
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.8,
+          "median": 1,
+          "std": 0.4,
+          "ks": 7.8,
+          "psi": 0.012,
+          "importance": 0.03
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.88,
+          "median": 1,
+          "std": 0.32,
+          "ks": 5.5,
+          "psi": 0.01,
+          "importance": 0.02
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.75,
+          "median": 1,
+          "std": 0.43,
+          "ks": 10.2,
+          "psi": 0.02,
+          "importance": 0.05
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Not FCRA-regulated when used solely for identity verification/authentication purposes. Does not constitute a consumer report when used outside credit decisioning."
     },
     {
       "name": "LN_NUM_ASSOC_ADDR",
       "label": "Number of Associated Addresses",
       "description": "Total count of distinct addresses historically associated with the individual.",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "stability",
       "typical_stats": {
-        "auto_loan": { "min": 1, "max": 25, "mean": 5.2, "median": 4, "std": 3.5, "ks": 12.5, "psi": 0.028, "importance": 0.06 },
-        "credit_card": { "min": 1, "max": 22, "mean": 4.8, "median": 4, "std": 3.2, "ks": 10.8, "psi": 0.024, "importance": 0.05 },
-        "mortgage": { "min": 1, "max": 18, "mean": 4.2, "median": 3, "std": 2.8, "ks": 8.5, "psi": 0.020, "importance": 0.03 },
-        "personal_loan": { "min": 1, "max": 28, "mean": 5.8, "median": 5, "std": 3.8, "ks": 14.2, "psi": 0.032, "importance": 0.07 }
-      }
+        "auto_loan": {
+          "min": 1,
+          "max": 25,
+          "mean": 5.2,
+          "median": 4,
+          "std": 3.5,
+          "ks": 12.5,
+          "psi": 0.028,
+          "importance": 0.06
+        },
+        "credit_card": {
+          "min": 1,
+          "max": 22,
+          "mean": 4.8,
+          "median": 4,
+          "std": 3.2,
+          "ks": 10.8,
+          "psi": 0.024,
+          "importance": 0.05
+        },
+        "mortgage": {
+          "min": 1,
+          "max": 18,
+          "mean": 4.2,
+          "median": 3,
+          "std": 2.8,
+          "ks": 8.5,
+          "psi": 0.02,
+          "importance": 0.03
+        },
+        "personal_loan": {
+          "min": 1,
+          "max": 28,
+          "mean": 5.8,
+          "median": 5,
+          "std": 3.8,
+          "ks": 14.2,
+          "psi": 0.032,
+          "importance": 0.07
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "LexisNexis RiskView operates as a CRA under FCRA when providing consumer reports for credit decisions."
     },
     {
       "name": "LN_PROF_LICENSE",
       "label": "Professional License Indicator",
       "description": "Whether the individual holds any professional license (medical, legal, financial, engineering, etc.). 0=No, 1=Yes.",
       "data_type": "categorical",
-      "valid_range": [0, 1],
-      "special_values": { "0": "No Professional License", "1": "Has Professional License", "-1": "No Data", "-5": "No Hit", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        1
+      ],
+      "special_values": {
+        "0": "No Professional License",
+        "1": "Has Professional License",
+        "-1": "No Data",
+        "-5": "No Hit",
+        "-7": "Not Available"
+      },
       "segment": "employment",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 1, "mean": 0.15, "median": 0, "std": 0.36, "ks": 10.2, "psi": 0.020, "importance": 0.05 },
-        "credit_card": { "min": 0, "max": 1, "mean": 0.18, "median": 0, "std": 0.38, "ks": 8.8, "psi": 0.018, "importance": 0.04 },
-        "mortgage": { "min": 0, "max": 1, "mean": 0.28, "median": 0, "std": 0.45, "ks": 7.5, "psi": 0.015, "importance": 0.03 },
-        "personal_loan": { "min": 0, "max": 1, "mean": 0.12, "median": 0, "std": 0.33, "ks": 12.5, "psi": 0.025, "importance": 0.06 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.15,
+          "median": 0,
+          "std": 0.36,
+          "ks": 10.2,
+          "psi": 0.02,
+          "importance": 0.05
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.18,
+          "median": 0,
+          "std": 0.38,
+          "ks": 8.8,
+          "psi": 0.018,
+          "importance": 0.04
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.28,
+          "median": 0,
+          "std": 0.45,
+          "ks": 7.5,
+          "psi": 0.015,
+          "importance": 0.03
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.12,
+          "median": 0,
+          "std": 0.33,
+          "ks": 12.5,
+          "psi": 0.025,
+          "importance": 0.06
+        }
+      },
+      "fcra_regulated": true,
+      "fcra_note": "LexisNexis RiskView operates as a CRA under FCRA when providing consumer reports for credit decisions."
     }
   ]
 }

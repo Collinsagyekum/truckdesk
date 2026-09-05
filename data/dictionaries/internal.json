@@ -2,297 +2,1159 @@
   "source": "Internal",
   "version": "2024Q4",
   "description": "Internal application, behavioral, and account-level attributes derived from the institution's own data systems. Includes application data, existing account behavior, and customer relationship metrics.",
-  "portfolios": ["auto_loan", "credit_card", "mortgage", "personal_loan"],
+  "portfolios": [
+    "auto_loan",
+    "credit_card",
+    "mortgage",
+    "personal_loan"
+  ],
   "attributes": [
     {
       "name": "INT_APP_REQUESTED_AMT",
       "label": "Requested Loan Amount",
       "description": "Dollar amount requested by the applicant on the application.",
       "data_type": "integer",
-      "valid_range": [0, 9999999],
-      "special_values": { "-1": "Not Provided", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        9999999
+      ],
+      "special_values": {
+        "-1": "Not Provided",
+        "-7": "Not Available"
+      },
       "segment": "application",
       "typical_stats": {
-        "auto_loan": { "min": 2000, "max": 120000, "mean": 28500, "median": 25000, "std": 15000, "ks": 12.5, "psi": 0.025, "importance": 0.08 },
-        "credit_card": { "min": 500, "max": 100000, "mean": 8500, "median": 5000, "std": 8200, "ks": 8.2, "psi": 0.020, "importance": 0.05 },
-        "mortgage": { "min": 50000, "max": 5000000, "mean": 320000, "median": 275000, "std": 220000, "ks": 10.8, "psi": 0.022, "importance": 0.07 },
-        "personal_loan": { "min": 1000, "max": 100000, "mean": 15200, "median": 12000, "std": 12000, "ks": 14.5, "psi": 0.030, "importance": 0.09 }
-      }
+        "auto_loan": {
+          "min": 2000,
+          "max": 120000,
+          "mean": 28500,
+          "median": 25000,
+          "std": 15000,
+          "ks": 12.5,
+          "psi": 0.025,
+          "importance": 0.08
+        },
+        "credit_card": {
+          "min": 500,
+          "max": 100000,
+          "mean": 8500,
+          "median": 5000,
+          "std": 8200,
+          "ks": 8.2,
+          "psi": 0.02,
+          "importance": 0.05
+        },
+        "mortgage": {
+          "min": 50000,
+          "max": 5000000,
+          "mean": 320000,
+          "median": 275000,
+          "std": 220000,
+          "ks": 10.8,
+          "psi": 0.022,
+          "importance": 0.07
+        },
+        "personal_loan": {
+          "min": 1000,
+          "max": 100000,
+          "mean": 15200,
+          "median": 12000,
+          "std": 12000,
+          "ks": 14.5,
+          "psi": 0.03,
+          "importance": 0.09
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Internal data generated from the institution's own records and applications is not sourced from a CRA and is generally not FCRA-regulated."
     },
     {
       "name": "INT_APP_STATED_INCOME",
       "label": "Stated Annual Income",
       "description": "Annual gross income stated by the applicant on the application.",
       "data_type": "integer",
-      "valid_range": [0, 99999999],
-      "special_values": { "-1": "Not Provided", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99999999
+      ],
+      "special_values": {
+        "-1": "Not Provided",
+        "-7": "Not Available"
+      },
       "segment": "application",
       "typical_stats": {
-        "auto_loan": { "min": 12000, "max": 800000, "mean": 68000, "median": 58000, "std": 42000, "ks": 18.5, "psi": 0.030, "importance": 0.12 },
-        "credit_card": { "min": 15000, "max": 1000000, "mean": 75000, "median": 65000, "std": 48000, "ks": 15.2, "psi": 0.025, "importance": 0.10 },
-        "mortgage": { "min": 25000, "max": 2000000, "mean": 125000, "median": 105000, "std": 75000, "ks": 20.5, "psi": 0.028, "importance": 0.14 },
-        "personal_loan": { "min": 10000, "max": 750000, "mean": 62000, "median": 52000, "std": 40000, "ks": 20.2, "psi": 0.035, "importance": 0.13 }
-      }
+        "auto_loan": {
+          "min": 12000,
+          "max": 800000,
+          "mean": 68000,
+          "median": 58000,
+          "std": 42000,
+          "ks": 18.5,
+          "psi": 0.03,
+          "importance": 0.12
+        },
+        "credit_card": {
+          "min": 15000,
+          "max": 1000000,
+          "mean": 75000,
+          "median": 65000,
+          "std": 48000,
+          "ks": 15.2,
+          "psi": 0.025,
+          "importance": 0.1
+        },
+        "mortgage": {
+          "min": 25000,
+          "max": 2000000,
+          "mean": 125000,
+          "median": 105000,
+          "std": 75000,
+          "ks": 20.5,
+          "psi": 0.028,
+          "importance": 0.14
+        },
+        "personal_loan": {
+          "min": 10000,
+          "max": 750000,
+          "mean": 62000,
+          "median": 52000,
+          "std": 40000,
+          "ks": 20.2,
+          "psi": 0.035,
+          "importance": 0.13
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Not FCRA-regulated. Self-reported by the applicant. However, if income is verified through a CRA product (e.g., The Work Number), that verification data is FCRA-regulated."
     },
     {
       "name": "INT_DTI_RATIO",
       "label": "Debt-to-Income Ratio",
       "description": "Calculated ratio of total monthly debt obligations to gross monthly income, expressed as a percentage.",
       "data_type": "float",
-      "valid_range": [0, 999],
-      "special_values": { "-1": "Unable to Calculate", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        999
+      ],
+      "special_values": {
+        "-1": "Unable to Calculate",
+        "-7": "Not Available"
+      },
       "segment": "capacity",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 85, "mean": 35.2, "median": 33, "std": 15, "ks": 22.5, "psi": 0.035, "importance": 0.14 },
-        "credit_card": { "min": 0, "max": 80, "mean": 30.5, "median": 28, "std": 14, "ks": 18.8, "psi": 0.028, "importance": 0.11 },
-        "mortgage": { "min": 5, "max": 65, "mean": 38.5, "median": 37, "std": 12, "ks": 25.2, "psi": 0.032, "importance": 0.18 },
-        "personal_loan": { "min": 0, "max": 90, "mean": 38.8, "median": 36, "std": 16, "ks": 24.5, "psi": 0.040, "importance": 0.15 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 85,
+          "mean": 35.2,
+          "median": 33,
+          "std": 15,
+          "ks": 22.5,
+          "psi": 0.035,
+          "importance": 0.14
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 80,
+          "mean": 30.5,
+          "median": 28,
+          "std": 14,
+          "ks": 18.8,
+          "psi": 0.028,
+          "importance": 0.11
+        },
+        "mortgage": {
+          "min": 5,
+          "max": 65,
+          "mean": 38.5,
+          "median": 37,
+          "std": 12,
+          "ks": 25.2,
+          "psi": 0.032,
+          "importance": 0.18
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 90,
+          "mean": 38.8,
+          "median": 36,
+          "std": 16,
+          "ks": 24.5,
+          "psi": 0.04,
+          "importance": 0.15
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Internal data generated from the institution's own records and applications is not sourced from a CRA and is generally not FCRA-regulated."
     },
     {
       "name": "INT_LTV_RATIO",
       "label": "Loan-to-Value Ratio",
       "description": "Ratio of the loan amount to the appraised value of the collateral, expressed as a percentage.",
       "data_type": "float",
-      "valid_range": [0, 200],
-      "special_values": { "-1": "No Collateral / Not Applicable", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        200
+      ],
+      "special_values": {
+        "-1": "No Collateral / Not Applicable",
+        "-7": "Not Available"
+      },
       "segment": "collateral",
       "typical_stats": {
-        "auto_loan": { "min": 20, "max": 150, "mean": 92, "median": 95, "std": 22, "ks": 18.2, "psi": 0.030, "importance": 0.13 },
-        "credit_card": { "min": -1, "max": -1, "mean": -1, "median": -1, "std": 0, "ks": 0, "psi": 0, "importance": 0 },
-        "mortgage": { "min": 10, "max": 105, "mean": 78, "median": 80, "std": 15, "ks": 22.8, "psi": 0.028, "importance": 0.16 },
-        "personal_loan": { "min": -1, "max": -1, "mean": -1, "median": -1, "std": 0, "ks": 0, "psi": 0, "importance": 0 }
-      }
+        "auto_loan": {
+          "min": 20,
+          "max": 150,
+          "mean": 92,
+          "median": 95,
+          "std": 22,
+          "ks": 18.2,
+          "psi": 0.03,
+          "importance": 0.13
+        },
+        "credit_card": {
+          "min": -1,
+          "max": -1,
+          "mean": -1,
+          "median": -1,
+          "std": 0,
+          "ks": 0,
+          "psi": 0,
+          "importance": 0
+        },
+        "mortgage": {
+          "min": 10,
+          "max": 105,
+          "mean": 78,
+          "median": 80,
+          "std": 15,
+          "ks": 22.8,
+          "psi": 0.028,
+          "importance": 0.16
+        },
+        "personal_loan": {
+          "min": -1,
+          "max": -1,
+          "mean": -1,
+          "median": -1,
+          "std": 0,
+          "ks": 0,
+          "psi": 0,
+          "importance": 0
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Internal data generated from the institution's own records and applications is not sourced from a CRA and is generally not FCRA-regulated."
     },
     {
       "name": "INT_TERM_MONTHS",
       "label": "Loan Term (Months)",
       "description": "Requested or approved loan term in months.",
       "data_type": "integer",
-      "valid_range": [1, 600],
-      "special_values": { "-1": "Not Applicable (Revolving)", "-7": "Not Available" },
+      "valid_range": [
+        1,
+        600
+      ],
+      "special_values": {
+        "-1": "Not Applicable (Revolving)",
+        "-7": "Not Available"
+      },
       "segment": "application",
       "typical_stats": {
-        "auto_loan": { "min": 12, "max": 84, "mean": 65, "median": 72, "std": 15, "ks": 10.5, "psi": 0.022, "importance": 0.06 },
-        "credit_card": { "min": -1, "max": -1, "mean": -1, "median": -1, "std": 0, "ks": 0, "psi": 0, "importance": 0 },
-        "mortgage": { "min": 60, "max": 360, "mean": 328, "median": 360, "std": 55, "ks": 8.2, "psi": 0.018, "importance": 0.04 },
-        "personal_loan": { "min": 6, "max": 84, "mean": 42, "median": 36, "std": 18, "ks": 12.8, "psi": 0.028, "importance": 0.07 }
-      }
+        "auto_loan": {
+          "min": 12,
+          "max": 84,
+          "mean": 65,
+          "median": 72,
+          "std": 15,
+          "ks": 10.5,
+          "psi": 0.022,
+          "importance": 0.06
+        },
+        "credit_card": {
+          "min": -1,
+          "max": -1,
+          "mean": -1,
+          "median": -1,
+          "std": 0,
+          "ks": 0,
+          "psi": 0,
+          "importance": 0
+        },
+        "mortgage": {
+          "min": 60,
+          "max": 360,
+          "mean": 328,
+          "median": 360,
+          "std": 55,
+          "ks": 8.2,
+          "psi": 0.018,
+          "importance": 0.04
+        },
+        "personal_loan": {
+          "min": 6,
+          "max": 84,
+          "mean": 42,
+          "median": 36,
+          "std": 18,
+          "ks": 12.8,
+          "psi": 0.028,
+          "importance": 0.07
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Internal data generated from the institution's own records and applications is not sourced from a CRA and is generally not FCRA-regulated."
     },
     {
       "name": "INT_APP_CHANNEL",
       "label": "Application Channel",
       "description": "Channel through which the application was submitted. 1=Branch, 2=Online, 3=Mobile, 4=Phone, 5=Dealer/Broker, 6=Direct Mail.",
       "data_type": "categorical",
-      "valid_range": [1, 6],
-      "special_values": { "1": "Branch", "2": "Online", "3": "Mobile App", "4": "Phone/Call Center", "5": "Dealer/Broker", "6": "Direct Mail Response", "-7": "Not Available" },
+      "valid_range": [
+        1,
+        6
+      ],
+      "special_values": {
+        "1": "Branch",
+        "2": "Online",
+        "3": "Mobile App",
+        "4": "Phone/Call Center",
+        "5": "Dealer/Broker",
+        "6": "Direct Mail Response",
+        "-7": "Not Available"
+      },
       "segment": "application",
       "typical_stats": {
-        "auto_loan": { "min": 1, "max": 6, "mean": 3.8, "median": 5, "std": 1.5, "ks": 8.5, "psi": 0.022, "importance": 0.05 },
-        "credit_card": { "min": 1, "max": 6, "mean": 2.8, "median": 2, "std": 1.4, "ks": 6.2, "psi": 0.018, "importance": 0.04 },
-        "mortgage": { "min": 1, "max": 5, "mean": 2.5, "median": 2, "std": 1.3, "ks": 5.8, "psi": 0.015, "importance": 0.03 },
-        "personal_loan": { "min": 1, "max": 6, "mean": 2.5, "median": 2, "std": 1.2, "ks": 7.8, "psi": 0.020, "importance": 0.04 }
-      }
+        "auto_loan": {
+          "min": 1,
+          "max": 6,
+          "mean": 3.8,
+          "median": 5,
+          "std": 1.5,
+          "ks": 8.5,
+          "psi": 0.022,
+          "importance": 0.05
+        },
+        "credit_card": {
+          "min": 1,
+          "max": 6,
+          "mean": 2.8,
+          "median": 2,
+          "std": 1.4,
+          "ks": 6.2,
+          "psi": 0.018,
+          "importance": 0.04
+        },
+        "mortgage": {
+          "min": 1,
+          "max": 5,
+          "mean": 2.5,
+          "median": 2,
+          "std": 1.3,
+          "ks": 5.8,
+          "psi": 0.015,
+          "importance": 0.03
+        },
+        "personal_loan": {
+          "min": 1,
+          "max": 6,
+          "mean": 2.5,
+          "median": 2,
+          "std": 1.2,
+          "ks": 7.8,
+          "psi": 0.02,
+          "importance": 0.04
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Internal data generated from the institution's own records and applications is not sourced from a CRA and is generally not FCRA-regulated."
     },
     {
       "name": "INT_EXISTING_CUST",
       "label": "Existing Customer Indicator",
       "description": "Whether the applicant has an existing relationship with the institution. 0=New Customer, 1=Existing Customer.",
       "data_type": "categorical",
-      "valid_range": [0, 1],
-      "special_values": { "0": "New Customer", "1": "Existing Customer", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        1
+      ],
+      "special_values": {
+        "0": "New Customer",
+        "1": "Existing Customer",
+        "-7": "Not Available"
+      },
       "segment": "relationship",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 1, "mean": 0.35, "median": 0, "std": 0.48, "ks": 12.5, "psi": 0.025, "importance": 0.07 },
-        "credit_card": { "min": 0, "max": 1, "mean": 0.45, "median": 0, "std": 0.50, "ks": 10.2, "psi": 0.020, "importance": 0.06 },
-        "mortgage": { "min": 0, "max": 1, "mean": 0.30, "median": 0, "std": 0.46, "ks": 8.8, "psi": 0.018, "importance": 0.04 },
-        "personal_loan": { "min": 0, "max": 1, "mean": 0.52, "median": 1, "std": 0.50, "ks": 14.5, "psi": 0.028, "importance": 0.08 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.35,
+          "median": 0,
+          "std": 0.48,
+          "ks": 12.5,
+          "psi": 0.025,
+          "importance": 0.07
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.45,
+          "median": 0,
+          "std": 0.5,
+          "ks": 10.2,
+          "psi": 0.02,
+          "importance": 0.06
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.3,
+          "median": 0,
+          "std": 0.46,
+          "ks": 8.8,
+          "psi": 0.018,
+          "importance": 0.04
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.52,
+          "median": 1,
+          "std": 0.5,
+          "ks": 14.5,
+          "psi": 0.028,
+          "importance": 0.08
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Internal data generated from the institution's own records and applications is not sourced from a CRA and is generally not FCRA-regulated."
     },
     {
       "name": "INT_MTHS_RELATIONSHIP",
       "label": "Months of Customer Relationship",
       "description": "Duration in months of the customer's relationship with the institution (0 for new customers).",
       "data_type": "integer",
-      "valid_range": [0, 999],
-      "special_values": { "-1": "Unknown", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        999
+      ],
+      "special_values": {
+        "-1": "Unknown",
+        "-7": "Not Available"
+      },
       "segment": "relationship",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 360, "mean": 28, "median": 0, "std": 48, "ks": 15.2, "psi": 0.030, "importance": 0.08 },
-        "credit_card": { "min": 0, "max": 400, "mean": 42, "median": 12, "std": 55, "ks": 12.8, "psi": 0.025, "importance": 0.07 },
-        "mortgage": { "min": 0, "max": 350, "mean": 22, "median": 0, "std": 42, "ks": 10.5, "psi": 0.020, "importance": 0.05 },
-        "personal_loan": { "min": 0, "max": 380, "mean": 52, "median": 24, "std": 60, "ks": 18.5, "psi": 0.035, "importance": 0.10 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 360,
+          "mean": 28,
+          "median": 0,
+          "std": 48,
+          "ks": 15.2,
+          "psi": 0.03,
+          "importance": 0.08
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 400,
+          "mean": 42,
+          "median": 12,
+          "std": 55,
+          "ks": 12.8,
+          "psi": 0.025,
+          "importance": 0.07
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 350,
+          "mean": 22,
+          "median": 0,
+          "std": 42,
+          "ks": 10.5,
+          "psi": 0.02,
+          "importance": 0.05
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 380,
+          "mean": 52,
+          "median": 24,
+          "std": 60,
+          "ks": 18.5,
+          "psi": 0.035,
+          "importance": 0.1
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Internal data generated from the institution's own records and applications is not sourced from a CRA and is generally not FCRA-regulated."
     },
     {
       "name": "INT_NUM_EXISTING_ACCTS",
       "label": "Number of Existing Accounts",
       "description": "Count of active accounts the applicant currently holds with the institution.",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-7": "Not Available"
+      },
       "segment": "relationship",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 12, "mean": 0.8, "median": 0, "std": 1.5, "ks": 10.8, "psi": 0.022, "importance": 0.05 },
-        "credit_card": { "min": 0, "max": 15, "mean": 1.2, "median": 1, "std": 1.8, "ks": 8.5, "psi": 0.018, "importance": 0.04 },
-        "mortgage": { "min": 0, "max": 10, "mean": 0.6, "median": 0, "std": 1.2, "ks": 7.2, "psi": 0.015, "importance": 0.03 },
-        "personal_loan": { "min": 0, "max": 14, "mean": 1.5, "median": 1, "std": 2.0, "ks": 12.5, "psi": 0.025, "importance": 0.06 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 12,
+          "mean": 0.8,
+          "median": 0,
+          "std": 1.5,
+          "ks": 10.8,
+          "psi": 0.022,
+          "importance": 0.05
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 15,
+          "mean": 1.2,
+          "median": 1,
+          "std": 1.8,
+          "ks": 8.5,
+          "psi": 0.018,
+          "importance": 0.04
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 10,
+          "mean": 0.6,
+          "median": 0,
+          "std": 1.2,
+          "ks": 7.2,
+          "psi": 0.015,
+          "importance": 0.03
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 14,
+          "mean": 1.5,
+          "median": 1,
+          "std": 2.0,
+          "ks": 12.5,
+          "psi": 0.025,
+          "importance": 0.06
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Internal data generated from the institution's own records and applications is not sourced from a CRA and is generally not FCRA-regulated."
     },
     {
       "name": "INT_CHECKING_BAL_AVG_3M",
       "label": "Average Checking Balance Last 3 Months",
       "description": "Average daily checking account balance over the past 3 months (existing customers only).",
       "data_type": "float",
-      "valid_range": [0, 99999999],
-      "special_values": { "-1": "No Checking Account", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99999999
+      ],
+      "special_values": {
+        "-1": "No Checking Account",
+        "-7": "Not Available"
+      },
       "segment": "deposit_behavior",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 500000, "mean": 5200, "median": 2800, "std": 12000, "ks": 18.5, "psi": 0.035, "importance": 0.10 },
-        "credit_card": { "min": 0, "max": 600000, "mean": 6500, "median": 3500, "std": 15000, "ks": 15.2, "psi": 0.028, "importance": 0.08 },
-        "mortgage": { "min": 0, "max": 800000, "mean": 12500, "median": 6800, "std": 25000, "ks": 12.8, "psi": 0.022, "importance": 0.06 },
-        "personal_loan": { "min": 0, "max": 450000, "mean": 4800, "median": 2500, "std": 11000, "ks": 20.2, "psi": 0.040, "importance": 0.11 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 500000,
+          "mean": 5200,
+          "median": 2800,
+          "std": 12000,
+          "ks": 18.5,
+          "psi": 0.035,
+          "importance": 0.1
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 600000,
+          "mean": 6500,
+          "median": 3500,
+          "std": 15000,
+          "ks": 15.2,
+          "psi": 0.028,
+          "importance": 0.08
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 800000,
+          "mean": 12500,
+          "median": 6800,
+          "std": 25000,
+          "ks": 12.8,
+          "psi": 0.022,
+          "importance": 0.06
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 450000,
+          "mean": 4800,
+          "median": 2500,
+          "std": 11000,
+          "ks": 20.2,
+          "psi": 0.04,
+          "importance": 0.11
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Internal data generated from the institution's own records and applications is not sourced from a CRA and is generally not FCRA-regulated."
     },
     {
       "name": "INT_NUM_NSF_6M",
       "label": "Number of NSF Events Last 6 Months",
       "description": "Count of non-sufficient funds (NSF) or overdraft events in the past 6 months on internal deposit accounts.",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-1": "No Deposit Account", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-1": "No Deposit Account",
+        "-7": "Not Available"
+      },
       "segment": "deposit_behavior",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 20, "mean": 0.8, "median": 0, "std": 2.0, "ks": 25.5, "psi": 0.045, "importance": 0.13 },
-        "credit_card": { "min": 0, "max": 18, "mean": 0.6, "median": 0, "std": 1.5, "ks": 22.2, "psi": 0.038, "importance": 0.10 },
-        "mortgage": { "min": 0, "max": 12, "mean": 0.3, "median": 0, "std": 0.8, "ks": 18.5, "psi": 0.030, "importance": 0.08 },
-        "personal_loan": { "min": 0, "max": 25, "mean": 1.0, "median": 0, "std": 2.5, "ks": 28.8, "psi": 0.052, "importance": 0.15 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 20,
+          "mean": 0.8,
+          "median": 0,
+          "std": 2.0,
+          "ks": 25.5,
+          "psi": 0.045,
+          "importance": 0.13
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 18,
+          "mean": 0.6,
+          "median": 0,
+          "std": 1.5,
+          "ks": 22.2,
+          "psi": 0.038,
+          "importance": 0.1
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 12,
+          "mean": 0.3,
+          "median": 0,
+          "std": 0.8,
+          "ks": 18.5,
+          "psi": 0.03,
+          "importance": 0.08
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 25,
+          "mean": 1.0,
+          "median": 0,
+          "std": 2.5,
+          "ks": 28.8,
+          "psi": 0.052,
+          "importance": 0.15
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Internal data generated from the institution's own records and applications is not sourced from a CRA and is generally not FCRA-regulated."
     },
     {
       "name": "INT_DIRECT_DEPOSIT",
       "label": "Direct Deposit Indicator",
       "description": "Whether the applicant has recurring direct deposit to an internal account. 0=No, 1=Yes.",
       "data_type": "categorical",
-      "valid_range": [0, 1],
-      "special_values": { "0": "No Direct Deposit", "1": "Has Direct Deposit", "-1": "No Deposit Account", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        1
+      ],
+      "special_values": {
+        "0": "No Direct Deposit",
+        "1": "Has Direct Deposit",
+        "-1": "No Deposit Account",
+        "-7": "Not Available"
+      },
       "segment": "deposit_behavior",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 1, "mean": 0.28, "median": 0, "std": 0.45, "ks": 15.5, "psi": 0.028, "importance": 0.08 },
-        "credit_card": { "min": 0, "max": 1, "mean": 0.35, "median": 0, "std": 0.48, "ks": 12.8, "psi": 0.022, "importance": 0.06 },
-        "mortgage": { "min": 0, "max": 1, "mean": 0.25, "median": 0, "std": 0.43, "ks": 10.5, "psi": 0.018, "importance": 0.05 },
-        "personal_loan": { "min": 0, "max": 1, "mean": 0.42, "median": 0, "std": 0.49, "ks": 18.2, "psi": 0.032, "importance": 0.09 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.28,
+          "median": 0,
+          "std": 0.45,
+          "ks": 15.5,
+          "psi": 0.028,
+          "importance": 0.08
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.35,
+          "median": 0,
+          "std": 0.48,
+          "ks": 12.8,
+          "psi": 0.022,
+          "importance": 0.06
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.25,
+          "median": 0,
+          "std": 0.43,
+          "ks": 10.5,
+          "psi": 0.018,
+          "importance": 0.05
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.42,
+          "median": 0,
+          "std": 0.49,
+          "ks": 18.2,
+          "psi": 0.032,
+          "importance": 0.09
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Internal data generated from the institution's own records and applications is not sourced from a CRA and is generally not FCRA-regulated."
     },
     {
       "name": "INT_EMPLOYMENT_LENGTH_YRS",
       "label": "Employment Length (Years)",
       "description": "Self-reported number of years at current employer.",
       "data_type": "float",
-      "valid_range": [0, 99],
-      "special_values": { "-1": "Not Provided / Unemployed", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-1": "Not Provided / Unemployed",
+        "-7": "Not Available"
+      },
       "segment": "application",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 50, "mean": 5.8, "median": 4, "std": 5.5, "ks": 14.2, "psi": 0.028, "importance": 0.07 },
-        "credit_card": { "min": 0, "max": 50, "mean": 6.2, "median": 5, "std": 5.8, "ks": 12.5, "psi": 0.025, "importance": 0.06 },
-        "mortgage": { "min": 0, "max": 45, "mean": 8.5, "median": 7, "std": 6.5, "ks": 10.8, "psi": 0.020, "importance": 0.05 },
-        "personal_loan": { "min": 0, "max": 48, "mean": 5.2, "median": 3, "std": 5.2, "ks": 16.5, "psi": 0.032, "importance": 0.08 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 50,
+          "mean": 5.8,
+          "median": 4,
+          "std": 5.5,
+          "ks": 14.2,
+          "psi": 0.028,
+          "importance": 0.07
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 50,
+          "mean": 6.2,
+          "median": 5,
+          "std": 5.8,
+          "ks": 12.5,
+          "psi": 0.025,
+          "importance": 0.06
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 45,
+          "mean": 8.5,
+          "median": 7,
+          "std": 6.5,
+          "ks": 10.8,
+          "psi": 0.02,
+          "importance": 0.05
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 48,
+          "mean": 5.2,
+          "median": 3,
+          "std": 5.2,
+          "ks": 16.5,
+          "psi": 0.032,
+          "importance": 0.08
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Internal data generated from the institution's own records and applications is not sourced from a CRA and is generally not FCRA-regulated."
     },
     {
       "name": "INT_HOUSING_STATUS",
       "label": "Housing Status",
       "description": "Applicant's housing situation. 1=Own, 2=Rent, 3=Mortgage, 4=Living with Family, 5=Other.",
       "data_type": "categorical",
-      "valid_range": [1, 5],
-      "special_values": { "1": "Own Outright", "2": "Rent", "3": "Own with Mortgage", "4": "Living with Family", "5": "Other", "-1": "Not Provided", "-7": "Not Available" },
+      "valid_range": [
+        1,
+        5
+      ],
+      "special_values": {
+        "1": "Own Outright",
+        "2": "Rent",
+        "3": "Own with Mortgage",
+        "4": "Living with Family",
+        "5": "Other",
+        "-1": "Not Provided",
+        "-7": "Not Available"
+      },
       "segment": "application",
       "typical_stats": {
-        "auto_loan": { "min": 1, "max": 5, "mean": 2.5, "median": 2, "std": 1.1, "ks": 10.5, "psi": 0.022, "importance": 0.05 },
-        "credit_card": { "min": 1, "max": 5, "mean": 2.4, "median": 2, "std": 1.0, "ks": 8.8, "psi": 0.018, "importance": 0.04 },
-        "mortgage": { "min": 1, "max": 5, "mean": 2.8, "median": 3, "std": 0.8, "ks": 7.5, "psi": 0.015, "importance": 0.03 },
-        "personal_loan": { "min": 1, "max": 5, "mean": 2.5, "median": 2, "std": 1.2, "ks": 12.2, "psi": 0.025, "importance": 0.06 }
-      }
+        "auto_loan": {
+          "min": 1,
+          "max": 5,
+          "mean": 2.5,
+          "median": 2,
+          "std": 1.1,
+          "ks": 10.5,
+          "psi": 0.022,
+          "importance": 0.05
+        },
+        "credit_card": {
+          "min": 1,
+          "max": 5,
+          "mean": 2.4,
+          "median": 2,
+          "std": 1.0,
+          "ks": 8.8,
+          "psi": 0.018,
+          "importance": 0.04
+        },
+        "mortgage": {
+          "min": 1,
+          "max": 5,
+          "mean": 2.8,
+          "median": 3,
+          "std": 0.8,
+          "ks": 7.5,
+          "psi": 0.015,
+          "importance": 0.03
+        },
+        "personal_loan": {
+          "min": 1,
+          "max": 5,
+          "mean": 2.5,
+          "median": 2,
+          "std": 1.2,
+          "ks": 12.2,
+          "psi": 0.025,
+          "importance": 0.06
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Internal data generated from the institution's own records and applications is not sourced from a CRA and is generally not FCRA-regulated."
     },
     {
       "name": "INT_PREV_APPS_12M",
       "label": "Previous Applications Last 12 Months",
       "description": "Count of prior applications submitted to the institution in the last 12 months.",
       "data_type": "integer",
-      "valid_range": [0, 99],
-      "special_values": { "-7": "Not Available" },
+      "valid_range": [
+        0,
+        99
+      ],
+      "special_values": {
+        "-7": "Not Available"
+      },
       "segment": "application",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 8, "mean": 0.5, "median": 0, "std": 0.9, "ks": 12.5, "psi": 0.028, "importance": 0.06 },
-        "credit_card": { "min": 0, "max": 10, "mean": 0.3, "median": 0, "std": 0.7, "ks": 10.2, "psi": 0.022, "importance": 0.05 },
-        "mortgage": { "min": 0, "max": 5, "mean": 0.2, "median": 0, "std": 0.5, "ks": 8.5, "psi": 0.018, "importance": 0.03 },
-        "personal_loan": { "min": 0, "max": 12, "mean": 0.8, "median": 0, "std": 1.2, "ks": 15.5, "psi": 0.035, "importance": 0.08 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 8,
+          "mean": 0.5,
+          "median": 0,
+          "std": 0.9,
+          "ks": 12.5,
+          "psi": 0.028,
+          "importance": 0.06
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 10,
+          "mean": 0.3,
+          "median": 0,
+          "std": 0.7,
+          "ks": 10.2,
+          "psi": 0.022,
+          "importance": 0.05
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 5,
+          "mean": 0.2,
+          "median": 0,
+          "std": 0.5,
+          "ks": 8.5,
+          "psi": 0.018,
+          "importance": 0.03
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 12,
+          "mean": 0.8,
+          "median": 0,
+          "std": 1.2,
+          "ks": 15.5,
+          "psi": 0.035,
+          "importance": 0.08
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Internal data generated from the institution's own records and applications is not sourced from a CRA and is generally not FCRA-regulated."
     },
     {
       "name": "INT_INTERNAL_SCORE",
       "label": "Internal Behavioral Score",
       "description": "Proprietary behavioral score based on internal account performance history. Higher scores indicate lower risk.",
       "data_type": "integer",
-      "valid_range": [0, 1000],
-      "special_values": { "-1": "New Customer / No History", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        1000
+      ],
+      "special_values": {
+        "-1": "New Customer / No History",
+        "-7": "Not Available"
+      },
       "segment": "behavioral",
       "typical_stats": {
-        "auto_loan": { "min": 200, "max": 1000, "mean": 680, "median": 700, "std": 120, "ks": 30.5, "psi": 0.035, "importance": 0.18 },
-        "credit_card": { "min": 180, "max": 1000, "mean": 710, "median": 730, "std": 110, "ks": 28.2, "psi": 0.030, "importance": 0.16 },
-        "mortgage": { "min": 250, "max": 1000, "mean": 745, "median": 760, "std": 95, "ks": 25.5, "psi": 0.025, "importance": 0.12 },
-        "personal_loan": { "min": 150, "max": 1000, "mean": 660, "median": 680, "std": 130, "ks": 32.8, "psi": 0.040, "importance": 0.20 }
-      }
+        "auto_loan": {
+          "min": 200,
+          "max": 1000,
+          "mean": 680,
+          "median": 700,
+          "std": 120,
+          "ks": 30.5,
+          "psi": 0.035,
+          "importance": 0.18
+        },
+        "credit_card": {
+          "min": 180,
+          "max": 1000,
+          "mean": 710,
+          "median": 730,
+          "std": 110,
+          "ks": 28.2,
+          "psi": 0.03,
+          "importance": 0.16
+        },
+        "mortgage": {
+          "min": 250,
+          "max": 1000,
+          "mean": 745,
+          "median": 760,
+          "std": 95,
+          "ks": 25.5,
+          "psi": 0.025,
+          "importance": 0.12
+        },
+        "personal_loan": {
+          "min": 150,
+          "max": 1000,
+          "mean": 660,
+          "median": 680,
+          "std": 130,
+          "ks": 32.8,
+          "psi": 0.04,
+          "importance": 0.2
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Not FCRA-regulated as an internally developed score. However, if the score incorporates CRA data as inputs, adverse action notice requirements under ECOA/Regulation B still apply."
     },
     {
       "name": "INT_APPL_PURPOSE",
       "label": "Loan Purpose",
       "description": "Purpose of the loan as stated in the application. Codes vary by portfolio.",
       "data_type": "categorical",
-      "valid_range": [1, 20],
+      "valid_range": [
+        1,
+        20
+      ],
       "special_values": {
-        "1": "Purchase (New)", "2": "Purchase (Used)", "3": "Refinance", "4": "Lease Buyout",
-        "5": "Debt Consolidation", "6": "Home Improvement", "7": "Medical", "8": "Education",
-        "9": "Vacation", "10": "Major Purchase", "11": "Business", "12": "Moving/Relocation",
-        "13": "Wedding", "14": "Other", "-1": "Not Stated", "-7": "Not Available"
+        "1": "Purchase (New)",
+        "2": "Purchase (Used)",
+        "3": "Refinance",
+        "4": "Lease Buyout",
+        "5": "Debt Consolidation",
+        "6": "Home Improvement",
+        "7": "Medical",
+        "8": "Education",
+        "9": "Vacation",
+        "10": "Major Purchase",
+        "11": "Business",
+        "12": "Moving/Relocation",
+        "13": "Wedding",
+        "14": "Other",
+        "-1": "Not Stated",
+        "-7": "Not Available"
       },
       "segment": "application",
       "typical_stats": {
-        "auto_loan": { "min": 1, "max": 4, "mean": 1.8, "median": 2, "std": 0.8, "ks": 8.5, "psi": 0.020, "importance": 0.04 },
-        "credit_card": { "min": -1, "max": -1, "mean": -1, "median": -1, "std": 0, "ks": 0, "psi": 0, "importance": 0 },
-        "mortgage": { "min": 1, "max": 3, "mean": 1.5, "median": 1, "std": 0.7, "ks": 10.2, "psi": 0.022, "importance": 0.05 },
-        "personal_loan": { "min": 1, "max": 14, "mean": 5.2, "median": 5, "std": 3.5, "ks": 6.8, "psi": 0.018, "importance": 0.03 }
-      }
+        "auto_loan": {
+          "min": 1,
+          "max": 4,
+          "mean": 1.8,
+          "median": 2,
+          "std": 0.8,
+          "ks": 8.5,
+          "psi": 0.02,
+          "importance": 0.04
+        },
+        "credit_card": {
+          "min": -1,
+          "max": -1,
+          "mean": -1,
+          "median": -1,
+          "std": 0,
+          "ks": 0,
+          "psi": 0,
+          "importance": 0
+        },
+        "mortgage": {
+          "min": 1,
+          "max": 3,
+          "mean": 1.5,
+          "median": 1,
+          "std": 0.7,
+          "ks": 10.2,
+          "psi": 0.022,
+          "importance": 0.05
+        },
+        "personal_loan": {
+          "min": 1,
+          "max": 14,
+          "mean": 5.2,
+          "median": 5,
+          "std": 3.5,
+          "ks": 6.8,
+          "psi": 0.018,
+          "importance": 0.03
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Internal data generated from the institution's own records and applications is not sourced from a CRA and is generally not FCRA-regulated."
     },
     {
       "name": "INT_COBORROWER_FLAG",
       "label": "Co-Borrower Present",
       "description": "Indicator for whether a co-borrower or co-applicant is present on the application. 0=No, 1=Yes.",
       "data_type": "categorical",
-      "valid_range": [0, 1],
-      "special_values": { "0": "No Co-Borrower", "1": "Has Co-Borrower", "-7": "Not Available" },
+      "valid_range": [
+        0,
+        1
+      ],
+      "special_values": {
+        "0": "No Co-Borrower",
+        "1": "Has Co-Borrower",
+        "-7": "Not Available"
+      },
       "segment": "application",
       "typical_stats": {
-        "auto_loan": { "min": 0, "max": 1, "mean": 0.25, "median": 0, "std": 0.43, "ks": 8.2, "psi": 0.018, "importance": 0.04 },
-        "credit_card": { "min": 0, "max": 1, "mean": 0.05, "median": 0, "std": 0.22, "ks": 4.5, "psi": 0.010, "importance": 0.02 },
-        "mortgage": { "min": 0, "max": 1, "mean": 0.55, "median": 1, "std": 0.50, "ks": 12.5, "psi": 0.025, "importance": 0.07 },
-        "personal_loan": { "min": 0, "max": 1, "mean": 0.15, "median": 0, "std": 0.36, "ks": 6.8, "psi": 0.015, "importance": 0.03 }
-      }
+        "auto_loan": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.25,
+          "median": 0,
+          "std": 0.43,
+          "ks": 8.2,
+          "psi": 0.018,
+          "importance": 0.04
+        },
+        "credit_card": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.05,
+          "median": 0,
+          "std": 0.22,
+          "ks": 4.5,
+          "psi": 0.01,
+          "importance": 0.02
+        },
+        "mortgage": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.55,
+          "median": 1,
+          "std": 0.5,
+          "ks": 12.5,
+          "psi": 0.025,
+          "importance": 0.07
+        },
+        "personal_loan": {
+          "min": 0,
+          "max": 1,
+          "mean": 0.15,
+          "median": 0,
+          "std": 0.36,
+          "ks": 6.8,
+          "psi": 0.015,
+          "importance": 0.03
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Internal data generated from the institution's own records and applications is not sourced from a CRA and is generally not FCRA-regulated."
     },
     {
       "name": "INT_STATE",
       "label": "Application State",
       "description": "U.S. state of the applicant's primary address (2-letter FIPS code mapped to numeric 1-56).",
       "data_type": "categorical",
-      "valid_range": [1, 56],
-      "special_values": { "-1": "Unknown", "-7": "Not Available" },
+      "valid_range": [
+        1,
+        56
+      ],
+      "special_values": {
+        "-1": "Unknown",
+        "-7": "Not Available"
+      },
       "segment": "geography",
       "typical_stats": {
-        "auto_loan": { "min": 1, "max": 56, "mean": 25, "median": 24, "std": 15, "ks": 5.2, "psi": 0.015, "importance": 0.03 },
-        "credit_card": { "min": 1, "max": 56, "mean": 25, "median": 24, "std": 15, "ks": 4.8, "psi": 0.012, "importance": 0.02 },
-        "mortgage": { "min": 1, "max": 56, "mean": 25, "median": 24, "std": 15, "ks": 4.5, "psi": 0.010, "importance": 0.02 },
-        "personal_loan": { "min": 1, "max": 56, "mean": 25, "median": 24, "std": 15, "ks": 5.5, "psi": 0.018, "importance": 0.03 }
-      }
+        "auto_loan": {
+          "min": 1,
+          "max": 56,
+          "mean": 25,
+          "median": 24,
+          "std": 15,
+          "ks": 5.2,
+          "psi": 0.015,
+          "importance": 0.03
+        },
+        "credit_card": {
+          "min": 1,
+          "max": 56,
+          "mean": 25,
+          "median": 24,
+          "std": 15,
+          "ks": 4.8,
+          "psi": 0.012,
+          "importance": 0.02
+        },
+        "mortgage": {
+          "min": 1,
+          "max": 56,
+          "mean": 25,
+          "median": 24,
+          "std": 15,
+          "ks": 4.5,
+          "psi": 0.01,
+          "importance": 0.02
+        },
+        "personal_loan": {
+          "min": 1,
+          "max": 56,
+          "mean": 25,
+          "median": 24,
+          "std": 15,
+          "ks": 5.5,
+          "psi": 0.018,
+          "importance": 0.03
+        }
+      },
+      "fcra_regulated": false,
+      "fcra_note": "Internal data generated from the institution's own records and applications is not sourced from a CRA and is generally not FCRA-regulated."
     }
   ]
 }
