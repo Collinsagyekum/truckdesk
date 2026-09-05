@@ -617,11 +617,11 @@ def add_use_cases_sheet(wb):
                     "Bridges the gap between data dictionary and regulatory model requirements."
                 ),
                 (
-                    "SR 11-7 / OCC 2011-12 Compliance Check",
+                    "SR 26-3 / OCC 2011-12 Compliance Check",
                     "Verify that model features, data sources, and performance metrics align with regulatory guidance on model risk management.",
-                    "Does our feature set meet SR 11-7 expectations for conceptual soundness? Are there any gaps?",
+                    "Does our feature set meet SR 26-3 expectations for conceptual soundness? Are there any gaps?",
                     "All Sources",
-                    "Ensures the model passes MRM review by checking features against regulatory expectations."
+                    "Ensures the model passes MRM review by checking features against SR 26-3 regulatory expectations."
                 ),
                 (
                     "FCRA Permissible Purpose Verification",
