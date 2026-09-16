@@ -27,8 +27,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const DEV_BYPASS_USER: AppUser = {
   id: 'a638fe0d-22ce-4fe1-a61e-8162ef3006a5',
-  full_name: 'Kwame Agyekum',
-  email: 'cagyekum26@gmail.com',
+  full_name: 'ACE',
+  email: 'info@numdaanalytics.com',
   phone: '+12815550000',
   role: 'owner',
   created_at: new Date().toISOString(),
