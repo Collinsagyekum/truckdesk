@@ -89,10 +89,14 @@ export default function NewLoadPage() {
   useEffect(() => {
     if (!showCalculator || recommendation !== 'counter') {
       setNegotiationScript('');
+      setIsGeneratingScript(false);
       return;
     }
 
     const trailerLabel = TRAILER_TYPES.find((t) => t.value === trailerType)?.label || trailerType;
+
+    // Set once the inputs change again, so a late response can't overwrite the newer one
+    let cancelled = false;
 
     // Debounce the call to prevent generating on every keystroke
     const timer = setTimeout(async () => {
@@ -100,20 +104,28 @@ export default function NewLoadPage() {
       try {
         const prompt = `Generate a short 2-sentence broker negotiation script to increase this rate of $${rateNum} for a ${milesNum} mile load from ${origin || 'origin'} to ${destination || 'destination'}. Trailer: ${trailerLabel}.`;
         const script = await claudeAPI(prompt);
+        if (cancelled) return;
         setNegotiationScript(script || '');
       } catch (err) {
         console.error('Claude API Error:', err);
+        if (cancelled) return;
         // Fallback negotiation script if API fails or Anthropic key is not configured
         const targetRate = Math.round(milesNum * AVERAGE_RPM * 1.05);
         setNegotiationScript(
           `Hi, regarding the load from ${origin || 'origin'} to ${destination || 'destination'} for $${rateNum}, due to current diesel prices ($${DIESEL_PRICE}/gal) and the specialized ${trailerLabel} trailer requirements, could we negotiate closer to $${targetRate} to make this route profitable for us?`
         );
       } finally {
-        setIsGeneratingScript(false);
+        // Leave the spinner up for the run that replaced this one
+        if (!cancelled) {
+          setIsGeneratingScript(false);
+        }
       }
     }, 800); // 800ms debounce
 
-    return () => clearTimeout(timer);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, [rate, miles, origin, destination, trailerType, recommendation, showCalculator]);
 
   // Form validation
