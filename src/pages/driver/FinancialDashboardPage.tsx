@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../hooks/useToast';
 import PageHeader from '../../components/ui/PageHeader';
@@ -46,6 +46,10 @@ import {
 } from 'lucide-react';
 import type { Load, Expense } from '../../types';
 
+// Wait for the inputs (mainly the days-away slider) to settle before asking Claude,
+// so a drag across the range costs one request instead of one per value.
+const ADVICE_DEBOUNCE_MS = 800;
+
 interface RetirementLog {
   id: string;
   driver_id: string;
@@ -82,6 +86,8 @@ export default function FinancialDashboardPage() {
   // AI Advice State
   const [advice, setAdvice] = useState<string>('');
   const [isLoadingAdvice, setIsLoadingAdvice] = useState<boolean>(false);
+  // Incremented per request so a slow response can never overwrite a newer one
+  const adviceRequestIdRef = useRef<number>(0);
 
   // Load user addon state
   useEffect(() => {
@@ -120,10 +126,12 @@ export default function FinancialDashboardPage() {
   }, [user, hasAddon, showError]);
 
   // AI Advice Generator
-  const generateAIAdvice = useCallback(async (weeklyProfit: number, estQuarterlyTax: number, deductions: number) => {
+  const generateAIAdvice = useCallback(async (weeklyProfit: number, estQuarterlyTax: number, deductions: number, daysOnRoad: number) => {
     if (!user) return;
+    // Claim this request; anything that resolves after a newer one starts is discarded
+    const requestId = ++adviceRequestIdRef.current;
     setIsLoadingAdvice(true);
-    
+
     const prompt = `You are a professional CPA and tax advisor specializing in owner-operator truck drivers.
 The driver's weekly net profit is ${formatCurrency(weeklyProfit)}.
 Their estimated quarterly tax due is ${formatCurrency(estQuarterlyTax)}.
@@ -134,23 +142,28 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
 
     try {
       const adviceText = await claudeAPI(prompt);
+      if (requestId !== adviceRequestIdRef.current) return;
       setAdvice(adviceText.trim());
     } catch (err) {
       console.warn('Claude API request failed, using intelligent fallback advice.', err);
+      if (requestId !== adviceRequestIdRef.current) return;
       // Intelligent fallback logic based on driver metrics
       if (weeklyProfit > 2200) {
         setAdvice(`Given your strong net income of ${formatCurrency(weeklyProfit)} this week, consider maximizing your Solo 401(k) pre-tax contributions to lower your overall tax bracket.`);
       } else if (deductions > weeklyProfit * 1.5) {
         setAdvice(`Since your business deductions are high relative to net income, make sure to keep digital receipt backups for all fuel and maintenance entries.`);
-      } else if (daysAway < 10) {
+      } else if (daysOnRoad < 10) {
         setAdvice(`Since your days away from home are low, review your logbook to ensure you are claiming every eligible per diem day to reduce taxable income.`);
       } else {
         setAdvice(`To offset your quarterly estimated tax of ${formatCurrency(estQuarterlyTax)}, consider pre-paying upcoming truck maintenance before the quarter ends.`);
       }
     } finally {
-      setIsLoadingAdvice(false);
+      // A superseded request must leave the spinner alone; the newer one owns it
+      if (requestId === adviceRequestIdRef.current) {
+        setIsLoadingAdvice(false);
+      }
     }
-  }, [user, daysAway]);
+  }, [user]);
 
   // Run AI Advice on page load or once data is available
   useEffect(() => {
@@ -168,7 +181,12 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
     // Estimate weekly net profit
     const weeklyProfit = netProfitForTaxes / 12; // approximate over a quarter (12 weeks)
 
-    generateAIAdvice(weeklyProfit, estQuarterlyTax, businessDeductions);
+    // Only ask once the slider (and any other input) has settled
+    const timer = setTimeout(() => {
+      generateAIAdvice(weeklyProfit, estQuarterlyTax, businessDeductions, daysAway);
+    }, ADVICE_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
   }, [loading, hasAddon, loads, expenses, daysAway, generateAIAdvice]);
 
   // Upgrade Mock Action
@@ -461,7 +479,7 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
               variant="secondary"
               size="sm"
               isLoading={isLoadingAdvice}
-              onClick={() => generateAIAdvice(weeklyNet, totalEstimatedTax, businessDeductions)}
+              onClick={() => generateAIAdvice(weeklyNet, totalEstimatedTax, businessDeductions, daysAway)}
               leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
             >
               Refresh Advice
