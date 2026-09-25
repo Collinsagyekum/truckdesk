@@ -11,6 +11,7 @@ import StatCard from '../../components/ui/StatCard';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { formatCurrency, formatMiles, formatDate, getInitials } from '../../utils/formatting';
 import { calculateSolo401kContribution } from '../../utils/irs';
+import { milesBotChatUrl } from '../../lib/milesbot';
 import type { Load, Expense } from '../../types';
 import type { MaintenanceItem } from '../../services/supabase/maintenance';
 
@@ -34,9 +35,10 @@ import {
 
 interface ActivityItem {
   id: string;
-  type: 'load' | 'expense';
+  type: 'load' | 'expense' | 'mileage';
   name: string;
   date: string;
+  // Dollars for loads and expenses, miles for mileage entries.
   amount: number;
 }
 
@@ -60,10 +62,13 @@ export default function DriverHomePage() {
   const [weeklyMileageEntries, setWeeklyMileageEntries] = useState<DailyMileage[]>([]);
   const [recentMileage, setRecentMileage] = useState<DailyMileage[]>([]);
   const [loading, setLoading] = useState(true);
+  // Sections whose data failed to load, so they can say so instead of
+  // rendering a zero that reads like a real result.
+  const [loadErrors, setLoadErrors] = useState<string[]>([]);
 
   // UI state
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [unreadNotifications, setUnreadNotifications] = useState(3);
+  const [notificationsSeen, setNotificationsSeen] = useState(false);
   const [contributionModalOpen, setContributionModalOpen] = useState(false);
   const [contributionAmount, setContributionAmount] = useState('');
   const [submittingContribution, setSubmittingContribution] = useState(false);
@@ -73,9 +78,11 @@ export default function DriverHomePage() {
     if (!user) { setLoading(false); return; }
 
     const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [loadsData, expensesData, odometerData, maintenanceData, retirementData, weeklyMileageData, allMileageData] = await Promise.all([
+      setLoading(true);
+      // Each section loads independently, so one failing table doesn't blank
+      // the whole screen.
+      const [loadsR, expensesR, odometerR, maintenanceR, retirementR, weeklyMileageR, allMileageR] =
+        await Promise.allSettled([
           getWeeklyLoads(user.id),
           getExpenses(user.id),
           getOdometer(user.id),
@@ -85,19 +92,26 @@ export default function DriverHomePage() {
           getDailyMileage(user.id),
         ]);
 
-        setWeeklyLoads(loadsData);
-        setExpenses(expensesData);
-        setOdometer(odometerData);
-        setMaintenanceSchedule(maintenanceData);
-        setRetirementLogs(retirementData as RetirementLog[]);
-        setWeeklyMileageEntries(weeklyMileageData);
-        setRecentMileage(allMileageData.slice(0, 10));
-      } catch (error) {
-        console.error('Error fetching driver home page data:', error);
-        showError('Failed to load dashboard data. Please try again.');
-      } finally {
-        setLoading(false);
-      }
+      const errors: string[] = [];
+      const settle = <T,>(name: string, result: PromiseSettledResult<T>, apply: (value: T) => void) => {
+        if (result.status === 'fulfilled') {
+          apply(result.value);
+        } else {
+          errors.push(name);
+          console.error(`Driver home: ${name} failed to load`, result.reason);
+        }
+      };
+      settle('loads', loadsR, setWeeklyLoads);
+      settle('expenses', expensesR, setExpenses);
+      settle('odometer', odometerR, setOdometer);
+      settle('maintenance', maintenanceR, setMaintenanceSchedule);
+      settle('retirement', retirementR, (logs) => setRetirementLogs(logs as RetirementLog[]));
+      settle('weeklyMileage', weeklyMileageR, setWeeklyMileageEntries);
+      settle('mileage', allMileageR, (entries) => setRecentMileage(entries.slice(0, 10)));
+
+      setLoadErrors(errors);
+      if (errors.length) showError("Some of your data couldn't load. Check your connection and try again.");
+      setLoading(false);
     };
 
     fetchData();
@@ -151,7 +165,14 @@ export default function DriverHomePage() {
     (load) => load.status === 'active' || load.status === 'upcoming'
   ).length;
 
-  // Combined activity stream
+  // A failed section shows "—" rather than a zero that reads like a result.
+  const failed = (...sections: string[]) => sections.some((s) => loadErrors.includes(s));
+  const profitUnavailable = failed('loads', 'expenses');
+  const milesUnavailable = failed('loads', 'weeklyMileage');
+  const loadsUnavailable = failed('loads');
+
+  // Combined activity stream: loads, expenses, and miles — including anything
+  // logged through MilesBot — newest first.
   const activityItems: ActivityItem[] = [
     ...weeklyLoads.map((load) => ({
       id: load.id,
@@ -167,17 +188,27 @@ export default function DriverHomePage() {
       date: exp.date,
       amount: exp.amount,
     })),
+    ...recentMileage
+      .filter((entry) => entry.miles != null)
+      .map((entry) => ({
+        id: entry.id,
+        type: 'mileage' as const,
+        name: entry.notes || 'Miles logged',
+        date: entry.log_date,
+        amount: entry.miles as number,
+      })),
   ];
 
   const recentActivities = activityItems
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 3);
+    .slice(0, 5);
+  const activityUnavailable = failed('loads', 'expenses', 'mileage');
 
-  // Maintenance alert conditions
-  const currentOdometer = odometer || 0;
-  const dueMaintenanceItems = maintenanceSchedule.filter(
-    (item) => item.due_odometer - currentOdometer < 500
-  );
+  // Maintenance can only be judged against a known odometer reading; without
+  // one, every item would look due.
+  const currentOdometer = odometer ?? 0;
+  const dueMaintenanceItems =
+    odometer == null ? [] : maintenanceSchedule.filter((item) => item.due_odometer - odometer < 500);
   const showMaintenanceAlert = dueMaintenanceItems.length > 0;
 
   // Retirement nudge calculations
@@ -186,8 +217,14 @@ export default function DriverHomePage() {
     return logDate >= startOfWeek;
   });
 
+  // Skip the nudge when its inputs didn't load: an empty retirement log would
+  // otherwise claim the driver hasn't contributed this week.
   const showRetirementNudge =
-    !!user.fin_intel_addon && !hasLoggedContributionThisWeek && netProfit > 0;
+    !!user.fin_intel_addon &&
+    !failed('retirement') &&
+    !profitUnavailable &&
+    !hasLoggedContributionThisWeek &&
+    netProfit > 0;
 
   const suggestedContribution = showRetirementNudge
     ? Math.round(calculateSolo401kContribution(netProfit))
@@ -225,32 +262,31 @@ export default function DriverHomePage() {
     }
   };
 
-  // Mock Notification Data
-  const mockNotifications = [
-    {
-      id: 'notif-1',
-      title: 'Active Load Dispatch',
-      message: `${weeklyLoads[1]?.broker_name || 'TQL'} load is active. Pickup in ${weeklyLoads[1]?.origin || 'Atlanta, GA'}.`,
-      time: '15 mins ago',
-      type: 'info',
-    },
-    {
-      id: 'notif-2',
-      title: 'Maintenance Due Soon',
-      message: dueMaintenanceItems[0]
-        ? `${dueMaintenanceItems[0].type} is due in ${dueMaintenanceItems[0].due_odometer - currentOdometer} miles.`
-        : 'Inspection required soon.',
-      time: '2 hours ago',
-      type: 'warning',
-    },
-    {
-      id: 'notif-3',
-      title: 'Weekly Profit Summary',
-      message: `Your estimated weekly net profit stands at ${formatCurrency(netProfit)}.`,
-      time: '1 day ago',
-      type: 'success',
-    },
+  // Notifications come only from the driver's real data, so an empty list
+  // means there is genuinely nothing to flag.
+  const notifications = [
+    ...dueMaintenanceItems.map((item) => {
+      const rem = item.due_odometer - currentOdometer;
+      return {
+        id: `maint-${item.id}`,
+        title: 'Maintenance due',
+        message:
+          rem < 0
+            ? `${item.type} is overdue by ${formatMiles(Math.abs(rem))}.`
+            : `${item.type} is due in ${formatMiles(rem)}.`,
+        type: 'warning' as const,
+      };
+    }),
+    ...weeklyLoads
+      .filter((load) => load.status === 'active')
+      .map((load) => ({
+        id: `load-${load.id}`,
+        title: 'Active load',
+        message: `${load.broker_name || 'Load'}: ${load.origin} → ${load.destination}.`,
+        type: 'info' as const,
+      })),
   ];
+  const unreadCount = notificationsSeen ? 0 : notifications.length;
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-10">
@@ -279,9 +315,7 @@ export default function DriverHomePage() {
           <button
             onClick={() => {
               setNotificationsOpen(!notificationsOpen);
-              if (unreadNotifications > 0) {
-                setUnreadNotifications(0);
-              }
+              setNotificationsSeen(true);
             }}
             className={`p-3 rounded-full bg-navy-800 hover:bg-navy-700/80 border border-white/5 hover:border-white/10 text-gray-300 hover:text-white transition-all relative ${
               notificationsOpen ? 'ring-2 ring-brand-green/40 bg-navy-700/80' : ''
@@ -289,9 +323,9 @@ export default function DriverHomePage() {
             aria-label="Toggle notifications"
           >
             <Bell className="w-5 h-5" />
-            {unreadNotifications > 0 && (
+            {unreadCount > 0 && (
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-brand-red rounded-full flex items-center justify-center text-[10px] font-bold text-white border-2 border-navy-900 animate-pulse">
-                {unreadNotifications}
+                {unreadCount}
               </span>
             )}
           </button>
@@ -311,30 +345,31 @@ export default function DriverHomePage() {
                 </button>
               </div>
               <div className="space-y-3 max-h-72 overflow-y-auto">
-                {mockNotifications.map((notif) => (
-                  <div
-                    key={notif.id}
-                    className="p-3 rounded-xl bg-navy-800/60 border border-white/5 hover:border-white/10 transition-colors"
-                  >
-                    <div className="flex justify-between items-start">
+                {notifications.length === 0 ? (
+                  <p className="text-xs text-gray-400 text-center py-6 font-sans">
+                    You&apos;re all caught up.
+                  </p>
+                ) : (
+                  notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      className="p-3 rounded-xl bg-navy-800/60 border border-white/5 hover:border-white/10 transition-colors"
+                    >
                       <span
                         className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                           notif.type === 'warning'
                             ? 'text-brand-amber bg-brand-amber/10'
-                            : notif.type === 'success'
-                            ? 'text-brand-green bg-brand-green/10'
                             : 'text-blue-400 bg-blue-500/10'
                         }`}
                       >
                         {notif.title}
                       </span>
-                      <span className="text-[10px] text-gray-500">{notif.time}</span>
+                      <p className="text-xs text-gray-300 mt-1.5 leading-relaxed font-sans">
+                        {notif.message}
+                      </p>
                     </div>
-                    <p className="text-xs text-gray-300 mt-1.5 leading-relaxed font-sans">
-                      {notif.message}
-                    </p>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           )}
@@ -386,22 +421,24 @@ export default function DriverHomePage() {
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
           label="Net Profit (This Week)"
-          value={formatCurrency(netProfit)}
-          trend="+14.2%"
-          trendDirection="up"
-          subtext="After logged expenses"
+          value={profitUnavailable ? '—' : formatCurrency(netProfit)}
+          subtext={profitUnavailable ? "Couldn't load" : 'After logged expenses'}
         />
         <StatCard
           label="Miles This Week"
-          value={formatMiles(totalMiles)}
-          trend="+8.5%"
-          trendDirection="up"
-          subtext={standaloneMiles > 0 ? `${formatMiles(loadMiles)} from loads + ${formatMiles(standaloneMiles)} logged` : 'Across active/done loads'}
+          value={milesUnavailable ? '—' : formatMiles(totalMiles)}
+          subtext={
+            milesUnavailable
+              ? "Couldn't load"
+              : standaloneMiles > 0
+              ? `${formatMiles(loadMiles)} from loads + ${formatMiles(standaloneMiles)} logged`
+              : 'From this week’s loads'
+          }
         />
         <StatCard
           label="Active & Upcoming Loads"
-          value={activeLoadsCount}
-          subtext="Loads scheduled this week"
+          value={loadsUnavailable ? '—' : activeLoadsCount}
+          subtext={loadsUnavailable ? "Couldn't load" : 'Loads scheduled this week'}
         />
       </section>
 
@@ -454,8 +491,8 @@ export default function DriverHomePage() {
                 <Plus className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-white text-sm font-sans">Log Miles</h3>
-                <p className="text-xs text-gray-400 mt-1 font-sans">Enter new trip miles</p>
+                <h3 className="font-bold text-white text-sm font-sans">New Load</h3>
+                <p className="text-xs text-gray-400 mt-1 font-sans">Check a rate & log the trip</p>
               </div>
             </Link>
 
@@ -472,35 +509,37 @@ export default function DriverHomePage() {
               </div>
             </Link>
 
+            {/* The WhatsApp log isn't in the bottom nav, so this is how drivers
+                reach what they've sent MilesBot. */}
             <Link
-              to="/driver/loads/new"
+              to="/driver/whatsapp-log"
               className="group p-5 bg-navy-800 hover:bg-navy-700/60 border border-white/5 hover:border-white/10 rounded-2xl text-left transition-all duration-300 flex flex-col justify-between h-36 hover:scale-[1.02] shadow-md"
             >
               <div className="p-2.5 bg-blue-500/10 text-blue-400 rounded-xl w-fit group-hover:scale-110 transition-transform duration-300">
-                <Truck className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-white text-sm font-sans">New Load</h3>
-                <p className="text-xs text-gray-400 mt-1 font-sans">Schedule upcoming cargo</p>
-              </div>
-            </Link>
-
-            <a
-              href="https://wa.me/12815550001"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group p-5 bg-gradient-to-br from-navy-800 to-brand-green/5 hover:to-brand-green/10 border border-white/5 hover:border-brand-green/20 rounded-2xl text-left transition-all duration-300 flex flex-col justify-between h-36 hover:scale-[1.02] shadow-md"
-            >
-              <div className="p-2.5 bg-brand-green/10 text-brand-green rounded-xl w-fit group-hover:scale-110 transition-transform duration-300">
                 <MessageSquare className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="font-bold text-white text-sm font-sans flex items-center">
-                  Ask MilesBot <Sparkles className="w-3.5 h-3.5 ml-1 text-brand-green" />
-                </h3>
-                <p className="text-xs text-gray-400 mt-1 font-sans">WhatsApp automated logs</p>
+                <h3 className="font-bold text-white text-sm font-sans">MilesBot Log</h3>
+                <p className="text-xs text-gray-400 mt-1 font-sans">What you sent on WhatsApp</p>
               </div>
-            </a>
+            </Link>
+
+            {milesBotChatUrl && (
+              <a
+                href={milesBotChatUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group p-5 bg-gradient-to-br from-navy-800 to-brand-green/5 hover:to-brand-green/10 border border-white/5 hover:border-brand-green/20 rounded-2xl text-left transition-all duration-300 flex flex-col justify-between h-36 hover:scale-[1.02] shadow-md"
+              >
+                <div className="p-2.5 bg-brand-green/10 text-brand-green rounded-xl w-fit group-hover:scale-110 transition-transform duration-300">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-sm font-sans">Text MilesBot</h3>
+                  <p className="text-xs text-gray-400 mt-1 font-sans">Log miles & receipts by WhatsApp</p>
+                </div>
+              </a>
+            )}
           </div>
         </section>
 
@@ -521,12 +560,16 @@ export default function DriverHomePage() {
           <div className="bg-navy-800 border border-white/5 rounded-2xl p-4 shadow-lg space-y-3.5">
             {recentActivities.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-sm text-gray-500 font-sans">No recent loads or expenses logged.</p>
+                <p className="text-sm text-gray-500 font-sans">
+                  {activityUnavailable
+                    ? "Couldn't load your recent activity."
+                    : 'Nothing logged yet. Loads, expenses and miles you send MilesBot show up here.'}
+                </p>
               </div>
             ) : (
               recentActivities.map((activity) => (
                 <div
-                  key={activity.id}
+                  key={`${activity.type}-${activity.id}`}
                   className="flex items-center justify-between p-3 rounded-xl bg-navy-900/50 border border-white/5 hover:border-white/10 transition-all"
                 >
                   <div className="flex items-center space-x-3">
@@ -534,11 +577,15 @@ export default function DriverHomePage() {
                       className={`p-2 rounded-xl border shrink-0 ${
                         activity.type === 'load'
                           ? 'bg-brand-green/10 text-brand-green border-brand-green/20'
+                          : activity.type === 'mileage'
+                          ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
                           : 'bg-brand-red/10 text-brand-red border-brand-red/20'
                       }`}
                     >
                       {activity.type === 'load' ? (
                         <Truck className="w-4 h-4" />
+                      ) : activity.type === 'mileage' ? (
+                        <MapPin className="w-4 h-4" />
                       ) : (
                         <Receipt className="w-4 h-4" />
                       )}
@@ -555,10 +602,16 @@ export default function DriverHomePage() {
                   </div>
                   <span
                     className={`text-xs sm:text-sm font-bold font-mono ${
-                      activity.type === 'load' ? 'text-brand-green' : 'text-brand-red'
+                      activity.type === 'load'
+                        ? 'text-brand-green'
+                        : activity.type === 'mileage'
+                        ? 'text-blue-400'
+                        : 'text-brand-red'
                     }`}
                   >
-                    {activity.type === 'load' ? '+' : '-'} {formatCurrency(activity.amount)}
+                    {activity.type === 'mileage'
+                      ? formatMiles(activity.amount)
+                      : `${activity.type === 'load' ? '+' : '-'} ${formatCurrency(activity.amount)}`}
                   </span>
                 </div>
               ))

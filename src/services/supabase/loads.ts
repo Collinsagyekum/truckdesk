@@ -1,7 +1,5 @@
 import { supabase } from '../../lib/supabase';
 import type { Load } from '../../types';
-import { mockDb } from '../../utils/mockDb';
-import { warnMockFallback } from '../../utils/devWarn';
 
 // ─── DB ↔ APP ADAPTERS ────────────────────────────────────────────────────────
 // The real `loads` table splits the route into city/state columns and has no
@@ -78,22 +76,19 @@ function loadToRow(load: Partial<Load>): Record<string, any> {
   return row;
 }
 
-export async function getLoads(driverId: string): Promise<Load[]> {
-  if (import.meta.env.VITE_SUPABASE_URL === 'your_url_here' || !import.meta.env.VITE_SUPABASE_URL) {
-    return mockDb.getDriverLoads(driverId);
-  }
+// Reads throw on a query error and return [] / null when there is simply no
+// data, so pages can tell "couldn't load" apart from "nothing here yet".
+// Writes throw on failure: a save that didn't happen must never look like one.
 
+export async function getLoads(driverId: string): Promise<Load[]> {
   const { data, error } = await supabase
     .from('loads')
     .select('*')
     .eq('driver_id', driverId)
     .order('pickup_date', { ascending: false });
 
-  if (error || !data || data.length === 0) {
-    warnMockFallback('getLoads', error);
-    return mockDb.getDriverLoads(driverId);
-  }
-  return data.map(rowToLoad);
+  if (error) throw error;
+  return (data ?? []).map(rowToLoad);
 }
 
 export async function getWeeklyLoads(driverId: string): Promise<Load[]> {
@@ -101,53 +96,35 @@ export async function getWeeklyLoads(driverId: string): Promise<Load[]> {
   startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
   const startOfWeekStr = startOfWeek.toISOString().split('T')[0];
 
-  if (import.meta.env.VITE_SUPABASE_URL === 'your_url_here' || !import.meta.env.VITE_SUPABASE_URL) {
-    return mockDb.getDriverLoads(driverId).filter((l) => l.pickup_date >= startOfWeekStr);
-  }
-
   const { data, error } = await supabase
     .from('loads')
     .select('*')
     .eq('driver_id', driverId)
     .gte('pickup_date', startOfWeekStr);
 
-  if (error || !data || data.length === 0) {
-    return mockDb.getDriverLoads(driverId).filter((l) => l.pickup_date >= startOfWeekStr);
-  }
-  return data.map(rowToLoad);
+  if (error) throw error;
+  return (data ?? []).map(rowToLoad);
 }
 
 export async function getLoad(loadId: string): Promise<Load | null> {
-  if (import.meta.env.VITE_SUPABASE_URL === 'your_url_here' || !import.meta.env.VITE_SUPABASE_URL) {
-    return mockDb.getLoads().find((l) => l.id === loadId) || null;
-  }
-
   const { data, error } = await supabase
     .from('loads')
     .select('*')
     .eq('id', loadId)
-    .single();
+    .maybeSingle();
 
-  if (error || !data) {
-    return mockDb.getLoads().find((l) => l.id === loadId) || null;
-  }
-  return rowToLoad(data);
+  if (error) throw error;
+  return data ? rowToLoad(data) : null;
 }
 
 export async function createLoad(load: Omit<Load, 'id' | 'created_at' | 'updated_at'>): Promise<Load> {
-  if (import.meta.env.VITE_SUPABASE_URL === 'your_url_here' || !import.meta.env.VITE_SUPABASE_URL) {
-    return mockDb.createLoad(load);
-  }
-
   const { data, error } = await supabase
     .from('loads')
     .insert([loadToRow(load)])
     .select()
     .single();
 
-  if (error || !data) {
-    return mockDb.createLoad(load);
-  }
+  if (error) throw error;
   return rowToLoad(data);
 }
 
@@ -157,43 +134,31 @@ export async function createRateRecord(rateRecord: {
   miles: number;
   rate_per_mile: number;
 }): Promise<any> {
-  if (import.meta.env.VITE_SUPABASE_URL === 'your_url_here' || !import.meta.env.VITE_SUPABASE_URL) {
-    return { id: Math.random().toString(36).substr(2, 9), ...rateRecord };
-  }
-
   const { data, error } = await supabase
     .from('rate_records')
     .insert([rateRecord])
     .select()
     .single();
 
-  if (error || !data) {
-    return { id: Math.random().toString(36).substr(2, 9), ...rateRecord };
-  }
+  if (error) throw error;
   return data;
 }
 
+// Returns false when no row was removed. Row Level Security blocks a delete by
+// matching zero rows rather than raising an error, so checking `error` alone
+// would report success for a load that is still there.
 export async function deleteLoad(loadId: string): Promise<boolean> {
-  if (import.meta.env.VITE_SUPABASE_URL === 'your_url_here' || !import.meta.env.VITE_SUPABASE_URL) {
-    // In-memory delete
-    const loads = mockDb.getLoads();
-    const idx = loads.findIndex((l) => l.id === loadId);
-    if (idx !== -1) {
-      loads.splice(idx, 1);
-      return true;
-    }
-    return false;
-  }
+  const { data, error } = await supabase
+    .from('loads')
+    .delete()
+    .eq('id', loadId)
+    .select('id');
 
-  const { error } = await supabase.from('loads').delete().eq('id', loadId);
-  return !error;
+  if (error) throw error;
+  return (data?.length ?? 0) > 0;
 }
 
 export async function getFleetLoads(companyId: string): Promise<Load[]> {
-  if (import.meta.env.VITE_SUPABASE_URL === 'your_url_here' || !import.meta.env.VITE_SUPABASE_URL) {
-    return mockDb.getLoads();
-  }
-
   // NOTE: the real `users` table has no company_id column (no multi-tenancy in
   // the DB today), so we can't scope by company. Single business = owner sees
   // every driver's loads; RLS is the real security boundary here.
@@ -202,10 +167,6 @@ export async function getFleetLoads(companyId: string): Promise<Load[]> {
     .from('loads')
     .select('*, users(full_name)');
 
-  if (error || !data || data.length === 0) {
-    warnMockFallback('getFleetLoads', error);
-    return mockDb.getLoads();
-  }
-
-  return data.map(rowToLoad);
+  if (error) throw error;
+  return (data ?? []).map(rowToLoad);
 }

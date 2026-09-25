@@ -9,6 +9,7 @@ import {
   Receipt,
   Info,
   Navigation,
+  AlertTriangle,
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../hooks/useToast';
@@ -30,29 +31,42 @@ export default function LoadDetailPage() {
   const [load, setLoad] = useState<Load | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [expensesError, setExpensesError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const driverId = user?.id || 'mock-driver';
+  const driverId = user?.id;
 
   useEffect(() => {
-    async function loadData() {
-      if (!id) return;
-      try {
-        const [fetchedLoad, fetchedExpenses] = await Promise.all([
-          getLoad(id),
-          getExpenses(driverId),
-        ]);
-        setLoad(fetchedLoad);
-        setExpenses(fetchedExpenses);
-      } catch (err) {
-        console.error('Error fetching load details:', err);
-        showError('Failed to load details');
-      } finally {
-        setLoading(false);
+    if (!id || !driverId) return;
+    async function loadData(loadId: string, forDriver: string) {
+      setLoading(true);
+      // Load the trip and its expenses independently: a failed expense lookup
+      // shouldn't hide the load itself.
+      const [loadResult, expensesResult] = await Promise.allSettled([
+        getLoad(loadId),
+        getExpenses(forDriver),
+      ]);
+
+      if (loadResult.status === 'fulfilled') {
+        setLoad(loadResult.value);
+        setLoadError(false);
+      } else {
+        console.error('Error fetching load:', loadResult.reason);
+        setLoadError(true);
       }
+      if (expensesResult.status === 'fulfilled') {
+        setExpenses(expensesResult.value);
+        setExpensesError(false);
+      } else {
+        console.error('Error fetching expenses for load:', expensesResult.reason);
+        setExpensesError(true);
+      }
+      setLoading(false);
     }
-    loadData();
-  }, [id, driverId, showError]);
+    loadData(id, driverId);
+  }, [id, driverId, reloadKey]);
 
   // Filter expenses linked to this load (by date or metadata)
   const linkedExpenses = useMemo(() => {
@@ -112,6 +126,24 @@ export default function LoadDetailPage() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <LoadingSpinner size="md" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="max-w-lg mx-auto w-full text-center py-20 px-4">
+        <AlertTriangle className="w-12 h-12 text-brand-amber mx-auto mb-4" />
+        <h2 className="text-xl font-semibold text-white mb-2">Couldn&apos;t load this load</h2>
+        <p className="text-gray-400 mb-6">Check your connection and try again.</p>
+        <div className="flex justify-center gap-3">
+          <Button variant="secondary" onClick={() => navigate('/driver/loads')}>
+            Back to Loads
+          </Button>
+          <Button variant="primary" onClick={() => setReloadKey((k) => k + 1)}>
+            Try again
+          </Button>
+        </div>
       </div>
     );
   }
@@ -234,18 +266,29 @@ export default function LoadDetailPage() {
             <div className="p-3 bg-navy-900/50 rounded-xl border border-white/5">
               <span className="text-xs text-gray-400 block mb-0.5">Total Expenses</span>
               <span className="text-base font-bold text-brand-red flex items-center">
-                <DollarSign className="w-4 h-4 text-brand-red shrink-0" />
-                {totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                {expensesError ? (
+                  '—'
+                ) : (
+                  <>
+                    <DollarSign className="w-4 h-4 text-brand-red shrink-0" />
+                    {totalExpenses.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </>
+                )}
               </span>
             </div>
 
             <div className="p-3 bg-brand-green/5 rounded-xl border border-brand-green/10 col-span-2 flex items-center justify-between">
               <div>
                 <span className="text-xs text-gray-400 block mb-0.5">Net Profit</span>
-                <span className={`text-lg font-bold flex items-center ${netProfit >= 0 ? 'text-brand-green' : 'text-brand-red'}`}>
-                  <DollarSign className="w-4.5 h-4.5 shrink-0" />
-                  {netProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </span>
+                {/* Without expenses, "profit" would just be the gross rate. */}
+                {expensesError ? (
+                  <span className="text-lg font-bold text-gray-400">—</span>
+                ) : (
+                  <span className={`text-lg font-bold flex items-center ${netProfit >= 0 ? 'text-brand-green' : 'text-brand-red'}`}>
+                    <DollarSign className="w-4.5 h-4.5 shrink-0" />
+                    {netProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                )}
               </div>
 
               <div className="text-right">
@@ -270,7 +313,11 @@ export default function LoadDetailPage() {
             </span>
           </div>
 
-          {linkedExpenses.length === 0 ? (
+          {expensesError ? (
+            <p className="text-xs text-brand-amber text-center py-4 bg-navy-900/20 rounded-xl border border-dashed border-white/5">
+              Couldn&apos;t load expenses for this load.
+            </p>
+          ) : linkedExpenses.length === 0 ? (
             <p className="text-xs text-gray-400 italic text-center py-4 bg-navy-900/20 rounded-xl border border-dashed border-white/5">
               No expenses matching date or metadata.
             </p>

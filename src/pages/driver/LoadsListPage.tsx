@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Search, Truck, ArrowRight, DollarSign, Calendar } from 'lucide-react';
+import { Plus, Search, Truck, ArrowRight, DollarSign, Calendar, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { getLoads } from '../../services/supabase/loads';
 import type { Load } from '../../types';
@@ -15,24 +15,31 @@ export default function LoadsListPage() {
   const navigate = useNavigate();
   const [loads, setLoads] = useState<Load[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  const driverId = user?.id || 'mock-driver';
+  const driverId = user?.id;
 
   useEffect(() => {
-    async function loadData() {
+    if (!driverId) return;
+    async function loadData(forDriver: string) {
+      setLoading(true);
+      setLoadError(false);
       try {
-        const fetchedLoads = await getLoads(driverId);
-        setLoads(fetchedLoads);
+        setLoads(await getLoads(forDriver));
       } catch (err) {
+        // Kept distinct from an empty list, which would tell the driver they
+        // have no loads when they just didn't load.
         console.error('Error fetching loads:', err);
+        setLoadError(true);
       } finally {
         setLoading(false);
       }
     }
-    loadData();
-  }, [driverId]);
+    loadData(driverId);
+  }, [driverId, reloadKey]);
 
   // Sort and filter loads
   const filteredLoads = useMemo(() => {
@@ -106,6 +113,14 @@ export default function LoadsListPage() {
           <div className="flex items-center justify-center py-20">
             <LoadingSpinner size="md" />
           </div>
+        ) : loadError ? (
+          <EmptyState
+            icon={AlertTriangle}
+            title="Couldn't load your loads"
+            message="Check your connection and try again."
+            ctaLabel="Try again"
+            onCta={() => setReloadKey((k) => k + 1)}
+          />
         ) : filteredLoads.length === 0 ? (
           <EmptyState
             icon={Truck}

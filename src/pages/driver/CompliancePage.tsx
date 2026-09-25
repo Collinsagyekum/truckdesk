@@ -8,8 +8,9 @@ import {
   logMaintenanceService,
 } from '../../services/supabase/maintenance';
 import type { MaintenanceItem } from '../../services/supabase/maintenance';
+import { getCurrentQuarter } from '../../utils/irs';
 import { getExpenses } from '../../services/supabase/expenses';
-import { getComplianceDocs, saveComplianceDoc } from '../../services/supabase/compliance';
+import { getComplianceDocs, saveComplianceDoc, daysUntilExpiry } from '../../services/supabase/compliance';
 import PageHeader from '../../components/ui/PageHeader';
 import Button from '../../components/ui/Button';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -38,18 +39,28 @@ interface ComplianceDocument {
   fileName?: string;
 }
 
+// Today's date as YYYY-MM-DD in the driver's own time zone. toISOString()
+// would give UTC, which is already tomorrow on a US evening.
+function localToday(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export default function CompliancePage() {
   const { user } = useAuth();
   const { showSuccess, showError } = useToast();
 
-  const driverId = user?.id || 'mock-driver-1';
+  const driverId = user?.id;
 
   // Tabs state: Maintenance | Documents | HOS | IFTA
   const [activeTab, setActiveTab] = useState<'maintenance' | 'documents' | 'hos' | 'ifta'>('maintenance');
   const [loading, setLoading] = useState(true);
+  // Sections that failed to load, named for the retry banner.
+  const [loadErrors, setLoadErrors] = useState<string[]>([]);
 
-  // Odometer states
-  const [currentOdometer, setCurrentOdometer] = useState<number>(154620);
+  // Odometer states. Null until known — a driver with no truck on file has no
+  // reading, and a placeholder number would drive every maintenance estimate.
+  const [currentOdometer, setCurrentOdometer] = useState<number | null>(null);
   const [isOdoModalOpen, setIsOdoModalOpen] = useState(false);
   const [newOdoVal, setNewOdoVal] = useState('');
   const [isUpdatingOdo, setIsUpdatingOdo] = useState(false);
@@ -58,7 +69,7 @@ export default function CompliancePage() {
   const [maintenanceItems, setMaintenanceItems] = useState<MaintenanceItem[]>([]);
   const [serviceType, setServiceType] = useState('');
   const [customType, setCustomType] = useState('');
-  const [serviceDate, setServiceDate] = useState('2026-05-28');
+  const [serviceDate, setServiceDate] = useState(localToday);
   const [serviceOdometer, setServiceOdometer] = useState<number | ''>('');
   const [dueOdometerVal, setDueOdometerVal] = useState<number | ''>('');
   const [serviceNotes, setServiceNotes] = useState('');
@@ -73,48 +84,52 @@ export default function CompliancePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
-  // HOS states
-  const [dutyStatus, setDutyStatus] = useState<'driving' | 'on_duty' | 'sleeper' | 'off_duty'>('driving');
-
   // IFTA states
   const [expenses, setExpenses] = useState<any[]>([]);
-  const [selectedQuarter, setSelectedQuarter] = useState<'Q1' | 'Q2' | 'Q3' | 'Q4'>('Q2');
+  const [selectedQuarter, setSelectedQuarter] = useState<'Q1' | 'Q2' | 'Q3' | 'Q4'>(
+    () => `Q${getCurrentQuarter()}` as 'Q1' | 'Q2' | 'Q3' | 'Q4'
+  );
+  // IFTA is filed per quarter of a specific year.
+  const iftaYear = new Date().getFullYear();
 
-  // Fetch all initial data
-  const fetchData = async () => {
+  // Fetch all initial data. Sections load independently, so a missing truck
+  // record can't stop the driver's documents from loading.
+  const fetchData = async (forDriver: string) => {
     setLoading(true);
-    try {
-      // 1. Odometer
-      const odo = await getOdometer(driverId);
-      setCurrentOdometer(odo);
+    const [odoR, scheduleR, expensesR, docsR] = await Promise.allSettled([
+      getOdometer(forDriver),
+      getMaintenanceSchedule(forDriver),
+      getExpenses(forDriver),
+      // Standard slots overlaid with whatever the driver has provided.
+      getComplianceDocs(forDriver),
+    ]);
 
-      // 2. Maintenance Schedule
-      const schedule = await getMaintenanceSchedule(driverId);
-      setMaintenanceItems(schedule);
+    const errors: string[] = [];
+    if (odoR.status === 'fulfilled') setCurrentOdometer(odoR.value);
+    else errors.push('odometer');
+    if (scheduleR.status === 'fulfilled') setMaintenanceItems(scheduleR.value);
+    else errors.push('maintenance schedule');
+    if (expensesR.status === 'fulfilled') setExpenses(expensesR.value);
+    else errors.push('fuel purchases');
+    if (docsR.status === 'fulfilled') setDocuments(docsR.value);
+    else errors.push('documents');
 
-      // 3. Expenses (for IFTA)
-      const expList = await getExpenses(driverId);
-      setExpenses(expList);
-
-      // 4. Compliance documents (real, per-driver, from Supabase). Returns the
-      //    standard slots overlaid with whatever the driver has provided.
-      const docs = await getComplianceDocs(driverId);
-      setDocuments(docs);
-    } catch (err) {
-      console.error('Error fetching compliance data:', err);
-      showError('Failed to load compliance data.');
-    } finally {
-      setLoading(false);
+    for (const r of [odoR, scheduleR, expensesR, docsR]) {
+      if (r.status === 'rejected') console.error('Compliance: a section failed to load', r.reason);
     }
+    setLoadErrors(errors);
+    setLoading(false);
   };
 
   useEffect(() => {
-    fetchData();
+    if (driverId) fetchData(driverId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [driverId]);
 
-  // Prepopulate standard fields when service type changes
+  // Prepopulate standard fields when service type changes. Without a known
+  // odometer there's nothing to prefill from, so the driver types it.
   useEffect(() => {
+    if (currentOdometer == null) return;
     if (serviceType && serviceType !== 'custom') {
       const item = maintenanceItems.find((m) => m.type === serviceType);
       if (item) {
@@ -132,6 +147,7 @@ export default function CompliancePage() {
 
   // Handler: Update current odometer
   const handleOdometerSave = async () => {
+    if (!driverId) return;
     const odoNum = Number(newOdoVal);
     if (!newOdoVal || odoNum <= 0) {
       showError('Please enter a valid odometer reading.');
@@ -146,10 +162,12 @@ export default function CompliancePage() {
         setIsOdoModalOpen(false);
         setNewOdoVal('');
       } else {
-        showError('Could not update odometer.');
+        // updateOdometer only updates an existing vehicle row.
+        showError("There's no truck on file for your account yet, so the reading can't be saved.");
       }
     } catch (err) {
-      showError('Error updating odometer.');
+      console.error('Odometer update failed:', err);
+      showError("Couldn't update the odometer. Please try again.");
     } finally {
       setIsUpdatingOdo(false);
     }
@@ -158,6 +176,7 @@ export default function CompliancePage() {
   // Handler: Log service done
   const handleLogService = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!driverId) return;
     if (!serviceType || !serviceDate || !serviceOdometer || !dueOdometerVal) {
       showError('Please fill out all required fields.');
       return;
@@ -180,20 +199,25 @@ export default function CompliancePage() {
         notes: serviceNotes || undefined,
       };
 
-      const result = await logMaintenanceService(payload);
-      if (result) {
-        showSuccess(`Log entry created for ${typeStr}.`);
-        // Refresh schedule
-        const updatedSchedule = await getMaintenanceSchedule(driverId);
-        setMaintenanceItems(updatedSchedule);
-        
-        // Reset form
-        setServiceType('');
-        setCustomType('');
-        setServiceNotes('');
+      const saved = await logMaintenanceService(payload);
+      showSuccess(`Log entry created for ${typeStr}.`);
+
+      // Reset form
+      setServiceType('');
+      setCustomType('');
+      setServiceNotes('');
+
+      // Refresh the schedule. The entry is already saved, so a failed refresh
+      // falls back to adding it locally rather than reporting a failed save.
+      try {
+        setMaintenanceItems(await getMaintenanceSchedule(driverId));
+      } catch (refreshErr) {
+        console.error('Schedule refresh failed after saving:', refreshErr);
+        setMaintenanceItems((prev) => [...prev, saved]);
       }
     } catch (err) {
-      showError('Error logging service record.');
+      console.error('Logging service failed:', err);
+      showError("Couldn't log the service record. Please try again.");
     } finally {
       setIsLoggingService(false);
     }
@@ -210,9 +234,11 @@ export default function CompliancePage() {
 
   // Handler: Submit document upload — persists to Supabase + uploads the scan.
   const handleUploadSubmit = async () => {
-    if (!selectedDocForUpload || !newExpiryDate) return;
+    if (!driverId || !selectedDocForUpload || !newExpiryDate) return;
     setIsUploading(true);
     try {
+      // Throws if the scan upload or the record save fails, so the card below
+      // is only updated once the document is genuinely stored.
       const saved = await saveComplianceDoc(
         driverId,
         {
@@ -223,119 +249,35 @@ export default function CompliancePage() {
         selectedFile
       );
 
-      // Update the on-screen card either from the saved row or optimistically.
       setDocuments((prev) =>
         prev.map((doc) =>
           doc.type === selectedDocForUpload.type
-            ? {
-                ...doc,
-                ...(saved ?? {}),
-                expiry_date: newExpiryDate,
-                fileName: uploadedFileName || doc.fileName,
-              }
+            ? { ...doc, ...saved, fileName: uploadedFileName || doc.fileName }
             : doc
         )
       );
-
-      if (saved) {
-        showSuccess(`${selectedDocForUpload.type} saved.`);
-      } else {
-        showError('Saved on screen, but couldn\'t reach the database. Check that the compliance table and bucket exist.');
-      }
+      showSuccess(`${selectedDocForUpload.type} saved.`);
       setIsUploadOpen(false);
     } catch (err) {
+      // The modal stays open with the driver's input so they can retry.
       console.error('Compliance save failed:', err);
-      showError('Failed to save document.');
+      showError(
+        selectedFile
+          ? "Couldn't save the document — the scan may not have uploaded. Please try again."
+          : "Couldn't save the document. Please try again."
+      );
     } finally {
       setIsUploading(false);
     }
   };
 
-  // HOS calculations for progress circles
-  const hosClocks = useMemo(() => {
-    // Modify based on the active duty state to simulate interactive change
-    if (dutyStatus === 'driving') {
-      return {
-        drive: 5.75, // 5h 45m left
-        shift: 9.25, // 9h 15m left
-        cycle: 42.5, // 42h 30m left
-        break: 3.25, // 3h 15m left
-      };
-    } else if (dutyStatus === 'on_duty') {
-      return {
-        drive: 8.0,
-        shift: 11.5,
-        cycle: 48.0,
-        break: 5.0,
-      };
-    } else if (dutyStatus === 'sleeper') {
-      return {
-        drive: 11.0,
-        shift: 14.0,
-        cycle: 62.2,
-        break: 8.0,
-      };
-    } else {
-      // Off duty
-      return {
-        drive: 11.0,
-        shift: 14.0,
-        cycle: 70.0,
-        break: 8.0,
-      };
-    }
-  }, [dutyStatus]);
-
-  // HOS Progress Ring helper
-  const renderProgressRing = (value: number, limit: number, title: string, sub: string, ringColorClass: string) => {
-    const percentage = Math.max(0, Math.min(100, (value / limit) * 100));
-    const radius = 54;
-    const circ = 2 * Math.PI * radius;
-    const offset = circ - (percentage / 100) * circ;
-
-    const hrs = Math.floor(value);
-    const mins = Math.round((value - hrs) * 60);
-    const textVal = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-
-    return (
-      <div className="flex flex-col items-center p-6 card-premium relative group hover:border-white/10 transition-all duration-300">
-        <div className="relative w-32 h-32 flex items-center justify-center">
-          <svg className="w-full h-full transform -rotate-90">
-            <circle
-              cx="64"
-              cy="64"
-              r={radius}
-              stroke="rgba(255,255,255,0.03)"
-              strokeWidth="8"
-              fill="transparent"
-            />
-            <circle
-              cx="64"
-              cy="64"
-              r={radius}
-              stroke="currentColor"
-              strokeWidth="8"
-              fill="transparent"
-              strokeDasharray={circ}
-              strokeDashoffset={offset}
-              strokeLinecap="round"
-              className={`${ringColorClass} transition-all duration-700 ease-out`}
-            />
-          </svg>
-          <div className="absolute text-center">
-            <span className="text-xl font-bold font-mono tracking-tight text-white">{textVal}</span>
-            <div className="text-[9px] text-gray-400 font-sans mt-0.5">/ {limit}h limit</div>
-          </div>
-        </div>
-        <span className="text-sm font-semibold text-white mt-4">{title}</span>
-        <span className="text-xs text-gray-400 mt-0.5">{sub}</span>
-      </div>
-    );
-  };
-
-  // IFTA: Filter and group fuel transactions
+  // IFTA: Filter and group fuel transactions. Date-only strings parse as UTC
+  // midnight — the previous day in US time zones, enough to push a fuel stop on
+  // the first of a quarter into the prior one — so parse them at noon.
+  const parseDay = (dateStr: string) =>
+    new Date(/^\d{4}-\d{2}-\d{2}$/.test(dateStr) ? `${dateStr}T12:00:00` : dateStr);
   const getQuarter = (dateStr: string) => {
-    const d = new Date(dateStr);
+    const d = parseDay(dateStr);
     const m = d.getMonth(); // 0-11
     if (m >= 0 && m <= 2) return 'Q1';
     if (m >= 3 && m <= 5) return 'Q2';
@@ -363,9 +305,11 @@ export default function CompliancePage() {
   );
 
   const groupedIFTAData = useMemo(() => {
+    // Match the year as well as the quarter: otherwise Q3 would combine fuel
+    // from every year's Q3 into one filing.
     const filtered = fuelPurchases.filter((p) => {
       if (!p.ifta_eligible) return false;
-      return getQuarter(p.date) === selectedQuarter;
+      return parseDay(p.date).getFullYear() === iftaYear && getQuarter(p.date) === selectedQuarter;
     });
 
     const groups: Record<string, { state: string; gallons: number; amount: number; count: number }> = {};
@@ -384,12 +328,12 @@ export default function CompliancePage() {
     });
 
     return Object.values(groups).sort((a, b) => b.amount - a.amount);
-  }, [fuelPurchases, selectedQuarter]);
+  }, [fuelPurchases, selectedQuarter, iftaYear]);
 
   // CSV Exporter
   const handleExportCSV = () => {
     if (groupedIFTAData.length === 0) {
-      showError(`No fuel purchase data found for ${selectedQuarter} to export.`);
+      showError(`No fuel purchase data found for ${selectedQuarter} ${iftaYear} to export.`);
       return;
     }
 
@@ -404,23 +348,28 @@ export default function CompliancePage() {
     const csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent(headers + rows);
     const link = document.createElement('a');
     link.setAttribute('href', csvContent);
-    link.setAttribute('download', `IFTA_Report_2026_${selectedQuarter}.csv`);
+    link.setAttribute('download', `IFTA_Report_${iftaYear}_${selectedQuarter}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    showSuccess(`IFTA Report for ${selectedQuarter} exported successfully!`);
+    showSuccess(`IFTA Report for ${selectedQuarter} ${iftaYear} exported successfully!`);
   };
 
-  // Helper to determine document validity status details
+  // Helper to determine document validity status details, measured against
+  // the real current date.
   const getDocStatusDetails = (expiryDateStr: string) => {
-    const expiry = new Date(expiryDateStr);
-    expiry.setHours(0, 0, 0, 0);
-    const today = new Date('2026-05-28');
-    today.setHours(0, 0, 0, 0);
-
-    const diff = expiry.getTime() - today.getTime();
-    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+    const days = daysUntilExpiry(expiryDateStr);
+    // An empty slot has no expiry date; without this check the NaN comparisons
+    // below all fail and it would fall through to "Valid".
+    if (days == null) {
+      return {
+        label: 'Not provided',
+        days: null,
+        colorClass: 'text-brand-amber bg-brand-amber/10 border-brand-amber/20',
+        icon: <AlertTriangle className="w-4 h-4 text-brand-amber" />,
+      };
+    }
 
     if (days < 0) {
       return {
@@ -462,6 +411,20 @@ export default function CompliancePage() {
     <div className="space-y-6 max-w-5xl mx-auto pb-10">
       <PageHeader title="Compliance & Maintenance" />
 
+      {loadErrors.length > 0 && (
+        <div className="flex items-start justify-between gap-3 p-4 rounded-xl border border-brand-amber/30 bg-brand-amber/10">
+          <div className="flex items-start gap-2.5">
+            <AlertTriangle className="w-5 h-5 text-brand-amber shrink-0 mt-0.5" />
+            <p className="text-sm text-gray-200">
+              Couldn&apos;t load your {loadErrors.join(', ')}. What&apos;s shown below may be incomplete.
+            </p>
+          </div>
+          <Button variant="secondary" size="sm" onClick={() => driverId && fetchData(driverId)}>
+            Try again
+          </Button>
+        </div>
+      )}
+
       {/* Tabs Menu */}
       <div className="flex p-1 bg-navy-800/80 backdrop-blur rounded-xl border border-white/5 gap-1">
         {(['maintenance', 'documents', 'hos', 'ifta'] as const).map((tab) => (
@@ -493,7 +456,13 @@ export default function CompliancePage() {
                   Current Odometer
                 </span>
                 <span className="text-2xl font-bold font-mono text-white">
-                  {currentOdometer.toLocaleString()} <span className="text-sm font-sans font-normal text-gray-400">mi</span>
+                  {currentOdometer == null ? (
+                    <span className="text-lg font-sans text-gray-400">Not set</span>
+                  ) : (
+                    <>
+                      {currentOdometer.toLocaleString()} <span className="text-sm font-sans font-normal text-gray-400">mi</span>
+                    </>
+                  )}
                 </span>
               </div>
             </div>
@@ -511,11 +480,15 @@ export default function CompliancePage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {maintenanceItems.map((item) => {
-                const remaining = item.due_odometer - currentOdometer;
+                // Distance to service is unknowable without an odometer reading.
+                const remaining = currentOdometer == null ? null : item.due_odometer - currentOdometer;
                 let badgeClass = 'text-brand-green bg-brand-green/10 border-brand-green/20';
                 let alertLabel = 'Good';
 
-                if (remaining < 200) {
+                if (remaining == null) {
+                  badgeClass = 'text-gray-400 bg-white/5 border-white/10';
+                  alertLabel = 'Set odometer';
+                } else if (remaining < 200) {
                   badgeClass = 'text-brand-red bg-brand-red/10 border-brand-red/20';
                   alertLabel = remaining < 0 ? 'Overdue' : 'Due Soon';
                 } else if (remaining <= 500) {
@@ -566,9 +539,13 @@ export default function CompliancePage() {
                     <div className="border-t border-white/5 pt-3">
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-gray-500">Remaining:</span>
-                        <span className={`font-mono font-bold ${remaining < 200 ? 'text-brand-red' : remaining <= 500 ? 'text-brand-amber' : 'text-brand-green'}`}>
-                          {remaining < 0 ? `-${Math.abs(remaining).toLocaleString()}` : remaining.toLocaleString()} mi
-                        </span>
+                        {remaining == null ? (
+                          <span className="font-mono font-bold text-gray-400">—</span>
+                        ) : (
+                          <span className={`font-mono font-bold ${remaining < 200 ? 'text-brand-red' : remaining <= 500 ? 'text-brand-amber' : 'text-brand-green'}`}>
+                            {remaining < 0 ? `-${Math.abs(remaining).toLocaleString()}` : remaining.toLocaleString()} mi
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -729,13 +706,19 @@ export default function CompliancePage() {
                     <div className="space-y-2.5 text-xs text-gray-400 mb-6 bg-navy-900/40 p-4 rounded-xl border border-white/5">
                       <div className="flex justify-between">
                         <span>Expiration Date:</span>
-                        <span className="text-white font-medium">{doc.expiry_date}</span>
+                        <span className="text-white font-medium">{doc.expiry_date || 'Not set'}</span>
                       </div>
+                      {/* Reports what's actually stored. Nothing reviews these
+                          documents, so nothing here should claim "Verified". */}
                       <div className="flex justify-between">
-                        <span>Verification Status:</span>
-                        <span className="text-brand-green font-medium flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" /> Verified
-                        </span>
+                        <span>Scan on file:</span>
+                        {doc.document_url ? (
+                          <span className="text-brand-green font-medium flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" /> Yes
+                          </span>
+                        ) : (
+                          <span className="text-gray-400 font-medium">No</span>
+                        )}
                       </div>
                       {doc.fileName && (
                         <div className="flex justify-between border-t border-white/5 pt-2">
@@ -756,7 +739,9 @@ export default function CompliancePage() {
                     >
                       Upload File
                     </Button>
-                    {doc.fileName && (
+                    {/* Keyed on the stored URL: fileName only exists for a scan
+                        uploaded in this session. */}
+                    {doc.document_url && (
                       <a
                         href={doc.document_url}
                         download
@@ -774,64 +759,19 @@ export default function CompliancePage() {
       )}
 
       {/* Tab CONTENT: HOS */}
+      {/* HOS: TruckDesk has no hours-of-service data, so it shows no clocks
+          and makes no compliance claim. The previous version displayed fixed
+          numbers and told every driver they were "in compliance". */}
       {activeTab === 'hos' && (
-        <div className="space-y-6">
-          {/* Header & Status selector */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 card-premium p-6">
-            <div>
-              <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider block">
-                Current Duty Status
-              </span>
-              <div className="flex items-center gap-2.5 mt-1.5">
-                <span className={`w-3 h-3 rounded-full animate-pulse ${
-                  dutyStatus === 'driving' ? 'bg-brand-green shadow-[0_0_8px_#22c55e]' :
-                  dutyStatus === 'on_duty' ? 'bg-brand-amber shadow-[0_0_8px_#f59e0b]' :
-                  dutyStatus === 'sleeper' ? 'bg-blue-400 shadow-[0_0_8px_#60a5fa]' :
-                  'bg-gray-500'
-                }`} />
-                <span className="text-lg font-bold text-white capitalize">
-                  {dutyStatus.replace('_', ' ')}
-                </span>
-              </div>
-            </div>
-
-            {/* Selector */}
-            <div className="flex p-1 bg-navy-900 rounded-lg border border-white/5 w-fit">
-              {(['driving', 'on_duty', 'sleeper', 'off_duty'] as const).map((status) => (
-                <button
-                  key={status}
-                  onClick={() => {
-                    setDutyStatus(status);
-                    showSuccess(`Status changed to ${status.replace('_', ' ')}`);
-                  }}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 capitalize ${
-                    dutyStatus === status
-                      ? 'bg-brand-green text-navy-900 shadow shadow-brand-green/20'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
-                >
-                  {status.replace('_', ' ')}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* RINGS */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {renderProgressRing(hosClocks.drive, 11, 'Driving Time', 'Remaining Drive Hours', 'text-brand-green')}
-            {renderProgressRing(hosClocks.shift, 14, 'Shift Limit', 'Total Daily On-Duty Limit', 'text-brand-amber')}
-            {renderProgressRing(hosClocks.cycle, 70, 'Cycle Remaining', '70h / 8-Day Limit', 'text-brand-red')}
-            {renderProgressRing(hosClocks.break, 8, 'Break Clock', 'Hours until required break', 'text-blue-400')}
-          </div>
-
-          <div className="card-premium p-6 border border-white/5 flex gap-4 items-start">
-            <Clock className="w-5 h-5 text-brand-green shrink-0 mt-0.5" />
-            <div>
-              <h4 className="text-sm font-semibold text-white">Daily Recap & Next Break</h4>
-              <p className="text-xs text-gray-400 mt-1 leading-relaxed">
-                You are currently in compliance with FMCSR hours-of-service regulations. Your next mandatory 30-minute rest break is due in <span className="text-white font-semibold font-mono">03:15</span>. Your 34-hour cycle restart can be triggered anytime you take 34 consecutive hours off duty.
-              </p>
-            </div>
+        <div className="card-premium p-6 border border-white/5 flex gap-4 items-start">
+          <Clock className="w-5 h-5 text-brand-amber shrink-0 mt-0.5" />
+          <div>
+            <h4 className="text-sm font-semibold text-white">Hours of Service isn&apos;t tracked in TruckDesk yet</h4>
+            <p className="text-xs text-gray-400 mt-1 leading-relaxed">
+              Use your ELD for your driving, on-duty and cycle clocks. TruckDesk doesn&apos;t record your
+              duty status, so it can&apos;t tell you how many hours you have left or whether you&apos;re within
+              the limits.
+            </p>
           </div>
         </div>
       )}
@@ -899,7 +839,7 @@ export default function CompliancePage() {
           {/* Grouped Table */}
           <div className="card-premium overflow-hidden border border-white/5">
             <div className="p-5 border-b border-white/5 flex justify-between items-center bg-navy-800/20">
-              <span className="text-sm font-semibold text-white">State Grouped Summary ({selectedQuarter} 2026)</span>
+              <span className="text-sm font-semibold text-white">State Grouped Summary ({selectedQuarter} {iftaYear})</span>
               <span className="text-xs font-mono text-gray-400 bg-navy-900/60 px-2.5 py-1 rounded-md border border-white/5">
                 Total states: {groupedIFTAData.length}
               </span>
@@ -908,7 +848,7 @@ export default function CompliancePage() {
             {groupedIFTAData.length === 0 ? (
               <div className="p-12 text-center text-gray-400">
                 <Fuel className="w-8 h-8 text-gray-500 mx-auto mb-3" />
-                <p className="text-sm">No IFTA eligible fuel stops recorded in {selectedQuarter}.</p>
+                <p className="text-sm">No IFTA eligible fuel stops recorded in {selectedQuarter} {iftaYear}.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -997,7 +937,7 @@ export default function CompliancePage() {
                   Current Reading
                 </label>
                 <div className="text-2xl font-bold font-mono text-gray-400">
-                  {currentOdometer.toLocaleString()} mi
+                  {currentOdometer == null ? 'Not set' : `${currentOdometer.toLocaleString()} mi`}
                 </div>
               </div>
 

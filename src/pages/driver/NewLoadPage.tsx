@@ -68,6 +68,10 @@ export default function NewLoadPage() {
 
   // Negotiation script state
   const [negotiationScript, setNegotiationScript] = useState('');
+  // True when Claude couldn't be reached and the script is the fixed template,
+  // so the UI can say so instead of passing it off as a generated script.
+  const [scriptIsTemplate, setScriptIsTemplate] = useState(false);
+  const [scriptRetryKey, setScriptRetryKey] = useState(0);
   const [isGeneratingScript, setIsGeneratingScript] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -106,14 +110,17 @@ export default function NewLoadPage() {
         const script = await claudeAPI(prompt);
         if (cancelled) return;
         setNegotiationScript(script || '');
+        setScriptIsTemplate(false);
       } catch (err) {
         console.error('Claude API Error:', err);
         if (cancelled) return;
-        // Fallback negotiation script if API fails or Anthropic key is not configured
+        // A usable standard script beats a dead end, but it's labelled as a
+        // template in the UI rather than presented as a generated one.
         const targetRate = Math.round(milesNum * AVERAGE_RPM * 1.05);
         setNegotiationScript(
           `Hi, regarding the load from ${origin || 'origin'} to ${destination || 'destination'} for $${rateNum}, due to current diesel prices ($${DIESEL_PRICE}/gal) and the specialized ${trailerLabel} trailer requirements, could we negotiate closer to $${targetRate} to make this route profitable for us?`
         );
+        setScriptIsTemplate(true);
       } finally {
         // Leave the spinner up for the run that replaced this one
         if (!cancelled) {
@@ -126,7 +133,7 @@ export default function NewLoadPage() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [rate, miles, origin, destination, trailerType, recommendation, showCalculator]);
+  }, [rate, miles, origin, destination, trailerType, recommendation, showCalculator, scriptRetryKey]);
 
   // Form validation
   const validateForm = (): boolean => {
@@ -175,14 +182,18 @@ export default function NewLoadPage() {
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      const driverId = user?.id || 'mock-driver';
-      const selectedTrailerLabel = TRAILER_TYPES.find((t) => t.value === trailerType)?.label || trailerType;
+    if (!user) {
+      showError('You need to be signed in to save a load.');
+      return;
+    }
 
-      // 1. Create Load record
-      const newLoad = await createLoad({
-        driver_id: driverId,
+    setIsSubmitting(true);
+    const selectedTrailerLabel = TRAILER_TYPES.find((t) => t.value === trailerType)?.label || trailerType;
+
+    let newLoad;
+    try {
+      newLoad = await createLoad({
+        driver_id: user.id,
         broker_name: brokerName,
         origin,
         destination,
@@ -193,23 +204,30 @@ export default function NewLoadPage() {
         delivery_date: deliveryDate || undefined,
         notes: `Trailer Type: ${selectedTrailerLabel}`,
       });
+    } catch (err: any) {
+      // The form stays filled in so the driver can retry.
+      console.error('Submission Error:', err);
+      showError(`Couldn't save the load${err?.message ? `: ${err.message}` : '. Please try again.'}`);
+      setIsSubmitting(false);
+      return;
+    }
 
-      // 2. Create Rate Record
+    // The load is saved at this point. The rate record only feeds rate history,
+    // so its failure is logged rather than reported as a failed save — which
+    // would invite a retry and duplicate the load.
+    try {
       await createRateRecord({
         load_id: newLoad.id,
         rate: rateNum,
         miles: milesNum,
         rate_per_mile: rpm,
       });
-
-      showSuccess('Load and Rate records successfully created!');
-      navigate('/driver/loads');
-    } catch (err: any) {
-      console.error('Submission Error:', err);
-      showError(err.message || 'Failed to create load. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+    } catch (err) {
+      console.error('Rate record failed for saved load', newLoad.id, err);
     }
+
+    showSuccess('Load saved.');
+    navigate('/driver/loads');
   };
 
   const handleCopyScript = () => {
@@ -540,7 +558,7 @@ export default function NewLoadPage() {
                   <div className="flex items-center justify-between text-xs text-gray-400 font-semibold tracking-wide">
                     <span className="flex items-center gap-1.5 text-brand-amber uppercase">
                       <Sparkles className="w-3.5 h-3.5" />
-                      AI Broker negotiation script
+                      {scriptIsTemplate ? 'Negotiation script — template' : 'Broker negotiation script'}
                     </span>
                     <button
                       type="button"
@@ -568,9 +586,24 @@ export default function NewLoadPage() {
                       <span>Writing negotiation script...</span>
                     </div>
                   ) : negotiationScript ? (
-                    <p className="text-sm italic text-gray-200 leading-relaxed font-sans pt-1">
-                      "{negotiationScript}"
-                    </p>
+                    <>
+                      <p className="text-sm italic text-gray-200 leading-relaxed font-sans pt-1">
+                        "{negotiationScript}"
+                      </p>
+                      {scriptIsTemplate && (
+                        <p className="text-xs text-gray-400 font-sans">
+                          Couldn&apos;t reach the script writer, so this is a standard template — check the
+                          numbers before you send it.{' '}
+                          <button
+                            type="button"
+                            onClick={() => setScriptRetryKey((k) => k + 1)}
+                            className="text-brand-green font-semibold hover:underline"
+                          >
+                            Try again
+                          </button>
+                        </p>
+                      )}
+                    </>
                   ) : (
                     <div className="text-xs text-gray-500 text-center py-2">
                       Could not load script. Please check your network.

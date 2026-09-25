@@ -1,19 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  MessageSquare, 
-  Image as ImageIcon, 
-  Mic, 
-  Clock, 
-  Check, 
-  Play, 
-  Pause, 
+import {
+  MessageSquare,
+  Image as ImageIcon,
+  Mic,
+  Clock,
   X,
   Tag,
-  ExternalLink
+  ExternalLink,
+  AlertTriangle
 } from 'lucide-react';
 import { format, formatDistanceToNow, parseISO } from 'date-fns';
 import { useAuth } from '../../hooks/useAuth';
+import { milesBotChatUrl } from '../../lib/milesbot';
 import { getWhatsappSubmissions } from '../../services/supabase/whatsapp';
 import type { WhatsappSubmission } from '../../services/supabase/whatsapp';
 import PageHeader from '../../components/ui/PageHeader';
@@ -67,78 +66,21 @@ function formatSubmissionDate(dateStr: string) {
   }
 }
 
-function VoicePlayer({ transcript }: { transcript: string }) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    let interval: any;
-    if (isPlaying) {
-      interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            setIsPlaying(false);
-            return 0;
-          }
-          return prev + 2;
-        });
-      }, 100);
-    } else {
-      clearInterval(interval);
-    }
-    return () => clearInterval(interval);
-  }, [isPlaying]);
-
-  const barHeights = [12, 24, 16, 8, 20, 28, 14, 18, 22, 10, 16, 26, 12, 18, 24, 10];
-
+// A voice submission's content is either a link to the recording or its
+// transcript. Play the recording when there is one; otherwise show the words.
+// (This replaces a player that animated a progress bar without any audio.)
+function VoiceNote({ content }: { content: string }) {
+  if (/^https?:\/\//i.test(content)) {
+    return (
+      <audio controls preload="none" src={content} className="w-full mt-2">
+        This voice note can&apos;t be played on your device.
+      </audio>
+    );
+  }
   return (
-    <div className="flex flex-col gap-2 mt-2">
-      <div className="flex items-center gap-3 bg-navy-900/60 rounded-xl p-3 border border-white/5">
-        <button
-          onClick={() => {
-            setIsPlaying(!isPlaying);
-            if (!isPlaying && progress === 0) {
-              setProgress(0);
-            }
-          }}
-          className="w-8 h-8 rounded-full bg-brand-green/20 text-brand-green flex items-center justify-center hover:bg-brand-green/30 active:scale-95 transition-all shrink-0"
-          aria-label={isPlaying ? "Pause voice note" : "Play voice note"}
-        >
-          {isPlaying ? (
-            <Pause className="w-4 h-4 fill-brand-green text-brand-green" />
-          ) : (
-            <Play className="w-4 h-4 fill-brand-green text-brand-green ml-0.5" />
-          )}
-        </button>
-        
-        <div className="flex items-end gap-0.5 flex-1 h-8 px-1">
-          {barHeights.map((height, i) => {
-            const barProgress = (i / barHeights.length) * 100;
-            const isActive = progress > barProgress;
-            return (
-              <div
-                key={i}
-                className="w-1 rounded-full transition-all duration-300"
-                style={{
-                  height: `${height}px`,
-                  backgroundColor: isActive 
-                    ? '#22c55e' 
-                    : 'rgba(255, 255, 255, 0.15)',
-                }}
-              />
-            );
-          })}
-        </div>
-
-        <span className="text-xs text-gray-400 font-mono select-none shrink-0">
-          {isPlaying ? `0:${Math.floor(progress / 10).toString().padStart(2, '0')}` : '0:12'}
-        </span>
-      </div>
-      
-      <div className="text-xs text-gray-300 bg-navy-900/30 p-2.5 rounded-lg border border-white/5 italic">
-        <span className="text-gray-500 not-italic font-medium mr-1.5 font-sans">Transcript:</span>
-        "{transcript.replace(/^\[Voice Note:\s*"/i, '').replace(/"\]$/i, '')}"
-      </div>
+    <div className="text-xs text-gray-300 bg-navy-900/30 p-2.5 rounded-lg border border-white/5 italic mt-2">
+      <span className="text-gray-500 not-italic font-medium mr-1.5 font-sans">Transcript:</span>
+      "{content.replace(/^\[Voice Note:\s*"/i, '').replace(/"\]$/i, '')}"
     </div>
   );
 }
@@ -150,6 +92,9 @@ export default function WhatsAppLogPage() {
   const [submissions, setSubmissions] = useState<WhatsappSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  // Kept apart from an empty list, which would suggest nothing was ever sent.
+  const [loadError, setLoadError] = useState(false);
+  const [loadMoreError, setLoadMoreError] = useState(false);
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
@@ -162,8 +107,10 @@ export default function WhatsAppLogPage() {
     
     if (isLoadMore) {
       setLoadingMore(true);
+      setLoadMoreError(false);
     } else {
       setLoading(true);
+      setLoadError(false);
     }
 
     try {
@@ -194,6 +141,8 @@ export default function WhatsAppLogPage() {
       }
     } catch (err) {
       console.error('Error loading WhatsApp submissions:', err);
+      if (isLoadMore) setLoadMoreError(true);
+      else setLoadError(true);
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -241,13 +190,13 @@ export default function WhatsAppLogPage() {
   };
 
   const openMilesBot = () => {
-    window.open('https://wa.me/12815550001', '_blank', 'noopener,noreferrer');
+    if (milesBotChatUrl) window.open(milesBotChatUrl, '_blank', 'noopener,noreferrer');
   };
 
   return (
     <div className="flex flex-col min-h-screen bg-navy-900 text-white pb-12">
-      <PageHeader 
-        title="WhatsApp Submission Log" 
+      <PageHeader
+        title="MilesBot Log"
         showBack={true} 
         onBack={() => navigate('/driver/home')} 
       />
@@ -296,17 +245,27 @@ export default function WhatsAppLogPage() {
               </div>
             ))}
           </div>
+        ) : loadError ? (
+          <div className="flex-1 flex items-center justify-center py-10">
+            <EmptyState
+              icon={AlertTriangle}
+              title="Couldn't load your MilesBot messages"
+              message="Check your connection and try again."
+              ctaLabel="Try again"
+              onCta={() => fetchSubmissions(false)}
+            />
+          </div>
         ) : filteredSubmissions.length === 0 ? (
           <div className="flex-1 flex items-center justify-center py-10">
             <EmptyState
               icon={WhatsAppIcon}
               title="No submissions found"
               message={
-                activeFilter === 'all' 
+                activeFilter === 'all'
                   ? 'Send logs, fuel receipts, or miles updates directly to MilesBot on WhatsApp to get started.'
                   : `No WhatsApp submissions match the filter "${activeFilter}".`
               }
-              ctaLabel="Open MilesBot"
+              ctaLabel={milesBotChatUrl ? 'Open MilesBot' : undefined}
               onCta={openMilesBot}
             />
           </div>
@@ -314,7 +273,6 @@ export default function WhatsAppLogPage() {
           <div className="flex-1 flex flex-col gap-4">
             {filteredSubmissions.map((sub) => {
               const { relative, absolute } = formatSubmissionDate(sub.created_at);
-              const isVerified = !!(sub.linked_expense_id || sub.linked_load_id);
 
               return (
                 <div 
@@ -338,13 +296,6 @@ export default function WhatsAppLogPage() {
                     </div>
 
                     <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                      {isVerified && (
-                        <span className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1">
-                          <Check className="w-3 h-3" />
-                          Verified
-                        </span>
-                      )}
-                      
                       {sub.linked_expense_id && (
                         <span className="bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full flex items-center gap-1">
                           Expense Linked
@@ -408,7 +359,7 @@ export default function WhatsAppLogPage() {
                   )}
 
                   {sub.input_method === 'voice' && (
-                    <VoicePlayer transcript={sub.content} />
+                    <VoiceNote content={sub.content} />
                   )}
 
                   {/* Extracted Data Chips */}
@@ -460,7 +411,7 @@ export default function WhatsAppLogPage() {
                     <span>Loading...</span>
                   </>
                 ) : (
-                  <span>Load More Logs</span>
+                  <span>{loadMoreError ? "Couldn't load more — tap to try again" : 'Load More Logs'}</span>
                 )}
               </button>
             )}

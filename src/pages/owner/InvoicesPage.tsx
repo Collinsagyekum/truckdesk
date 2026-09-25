@@ -10,22 +10,24 @@ type StatusFilter = 'all' | 'draft' | 'sent' | 'paid' | 'overdue';
 export default function InvoicesPage() {
   const { user } = useAuth();
   const { showSuccess, showError } = useToast();
-  const companyId = user?.company_id || 'company-123';
+  const companyId = user?.company_id ?? '';
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
+  // Kept apart from "no invoices": a failed load must not show $0 outstanding.
+  const [loadError, setLoadError] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [search, setSearch] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const fetchInvoices = async () => {
     setLoading(true);
+    setLoadError(false);
     try {
-      const data = await getFleetInvoices(companyId);
-      setInvoices(data && data.length > 0 ? data : DEMO_INVOICES);
+      setInvoices(await getFleetInvoices(companyId));
     } catch (err) {
       console.error('Error loading invoices:', err);
-      setInvoices(DEMO_INVOICES);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -92,15 +94,15 @@ export default function InvoicesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-navy-800/60 border border-white/5 rounded-2xl p-5">
           <div className="flex items-center gap-2 text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2"><Clock className="w-4 h-4" /> Outstanding</div>
-          <div className="text-2xl font-bold text-white font-mono">{fmt(totals.outstanding)}</div>
+          <div className="text-2xl font-bold text-white font-mono">{loadError ? '—' : fmt(totals.outstanding)}</div>
         </div>
         <div className="bg-navy-800/60 border border-white/5 rounded-2xl p-5">
           <div className="flex items-center gap-2 text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2"><CheckCircle2 className="w-4 h-4" /> Paid</div>
-          <div className="text-2xl font-bold text-brand-green font-mono">{fmt(totals.paid)}</div>
+          <div className="text-2xl font-bold text-brand-green font-mono">{loadError ? '—' : fmt(totals.paid)}</div>
         </div>
         <div className="bg-navy-800/60 border border-white/5 rounded-2xl p-5">
           <div className="flex items-center gap-2 text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2"><AlertTriangle className="w-4 h-4" /> Overdue</div>
-          <div className="text-2xl font-bold text-brand-red font-mono">{totals.overdueCount}</div>
+          <div className="text-2xl font-bold text-brand-red font-mono">{loadError ? '—' : totals.overdueCount}</div>
         </div>
       </div>
 
@@ -123,10 +125,20 @@ export default function InvoicesPage() {
       <div className="bg-navy-800/40 border border-white/5 rounded-2xl overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-gray-400">Loading invoices...</div>
+        ) : loadError ? (
+          <div className="p-12 text-center">
+            <AlertTriangle className="w-8 h-8 text-brand-amber mx-auto mb-3" />
+            <p className="text-sm text-gray-300 mb-3">Couldn&apos;t load your invoices.</p>
+            <button onClick={fetchInvoices} className="text-sm font-semibold text-brand-green hover:underline">
+              Try again
+            </button>
+          </div>
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center">
             <FileText className="w-8 h-8 text-gray-500 mx-auto mb-3" />
-            <p className="text-sm text-gray-400">No invoices match your filters.</p>
+            <p className="text-sm text-gray-400">
+              {invoices.length === 0 ? 'No invoices yet.' : 'No invoices match your filters.'}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -173,9 +185,3 @@ export default function InvoicesPage() {
     </div>
   );
 }
-
-const DEMO_INVOICES: Invoice[] = [
-  { id: 'inv-001', load_id: 'load-1', amount: 1800, status: 'sent', due_date: '2026-06-20', created_at: '2026-06-01', client_name: 'Echo Global Logistics', driver_name: 'Daniel Mensah', invoice_number: 'INV-1001' },
-  { id: 'inv-002', load_id: 'load-2', amount: 1204, status: 'paid', due_date: '2026-06-10', paid_date: '2026-06-08', created_at: '2026-05-28', client_name: 'Coyote Logistics', driver_name: 'Samuel Osei', invoice_number: 'INV-1002' },
-  { id: 'inv-003', load_id: 'load-3', amount: 950, status: 'overdue', due_date: '2026-06-01', created_at: '2026-05-15', client_name: 'CH Robinson', driver_name: 'Ama Boateng', invoice_number: 'INV-1003' },
-];

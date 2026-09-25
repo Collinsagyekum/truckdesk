@@ -1,7 +1,5 @@
 import { supabase } from '../../lib/supabase';
 import type { Expense } from '../../types';
-import { mockDb } from '../../utils/mockDb';
-import { warnMockFallback } from '../../utils/devWarn';
 
 // ─── DB ↔ APP ADAPTERS ────────────────────────────────────────────────────────
 // The real Supabase `expenses` table uses different column names than the app's
@@ -49,62 +47,45 @@ function expenseToRow(expense: Partial<Expense>): Record<string, any> {
   return row;
 }
 
-export async function getExpenses(driverId: string): Promise<Expense[]> {
-  if (import.meta.env.VITE_SUPABASE_URL === 'your_url_here' || !import.meta.env.VITE_SUPABASE_URL) {
-    return mockDb.getDriverExpenses(driverId);
-  }
+// Reads throw on a query error and return [] when there is simply no data.
+// Writes throw on failure so a save that didn't happen never looks like one.
 
+export async function getExpenses(driverId: string): Promise<Expense[]> {
   const { data, error } = await supabase
     .from('expenses')
     .select('*')
     .eq('driver_id', driverId)
     .order('expense_date', { ascending: false });
 
-  if (error || !data || data.length === 0) {
-    warnMockFallback('getExpenses', error);
-    return mockDb.getDriverExpenses(driverId);
-  }
-  return data.map(rowToExpense);
+  if (error) throw error;
+  return (data ?? []).map(rowToExpense);
 }
 
 export async function createExpense(expense: Omit<Expense, 'id' | 'created_at'>): Promise<Expense> {
-  if (import.meta.env.VITE_SUPABASE_URL === 'your_url_here' || !import.meta.env.VITE_SUPABASE_URL) {
-    return mockDb.createExpense(expense);
-  }
-
   const { data, error } = await supabase
     .from('expenses')
     .insert([expenseToRow(expense)])
     .select()
     .single();
 
-  if (error || !data) {
-    return mockDb.createExpense(expense);
-  }
+  if (error) throw error;
   return rowToExpense(data);
 }
 
+// Returns false when no row was removed: Row Level Security blocks a delete by
+// matching zero rows rather than raising an error.
 export async function deleteExpense(expenseId: string): Promise<boolean> {
-  if (import.meta.env.VITE_SUPABASE_URL === 'your_url_here' || !import.meta.env.VITE_SUPABASE_URL) {
-    // In-memory delete
-    const expenses = mockDb.getExpenses();
-    const idx = expenses.findIndex((e) => e.id === expenseId);
-    if (idx !== -1) {
-      expenses.splice(idx, 1);
-      return true;
-    }
-    return false;
-  }
+  const { data, error } = await supabase
+    .from('expenses')
+    .delete()
+    .eq('id', expenseId)
+    .select('id');
 
-  const { error } = await supabase.from('expenses').delete().eq('id', expenseId);
-  return !error;
+  if (error) throw error;
+  return (data?.length ?? 0) > 0;
 }
 
 export async function updateExpense(expenseId: string, updates: Partial<Expense>): Promise<Expense | null> {
-  if (import.meta.env.VITE_SUPABASE_URL === 'your_url_here' || !import.meta.env.VITE_SUPABASE_URL) {
-    return mockDb.updateExpense(expenseId, updates);
-  }
-
   const { data, error } = await supabase
     .from('expenses')
     .update(expenseToRow(updates))
@@ -112,17 +93,11 @@ export async function updateExpense(expenseId: string, updates: Partial<Expense>
     .select()
     .single();
 
-  if (error || !data) {
-    return mockDb.updateExpense(expenseId, updates);
-  }
+  if (error) throw error;
   return rowToExpense(data);
 }
 
 export async function getFleetExpenses(companyId: string): Promise<Expense[]> {
-  if (import.meta.env.VITE_SUPABASE_URL === 'your_url_here' || !import.meta.env.VITE_SUPABASE_URL) {
-    return mockDb.getExpenses();
-  }
-
   // NOTE: the real `users` table has no company_id column, so we can't scope by
   // company. Single business = owner sees every driver's expenses; RLS is the
   // real security boundary here.
@@ -131,12 +106,8 @@ export async function getFleetExpenses(companyId: string): Promise<Expense[]> {
     .from('expenses')
     .select('*, users(full_name)');
 
-  if (error || !data || data.length === 0) {
-    warnMockFallback('getFleetExpenses', error);
-    return mockDb.getExpenses();
-  }
-
-  return data.map(rowToExpense);
+  if (error) throw error;
+  return (data ?? []).map(rowToExpense);
 }
 
 // ─── RETIREMENT ───────────────────────────────────────────────────────────────
@@ -182,10 +153,6 @@ export async function createRetirementLog(retirementLog: {
   type: string;
   date: string;
 }): Promise<any> {
-  if (import.meta.env.VITE_SUPABASE_URL === 'your_url_here' || !import.meta.env.VITE_SUPABASE_URL) {
-    return { id: Math.random().toString(36).substr(2, 9), ...retirementLog };
-  }
-
   const { data, error } = await supabase
     .from('retirement_log')
     .insert([{
@@ -197,33 +164,17 @@ export async function createRetirementLog(retirementLog: {
     .select()
     .single();
 
-  if (error || !data) {
-    return { id: Math.random().toString(36).substr(2, 9), ...retirementLog };
-  }
+  if (error) throw error;
   return rowToRetirement(data);
 }
 
 export async function getRetirementLogs(driverId: string): Promise<any[]> {
-  const mock = [
-    { id: 'ret-1', driver_id: driverId, amount: 250, type: 'Solo 401k', date: '2026-05-22' },
-    { id: 'ret-2', driver_id: driverId, amount: 250, type: 'Solo 401k', date: '2026-05-15' },
-    { id: 'ret-3', driver_id: driverId, amount: 250, type: 'Solo 401k', date: '2026-05-08' },
-    { id: 'ret-4', driver_id: driverId, amount: 250, type: 'Solo 401k', date: '2026-05-01' },
-  ];
-
-  if (import.meta.env.VITE_SUPABASE_URL === 'your_url_here' || !import.meta.env.VITE_SUPABASE_URL) {
-    return mock;
-  }
-
   const { data, error } = await supabase
     .from('retirement_log')
     .select('*')
     .eq('driver_id', driverId)
     .order('created_at', { ascending: false });
 
-  if (error || !data || data.length === 0) {
-    warnMockFallback('getRetirementLogs', error);
-    return mock;
-  }
-  return data.map(rowToRetirement);
+  if (error) throw error;
+  return (data ?? []).map(rowToRetirement);
 }

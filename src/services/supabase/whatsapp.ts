@@ -26,44 +26,8 @@ export async function getWhatsappSubmissions(
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (error || !data || data.length === 0) {
-    return [
-      {
-        id: 'wa-1',
-        driver_id: driverId,
-        sender_number: '+12815550001',
-        input_method: 'text',
-        content: 'Logged 450 miles today from Houston to Dallas',
-        intent: 'log_miles',
-        parsed_data: { miles: 450, origin: 'Houston', destination: 'Dallas' },
-        status: 'processed',
-        created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 mins ago
-      },
-      {
-        id: 'wa-2',
-        driver_id: driverId,
-        sender_number: '+12815550001',
-        input_method: 'image',
-        content: 'https://images.unsplash.com/photo-1554415707-6e8cfc93fe23?w=300', // Receipt placeholder
-        intent: 'log_expense',
-        parsed_data: { amount: 350.5, category: 'fuel', vendor: 'Pilot Flying J' },
-        linked_expense_id: 'exp-1',
-        status: 'processed',
-        created_at: new Date(Date.now() - 1000 * 60 * 120).toISOString(), // 2 hours ago
-      },
-      {
-        id: 'wa-3',
-        driver_id: driverId,
-        sender_number: '+12815550001',
-        input_method: 'voice',
-        content: '[Voice Note: "Just paid $45 for Illinois tolls"]',
-        intent: 'log_expense',
-        parsed_data: { amount: 45.0, category: 'tolls', location: 'Illinois' },
-        linked_expense_id: 'exp-4',
-        status: 'processed',
-        created_at: new Date(Date.now() - 1000 * 60 * 480).toISOString(), // 8 hours ago
-      },
-    ];
-  }
-  return data as WhatsappSubmission[];
+  // Throw rather than returning placeholder rows: invented submissions made a
+  // failed or empty read look like real activity from the driver's phone.
+  if (error) throw error;
+  return (data ?? []) as WhatsappSubmission[];
 }

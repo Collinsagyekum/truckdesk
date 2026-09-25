@@ -9,6 +9,9 @@ export interface DailyMileage {
   created_at: string;
 }
 
+// Throw on a query error rather than returning [], so a failed load can't pass
+// for "no miles logged".
+
 export async function getDailyMileage(driverId: string): Promise<DailyMileage[]> {
   const { data, error } = await supabase
     .from('daily_mileage')
@@ -16,8 +19,8 @@ export async function getDailyMileage(driverId: string): Promise<DailyMileage[]>
     .eq('driver_id', driverId)
     .order('log_date', { ascending: false });
 
-  if (error || !data) return [];
-  return data as DailyMileage[];
+  if (error) throw error;
+  return (data ?? []) as DailyMileage[];
 }
 
 export async function getFleetMileage(): Promise<DailyMileage[]> {
@@ -26,8 +29,8 @@ export async function getFleetMileage(): Promise<DailyMileage[]> {
     .select('*')
     .order('log_date', { ascending: false });
 
-  if (error || !data) return [];
-  return data as DailyMileage[];
+  if (error) throw error;
+  return (data ?? []) as DailyMileage[];
 }
 
 export async function getWeeklyMileage(driverId: string): Promise<DailyMileage[]> {
@@ -42,6 +45,6 @@ export async function getWeeklyMileage(driverId: string): Promise<DailyMileage[]
     .gte('log_date', isoStart)
     .order('log_date', { ascending: false });
 
-  if (error || !data) return [];
-  return data as DailyMileage[];
+  if (error) throw error;
+  return (data ?? []) as DailyMileage[];
 }

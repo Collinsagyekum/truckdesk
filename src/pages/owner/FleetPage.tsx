@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { useToast } from '../../hooks/useToast';
 import { getFleetDrivers } from '../../services/supabase/users';
 import { getFleetLoads } from '../../services/supabase/loads';
 import { getFleetExpenses } from '../../services/supabase/expenses';
-import { mockDb } from '../../utils/mockDb';
+import { getComplianceDocs, summarizeCompliance } from '../../services/supabase/compliance';
+import type { ComplianceStatus } from '../../services/supabase/compliance';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { formatCurrency, formatMiles, getInitials } from '../../utils/formatting';
 import type { User, Load, Expense } from '../../types';
@@ -14,19 +14,29 @@ import {
   Filter,
   ChevronRight,
   Shield,
-  Truck,
+  AlertTriangle,
 } from 'lucide-react';
+
+const COMPLIANCE_LABEL: Record<ComplianceStatus | 'unknown', { label: string; cls: string }> = {
+  clear: { label: 'Clear', cls: 'text-brand-green' },
+  attention: { label: 'Attention', cls: 'text-brand-amber' },
+  critical: { label: 'Critical', cls: 'text-brand-red' },
+  unknown: { label: '—', cls: 'text-gray-500' },
+};
 
 export default function FleetPage() {
   const { user } = useAuth();
-  const { showError } = useToast();
   const navigate = useNavigate();
 
   // Data States
   const [drivers, setDrivers] = useState<User[]>([]);
   const [loads, setLoads] = useState<Load[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  // Per-driver document status, from their real compliance records.
+  const [compliance, setCompliance] = useState<Record<string, ComplianceStatus | 'unknown'>>({});
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   // Filters State
   const [searchQuery, setSearchQuery] = useState('');
@@ -37,10 +47,11 @@ export default function FleetPage() {
     if (!user) { setLoading(false); return; }
 
     const fetchData = async () => {
+      setLoading(true);
+      setLoadError(false);
       try {
-        setLoading(true);
-        const companyId = user.company_id || 'company-123';
-        
+        const companyId = user.company_id ?? '';
+
         const [driversData, loadsData, expensesData] = await Promise.all([
           getFleetDrivers(companyId),
           getFleetLoads(companyId),
@@ -50,21 +61,47 @@ export default function FleetPage() {
         setDrivers(driversData);
         setLoads(loadsData);
         setExpenses(expensesData);
+
+        // One driver's documents failing shouldn't hide the rest of the table.
+        const docResults = await Promise.allSettled(driversData.map((d) => getComplianceDocs(d.id)));
+        const byDriver: Record<string, ComplianceStatus | 'unknown'> = {};
+        driversData.forEach((d, i) => {
+          const r = docResults[i];
+          byDriver[d.id] = r.status === 'fulfilled' ? summarizeCompliance(r.value).status : 'unknown';
+        });
+        setCompliance(byDriver);
       } catch (error) {
+        // Distinct from an empty fleet, which would read as "no drivers".
         console.error('Error fetching fleet page data:', error);
-        showError('Failed to load fleet directory.');
+        setLoadError(true);
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [user, showError]);
+  }, [user, reloadKey]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="max-w-md mx-auto text-center py-20 px-4">
+        <AlertTriangle className="w-12 h-12 text-brand-amber mx-auto mb-4" />
+        <h2 className="text-xl font-semibold text-white mb-2">Couldn&apos;t load your fleet</h2>
+        <p className="text-gray-400 mb-6">Check your connection and try again.</p>
+        <button
+          onClick={() => setReloadKey((k) => k + 1)}
+          className="text-sm font-semibold text-navy-900 bg-brand-green hover:bg-brand-green/90 px-5 py-2.5 rounded-xl"
+        >
+          Try again
+        </button>
       </div>
     );
   }
@@ -93,45 +130,33 @@ export default function FleetPage() {
         (l) => l.status === 'active' || l.status === 'upcoming' || l.status === 'in_transit' || l.status === 'pending'
       ).length;
 
-      // Compliance details
-      const driverCompliance = mockDb.getDriverCompliance(driver.id);
-      const avgComplianceScore = driverCompliance.length > 0
-        ? Math.round(driverCompliance.reduce((sum, c) => sum + (c.score || 0), 0) / driverCompliance.length)
-        : 90;
+      const complianceStatus = compliance[driver.id] ?? 'unknown';
 
-      // Status helper
+      // Status helper: expired documents or a flagged receipt put a driver
+      // under review.
       let status: 'Active' | 'Idle' | 'Review' = 'Active';
       const hasFlagged = expenses.some((e) => e.driver_id === driver.id && e.flagged === true);
-      const hasExpiring = driver.id === 'driver-david' || driver.id === 'driver-marcus'; // mock drivers with alerts
-      
-      if (hasFlagged || hasExpiring) {
+
+      if (hasFlagged || complianceStatus === 'critical') {
         status = 'Review';
       } else if (driverLoads.length === 0 || driverWeeklyLoads.length === 0) {
         status = 'Idle';
       }
-
-      // Vehicles matching
-      let vehiclePlate = 'T-104';
-      if (driver.id === 'mock-driver-id') vehiclePlate = 'T-209';
-      if (driver.id === 'driver-john') vehiclePlate = 'T-345';
-      if (driver.id === 'driver-marcus') vehiclePlate = 'T-982';
 
       return {
         ...driver,
         milesThisWeek,
         netProfitThisWeek,
         activeLoadsCount,
-        complianceScore: avgComplianceScore,
-        vehiclePlate,
+        complianceStatus,
         status,
       };
     });
 
   // Filter Row Data
   const filteredDrivers = driverRowData.filter((driver) => {
-    const matchesSearch = driver.full_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          (driver.email && driver.email.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                          driver.vehiclePlate.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = driver.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (driver.email && driver.email.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesStatus = statusFilter === 'All' || driver.status === statusFilter;
 
@@ -161,7 +186,7 @@ export default function FleetPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-navy-900 border border-white/5 hover:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm focus:outline-none focus:border-brand-green focus:ring-1 focus:ring-brand-green text-white placeholder-gray-500"
-            placeholder="Search by name, email, truck..."
+            placeholder="Search by name or email..."
           />
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
         </div>
@@ -196,7 +221,6 @@ export default function FleetPage() {
               <tr className="border-b border-white/5 bg-navy-900/30 text-[10px] text-gray-500 uppercase tracking-widest font-sans">
                 <th className="py-4 px-6 font-semibold">Driver Details</th>
                 <th className="py-4 px-4 font-semibold text-center">Status</th>
-                <th className="py-4 px-4 font-semibold">Truck</th>
                 <th className="py-4 px-4 font-semibold">Weekly Miles</th>
                 <th className="py-4 px-4 font-semibold">Weekly Net Profit</th>
                 <th className="py-4 px-4 font-semibold text-center">Active Loads</th>
@@ -207,8 +231,10 @@ export default function FleetPage() {
             <tbody className="divide-y divide-white/5 text-sm">
               {filteredDrivers.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-12 text-xs text-gray-500 font-sans">
-                    No drivers found matching your search.
+                  <td colSpan={7} className="text-center py-12 text-xs text-gray-500 font-sans">
+                    {driverRowData.length === 0
+                      ? 'No drivers in your fleet yet.'
+                      : 'No drivers found matching your search.'}
                   </td>
                 </tr>
               ) : (
@@ -250,14 +276,6 @@ export default function FleetPage() {
                       </span>
                     </td>
 
-                    {/* Truck */}
-                    <td className="py-4 px-4 font-mono text-xs text-gray-300">
-                      <span className="flex items-center gap-1">
-                        <Truck className="w-3.5 h-3.5 text-gray-500" />
-                        {driver.vehiclePlate}
-                      </span>
-                    </td>
-
                     {/* Weekly Miles */}
                     <td className="py-4 px-4 font-mono text-xs text-gray-300">
                       {formatMiles(driver.milesThisWeek)}
@@ -277,18 +295,12 @@ export default function FleetPage() {
                       </span>
                     </td>
 
-                    {/* Compliance */}
+                    {/* Compliance: from the driver's real documents */}
                     <td className="py-4 px-4 text-center">
                       <div className="flex items-center justify-center gap-1.5">
-                        <Shield className={`w-3.5 h-3.5 ${
-                          driver.complianceScore >= 90
-                            ? 'text-brand-green'
-                            : driver.complianceScore >= 75
-                            ? 'text-brand-amber'
-                            : 'text-brand-red'
-                        }`} />
-                        <span className="font-semibold text-xs font-mono">
-                          {driver.complianceScore}%
+                        <Shield className={`w-3.5 h-3.5 ${COMPLIANCE_LABEL[driver.complianceStatus].cls}`} />
+                        <span className={`font-semibold text-xs ${COMPLIANCE_LABEL[driver.complianceStatus].cls}`}>
+                          {COMPLIANCE_LABEL[driver.complianceStatus].label}
                         </span>
                       </div>
                     </td>

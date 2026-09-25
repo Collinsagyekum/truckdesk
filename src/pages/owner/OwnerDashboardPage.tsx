@@ -9,7 +9,7 @@ import { getFleetMileage } from '../../services/supabase/mileage';
 import type { DailyMileage } from '../../services/supabase/mileage';
 import StatCard from '../../components/ui/StatCard';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { formatCurrency, formatMiles, getInitials } from '../../utils/formatting';
+import { formatCurrency, formatMiles, getInitials, timeAgo } from '../../utils/formatting';
 import { withTimeout } from '../../utils/withTimeout';
 import type { User, Load, Expense } from '../../types';
 import {
@@ -18,7 +18,8 @@ import {
   TrendingUp,
   ArrowRight,
   ShieldAlert,
-  Clock
+  Clock,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function OwnerDashboardPage() {
@@ -32,6 +33,12 @@ export default function OwnerDashboardPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [allMileage, setAllMileage] = useState<DailyMileage[]>([]);
   const [loading, setLoading] = useState(true);
+  // Drivers, loads and expenses are the core of this page: if any fails, the
+  // KPIs would read as zeros, so the page shows an error instead. Mileage is
+  // secondary and only blanks the miles figure.
+  const [loadError, setLoadError] = useState(false);
+  const [mileageError, setMileageError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   // Copied Referral State
   const [copied, setCopied] = useState(false);
@@ -41,36 +48,61 @@ export default function OwnerDashboardPage() {
     if (!user) { setLoading(false); return; }
 
     const fetchData = async () => {
-      try {
-        setLoading(true);
-        const companyId = user.company_id || 'company-123';
-        
-        const [driversData, loadsData, expensesData, mileageData] = await Promise.all([
-          withTimeout(getFleetDrivers(companyId), [], 'getFleetDrivers'),
-          withTimeout(getFleetLoads(companyId), [], 'getFleetLoads'),
-          withTimeout(getFleetExpenses(companyId), [], 'getFleetExpenses'),
-          withTimeout(getFleetMileage(), [] as DailyMileage[], 'getFleetMileage'),
-        ]);
+      setLoading(true);
+      setLoadError(false);
+      const companyId = user.company_id ?? '';
 
-        setDrivers(driversData);
-        setLoads(loadsData);
-        setExpenses(expensesData);
-        setAllMileage(mileageData);
-      } catch (error) {
-        console.error('Error fetching owner dashboard data:', error);
-        showError('Failed to load dashboard data.');
-      } finally {
-        setLoading(false);
+      const [driversR, loadsR, expensesR, mileageR] = await Promise.allSettled([
+        withTimeout(getFleetDrivers(companyId), 'getFleetDrivers'),
+        withTimeout(getFleetLoads(companyId), 'getFleetLoads'),
+        withTimeout(getFleetExpenses(companyId), 'getFleetExpenses'),
+        withTimeout(getFleetMileage(), 'getFleetMileage'),
+      ]);
+
+      if (driversR.status === 'fulfilled' && loadsR.status === 'fulfilled' && expensesR.status === 'fulfilled') {
+        setDrivers(driversR.value);
+        setLoads(loadsR.value);
+        setExpenses(expensesR.value);
+      } else {
+        for (const r of [driversR, loadsR, expensesR]) {
+          if (r.status === 'rejected') console.error('Error fetching owner dashboard data:', r.reason);
+        }
+        setLoadError(true);
       }
+
+      if (mileageR.status === 'fulfilled') {
+        setAllMileage(mileageR.value);
+        setMileageError(false);
+      } else {
+        console.error('Fleet mileage failed to load:', mileageR.reason);
+        setMileageError(true);
+      }
+      setLoading(false);
     };
 
     fetchData();
-  }, [user, showError]);
+  }, [user, reloadKey]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="max-w-md mx-auto text-center py-20 px-4">
+        <AlertTriangle className="w-12 h-12 text-brand-amber mx-auto mb-4" />
+        <h2 className="text-xl font-semibold text-white mb-2">Couldn&apos;t load your fleet</h2>
+        <p className="text-gray-400 mb-6">Check your connection and try again.</p>
+        <button
+          onClick={() => setReloadKey((k) => k + 1)}
+          className="text-sm font-semibold text-navy-900 bg-brand-green hover:bg-brand-green/90 px-5 py-2.5 rounded-xl"
+        >
+          Try again
+        </button>
       </div>
     );
   }
@@ -115,19 +147,25 @@ export default function OwnerDashboardPage() {
       // Status helper
       let status: 'Active' | 'Idle' | 'Review' = 'Active';
       const hasFlagged = expenses.some((e) => e.driver_id === driver.id && e.flagged === true);
-      const hasExpiring = driver.id === 'driver-david' || driver.id === 'driver-marcus'; // David expiring CDL, Marcus expired Med
-      
-      if (hasFlagged || hasExpiring) {
+
+      if (hasFlagged) {
         status = 'Review';
       } else if (driverLoads.length === 0 || driverWeeklyLoads.length === 0) {
         status = 'Idle';
       }
 
-      // Last activity time ago
-      let lastActivityTime = '1 day ago';
-      if (driver.id === 'mock-driver-id') lastActivityTime = '10 mins ago';
-      if (driver.id === 'driver-john') lastActivityTime = '2 hours ago';
-      if (driver.id === 'driver-david') lastActivityTime = '4 hours ago';
+      // Last activity: when the driver most recently logged anything. Uses
+      // created_at, a full timestamp, rather than the date-only trip fields.
+      const lastLogged = [
+        ...driverLoads.map((l) => l.created_at),
+        ...driverExpenses.map((e) => e.created_at),
+        ...allMileage.filter((m) => m.driver_id === driver.id).map((m) => m.created_at),
+      ]
+        .map((t) => (t ? new Date(t).getTime() : NaN))
+        .filter((t) => !isNaN(t));
+      const lastActivityTime = lastLogged.length
+        ? `Last logged ${timeAgo(Math.max(...lastLogged))}`
+        : 'Nothing logged yet';
 
       return {
         ...driver,
@@ -156,7 +194,9 @@ export default function OwnerDashboardPage() {
 
   // Handle Copy Referral
   const handleCopyReferral = () => {
-    const referralCode = user?.referral_code || 'SARAH888';
+    // No fallback code: sharing someone else's code would credit them instead.
+    const referralCode = user?.referral_code;
+    if (!referralCode) return;
     const referralUrl = `https://truckdesk.app/join?ref=${referralCode}`;
     navigator.clipboard.writeText(referralUrl);
     setCopied(true);
@@ -174,7 +214,7 @@ export default function OwnerDashboardPage() {
             Fleet Overview
           </h1>
           <p className="text-xs text-gray-400 font-sans mt-1">
-            Real-time operations, driver status, and compliance tracking.
+            This week&apos;s miles, revenue and driver activity.
           </p>
         </div>
       </div>
@@ -183,8 +223,8 @@ export default function OwnerDashboardPage() {
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           label="Fleet Miles (This Week)"
-          value={formatMiles(totalFleetMiles)}
-          subtext="Combined logged miles"
+          value={mileageError ? '—' : formatMiles(totalFleetMiles)}
+          subtext={mileageError ? "Couldn't load logged miles" : 'Combined logged miles'}
         />
         <StatCard
           label="Fleet Revenue (This Week)"
@@ -194,7 +234,7 @@ export default function OwnerDashboardPage() {
         <StatCard
           label="Active Drivers"
           value={`${driverMetrics.filter(d => d.status === 'Active').length}/${driverMetrics.length}`}
-          subtext="24h operational status"
+          subtext="With loads this week"
         />
         <StatCard
           label="Flagged Receipts"
@@ -275,7 +315,7 @@ export default function OwnerDashboardPage() {
 
                 <div className="mt-3 pt-3 border-t border-white/5 flex items-center gap-1.5 text-[10px] text-gray-500 font-sans">
                   <Clock className="w-3.5 h-3.5 text-gray-600" />
-                  Active {driver.lastActivityTime}
+                  {driver.lastActivityTime}
                 </div>
               </div>
             ))}
@@ -381,6 +421,11 @@ export default function OwnerDashboardPage() {
                 </div>
               </div>
 
+              {!user?.referral_code ? (
+                <p className="text-xs text-gray-400 text-center py-2.5">
+                  Your referral link isn&apos;t set up yet.
+                </p>
+              ) : (
               <button
                 onClick={handleCopyReferral}
                 className="w-full bg-navy-900 hover:bg-navy-950 border border-brand-green/30 hover:border-brand-green text-brand-green font-bold py-2.5 rounded-xl transition-all text-xs flex items-center justify-center gap-2"
@@ -395,6 +440,7 @@ export default function OwnerDashboardPage() {
                   </>
                 )}
               </button>
+              )}
             </div>
           </div>
 

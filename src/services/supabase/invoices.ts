@@ -1,7 +1,5 @@
 import { supabase } from '../../lib/supabase';
 import type { Invoice } from '../../types';
-import { mockDb } from '../../utils/mockDb';
-import { warnMockFallback } from '../../utils/devWarn';
 
 // ─── DB ↔ APP ADAPTERS ────────────────────────────────────────────────────────
 // The real `invoices` table has no `status` column — status is derived from
@@ -51,11 +49,10 @@ function invoiceToRow(invoice: Partial<Invoice>): Record<string, any> {
   return row;
 }
 
-export async function getFleetInvoices(companyId: string): Promise<Invoice[]> {
-  if (import.meta.env.VITE_SUPABASE_URL === 'your_url_here' || !import.meta.env.VITE_SUPABASE_URL) {
-    return mockDb.getInvoices();
-  }
+// Reads throw on a query error and return [] when there is simply no data.
+// Writes throw on failure so a save that didn't happen never looks like one.
 
+export async function getFleetInvoices(companyId: string): Promise<Invoice[]> {
   // NOTE: the real `users` table has no company_id column, so we can't scope by
   // company. Single business = owner sees every invoice; RLS is the real
   // security boundary here.
@@ -64,22 +61,14 @@ export async function getFleetInvoices(companyId: string): Promise<Invoice[]> {
     .from('invoices')
     .select('*, users(full_name)');
 
-  if (error || !data || data.length === 0) {
-    warnMockFallback('getFleetInvoices', error);
-    return mockDb.getInvoices();
-  }
-
-  return data.map(rowToInvoice);
+  if (error) throw error;
+  return (data ?? []).map(rowToInvoice);
 }
 
 export async function updateInvoiceStatus(
   invoiceId: string,
   status: 'draft' | 'sent' | 'paid' | 'overdue'
 ): Promise<Invoice | null> {
-  if (import.meta.env.VITE_SUPABASE_URL === 'your_url_here' || !import.meta.env.VITE_SUPABASE_URL) {
-    return mockDb.updateInvoiceStatus(invoiceId, status);
-  }
-
   const { data, error } = await supabase
     .from('invoices')
     .update(invoiceToRow({ status }))
@@ -87,27 +76,17 @@ export async function updateInvoiceStatus(
     .select()
     .single();
 
-  if (error || !data) {
-    return mockDb.updateInvoiceStatus(invoiceId, status);
-  }
-
+  if (error) throw error;
   return rowToInvoice(data);
 }
 
 export async function createInvoice(invoice: Omit<Invoice, 'id' | 'created_at'>): Promise<Invoice> {
-  if (import.meta.env.VITE_SUPABASE_URL === 'your_url_here' || !import.meta.env.VITE_SUPABASE_URL) {
-    return mockDb.createInvoice(invoice);
-  }
-
   const { data, error } = await supabase
     .from('invoices')
     .insert([invoiceToRow(invoice)])
     .select()
     .single();
 
-  if (error || !data) {
-    return mockDb.createInvoice(invoice);
-  }
-
+  if (error) throw error;
   return rowToInvoice(data);
 }

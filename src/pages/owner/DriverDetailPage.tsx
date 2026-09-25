@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Receipt, DollarSign, Calendar, Truck, PiggyBank, MapPin, Eye, Navigation } from 'lucide-react';
+import { ArrowLeft, Receipt, DollarSign, Calendar, Truck, PiggyBank, MapPin, Eye, Navigation, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { getUserProfile } from '../../services/supabase/users';
 import { getLoads } from '../../services/supabase/loads';
@@ -44,36 +44,73 @@ export default function DriverDetailPage() {
   const [retirement, setRetirement] = useState<RetirementLog[]>([]);
   const [mileage, setMileage] = useState<DailyMileage[]>([]);
   const [loading, setLoading] = useState(true);
+  // All-or-nothing: profit and totals from partial data would be wrong, and a
+  // failed load must not read as a driver with no activity.
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!id) { setLoading(false); return; }
 
     const load = async () => {
+      setLoading(true);
+      setLoadError(false);
       try {
-        setLoading(true);
         const [d, l, e, r, m] = await Promise.all([
-          withTimeout(getUserProfile(id), null, 'getUserProfile'),
-          withTimeout(getLoads(id), [], 'getLoads'),
-          withTimeout(getExpenses(id), [], 'getExpenses'),
-          withTimeout(getRetirementLogs(id), [], 'getRetirementLogs'),
-          withTimeout(getDailyMileage(id), [] as DailyMileage[], 'getDailyMileage'),
+          withTimeout(getUserProfile(id), 'getUserProfile'),
+          withTimeout(getLoads(id), 'getLoads'),
+          withTimeout(getExpenses(id), 'getExpenses'),
+          withTimeout(getRetirementLogs(id), 'getRetirementLogs'),
+          withTimeout(getDailyMileage(id), 'getDailyMileage'),
         ]);
         setDriver(d);
         setLoads(l);
         setExpenses(e);
         setRetirement(r as RetirementLog[]);
         setMileage(m);
+      } catch (err) {
+        console.error('Error loading driver detail:', err);
+        setLoadError(true);
       } finally {
         setLoading(false);
       }
     };
     load();
-  }, [id]);
+  }, [id, reloadKey]);
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <LoadingSpinner size="lg" />
+      </div>
+    );
+  }
+
+  if (loadError || !driver) {
+    return (
+      <div className="max-w-md mx-auto text-center py-20 px-4">
+        <AlertTriangle className="w-12 h-12 text-brand-amber mx-auto mb-4" />
+        <h2 className="text-xl font-semibold text-white mb-2">
+          {loadError ? "Couldn't load this driver" : 'Driver not found'}
+        </h2>
+        <p className="text-gray-400 mb-6">
+          {loadError
+            ? 'Check your connection and try again.'
+            : 'This driver may have been removed from your fleet.'}
+        </p>
+        <div className="flex justify-center gap-4">
+          <Link to="/owner/fleet" className="text-sm font-semibold text-gray-300 hover:text-white px-4 py-2.5">
+            Back to Fleet
+          </Link>
+          {loadError && (
+            <button
+              onClick={() => setReloadKey((k) => k + 1)}
+              className="text-sm font-semibold text-navy-900 bg-brand-green hover:bg-brand-green/90 px-5 py-2.5 rounded-xl"
+            >
+              Try again
+            </button>
+          )}
+        </div>
       </div>
     );
   }

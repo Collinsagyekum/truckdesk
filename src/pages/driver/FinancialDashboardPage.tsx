@@ -83,8 +83,16 @@ export default function FinancialDashboardPage() {
   // Tax Payment Action state
   const [isPayingTax, setIsPayingTax] = useState<boolean>(false);
 
+  // A failed load gets its own state: computing taxes from partial data would
+  // show a driver an estimate (often $0) that is simply wrong.
+  const [loadError, setLoadError] = useState<boolean>(false);
+  const [reloadKey, setReloadKey] = useState<number>(0);
+
   // AI Advice State
   const [advice, setAdvice] = useState<string>('');
+  // True when Claude couldn't be reached and the advice is a general rule-based
+  // tip, so the banner can say so rather than present it as the advisor's.
+  const [adviceIsTemplate, setAdviceIsTemplate] = useState<boolean>(false);
   const [isLoadingAdvice, setIsLoadingAdvice] = useState<boolean>(false);
   // Incremented per request so a slow response can never overwrite a newer one
   const adviceRequestIdRef = useRef<number>(0);
@@ -105,6 +113,7 @@ export default function FinancialDashboardPage() {
 
     const loadData = async () => {
       setLoading(true);
+      setLoadError(false);
       try {
         const [fetchedLoads, fetchedExpenses, fetchedRetirement] = await Promise.all([
           getLoads(user.id),
@@ -116,14 +125,14 @@ export default function FinancialDashboardPage() {
         setRetirementLogs(fetchedRetirement);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
-        showError('Failed to load financial data. Using offline calculations.');
+        setLoadError(true);
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, [user, hasAddon, showError]);
+  }, [user, hasAddon, reloadKey]);
 
   // AI Advice Generator
   const generateAIAdvice = useCallback(async (weeklyProfit: number, estQuarterlyTax: number, deductions: number, daysOnRoad: number) => {
@@ -144,10 +153,12 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
       const adviceText = await claudeAPI(prompt);
       if (requestId !== adviceRequestIdRef.current) return;
       setAdvice(adviceText.trim());
+      setAdviceIsTemplate(false);
     } catch (err) {
-      console.warn('Claude API request failed, using intelligent fallback advice.', err);
+      console.warn('Claude API request failed, showing a general tip instead.', err);
       if (requestId !== adviceRequestIdRef.current) return;
-      // Intelligent fallback logic based on driver metrics
+      // A rule-based general tip, labelled as such in the banner.
+      setAdviceIsTemplate(true);
       if (weeklyProfit > 2200) {
         setAdvice(`Given your strong net income of ${formatCurrency(weeklyProfit)} this week, consider maximizing your Solo 401(k) pre-tax contributions to lower your overall tax bracket.`);
       } else if (deductions > weeklyProfit * 1.5) {
@@ -189,20 +200,19 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
     return () => clearTimeout(timer);
   }, [loading, hasAddon, loads, expenses, daysAway, generateAIAdvice]);
 
-  // Upgrade Mock Action
+  // Unlocks the tax tools by setting the flag on the driver's profile. No
+  // payment is taken — charging for this needs In-App Purchase first.
   const handleUpgrade = async () => {
     if (!user) return;
     setIsUpgrading(true);
     try {
-      // Mock toggling in database
       await updateUserProfile(user.id, { fin_intel_addon: true });
       setHasAddon(true);
-      showSuccess('Upgrade successful! Welcome to Financial Intelligence.');
+      showSuccess('Financial Intelligence unlocked.');
     } catch (err) {
-      console.error('Upgrade failed, activating fallback offline mode:', err);
-      // fallback in case of errors
-      setHasAddon(true);
-      showSuccess('Upgrade activated successfully (offline mode).');
+      // Not unlocking locally: the paywall would come back on the next launch.
+      console.error('Unlock failed:', err);
+      showError("Couldn't unlock Financial Intelligence. Please try again.");
     } finally {
       setIsUpgrading(false);
     }
@@ -228,16 +238,7 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
         date: new Date().toISOString().split('T')[0]
       });
 
-      // Update retirement log state
-      const newLog: RetirementLog = {
-        id: response.id || Math.random().toString(),
-        driver_id: user.id,
-        amount: amountNum,
-        type: contribType,
-        date: response.date || new Date().toISOString().split('T')[0]
-      };
-      
-      setRetirementLogs(prev => [newLog, ...prev]);
+      setRetirementLogs(prev => [response as RetirementLog, ...prev]);
       setContribAmount('');
       showSuccess(`Logged contribution of ${formatCurrency(amountNum)} to ${contribType}`);
     } catch (err) {
@@ -294,10 +295,11 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
             </div>
           </div>
 
-          {/* Pricing */}
+          {/* Pricing — nothing is charged yet; a price shown here needs a
+              working In-App Purchase behind it first. */}
           <div className="flex items-baseline gap-2 mb-6 border-b border-white/5 pb-6">
-            <span className="text-4xl font-extrabold text-white tracking-tight">$15</span>
-            <span className="text-gray-400 text-sm">/ month</span>
+            <span className="text-4xl font-extrabold text-white tracking-tight">Free</span>
+            <span className="text-gray-400 text-sm">during beta</span>
             <span className="ml-auto text-xs bg-navy-700 text-brand-green px-2.5 py-1 rounded-full font-semibold border border-brand-green/20">
               Tax Season Ready
             </span>
@@ -327,11 +329,11 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
             onClick={handleUpgrade}
             rightIcon={<ChevronRight className="w-5 h-5" />}
           >
-            Upgrade Now
+            Unlock for Free
           </Button>
 
           <p className="text-[10px] text-center text-gray-500 mt-4">
-            Cancel anytime. Add-on fees are 100% tax-deductible for owner-operators.
+            Free while TruckDesk is in beta — nothing is charged.
           </p>
         </div>
       </div>
@@ -378,7 +380,8 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
   const ytdContributions = retirementLogs.reduce((sum, log) => sum + log.amount, 0);
   const remainingRetirementLimit = Math.max(0, 69000 - ytdContributions);
 
-  // Calculate Weekly Net profit (using weekly loads if available, else a simulated week)
+  // This week's real net. A slow or losing week shows as one — substituting a
+  // historical average here would hide a loss from the driver.
   const today = new Date();
   const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
   startOfWeek.setHours(0,0,0,0);
@@ -388,20 +391,11 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
 
   const weeklyGross = weeklyLoads.reduce((sum, l) => sum + l.rate, 0);
   const weeklyExp = weeklyExpenses.reduce((sum, e) => sum + e.amount, 0);
-  let weeklyNet = weeklyGross - weeklyExp;
+  const weeklyNet = weeklyGross - weeklyExp;
 
-  // Fallback calculation for weekly profit if no activity yet this week
-  if (weeklyNet <= 0 && loads.length > 0) {
-    const totalNet = totalRevenue - expenses.reduce((sum, e) => sum + e.amount, 0);
-    const dates = loads.map(l => new Date(l.pickup_date).getTime());
-    const minDate = new Date(Math.min(...dates));
-    const maxDate = new Date(Math.max(...dates));
-    const diffWeeks = Math.max(1, Math.ceil((maxDate.getTime() - minDate.getTime()) / (1000 * 3600 * 24 * 7)));
-    weeklyNet = Math.max(0, totalNet / diffWeeks);
-  }
-
-  // Calculate solo 401k contribution based on weekly net income (annualized, then divided by 52)
-  const annualizedNetProfit = weeklyNet * 52;
+  // Calculate solo 401k contribution based on weekly net income (annualized,
+  // then divided by 52). A loss means nothing to contribute from.
+  const annualizedNetProfit = Math.max(0, weeklyNet) * 52;
   const annualRecommendedContrib = calculateSolo401kContribution(annualizedNetProfit);
   const weeklyRecommendedContrib = annualRecommendedContrib / 52;
 
@@ -420,29 +414,21 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
         return pTime >= weekStartTime && pTime < weekEndTime;
       });
 
-      let ratePerMile = 0;
       const totalRate = weekLoads.reduce((sum, l) => sum + l.rate, 0);
       const totalMiles = weekLoads.reduce((sum, l) => sum + l.miles, 0);
-      
-      if (totalMiles > 0) {
-        ratePerMile = totalRate / totalMiles;
-      } else {
-        // Fallback simulated rates with slight variance to keep design visual and filled
-        const seedValue = [2.28, 2.45, 2.32, 2.58, 2.38, 2.62, 2.48, 2.52];
-        ratePerMile = seedValue[7 - i] || 2.40;
-      }
 
       weekData.push({
         name: i === 0 ? 'Current' : `Wk -${i}`,
-        yourRate: parseFloat(ratePerMile.toFixed(2)),
+        // Null for a week with no loads, which the chart draws as a gap.
+        yourRate: totalMiles > 0 ? parseFloat((totalRate / totalMiles).toFixed(2)) : null,
         targetRate: 2.50,
-        nationalAverage: parseFloat((2.30 + Math.sin(7 - i) * 0.05).toFixed(2))
       });
     }
     return weekData;
   };
 
   const performanceChartData = build8WeekData();
+  const hasRateHistory = performanceChartData.some((w) => w.yourRate != null);
 
   // Retirement Donut Chart Data
   const donutChartData = [
@@ -460,6 +446,18 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
           <div className="w-12 h-12 border-4 border-brand-green border-t-transparent rounded-full animate-spin mb-4" />
           <p className="text-gray-400 font-medium">Analyzing ledgers & loading estimates...</p>
         </div>
+      ) : loadError ? (
+        <div className="max-w-md mx-auto px-4 mt-16 text-center">
+          <AlertTriangle className="w-12 h-12 text-brand-amber mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-white mb-2">Couldn&apos;t load your financial data</h2>
+          <p className="text-gray-400 mb-6">
+            Your tax estimate needs your loads and expenses, so it isn&apos;t shown until they load.
+            Check your connection and try again.
+          </p>
+          <Button variant="primary" onClick={() => setReloadKey((k) => k + 1)}>
+            Try again
+          </Button>
+        </div>
       ) : (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6">
 
@@ -470,10 +468,17 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
               <Sparkles className="w-6 h-6 animate-pulse" />
             </div>
             <div className="flex-1 text-center sm:text-left">
-              <div className="text-xs font-bold text-brand-green uppercase tracking-wider mb-0.5">Claude Tax Advisor</div>
+              <div className="text-xs font-bold text-brand-green uppercase tracking-wider mb-0.5">
+                {adviceIsTemplate && !isLoadingAdvice ? 'General tax tip' : 'Claude Tax Advisor'}
+              </div>
               <p className="text-sm font-medium text-white italic leading-relaxed">
                 {isLoadingAdvice ? 'Consulting tax code...' : `"${advice || 'No recommendations computed yet.'}"`}
               </p>
+              {adviceIsTemplate && !isLoadingAdvice && (
+                <p className="text-[11px] text-gray-400 mt-1">
+                  Couldn&apos;t reach the advisor, so this is a general tip. Tap Refresh to try again.
+                </p>
+              )}
             </div>
             <Button
               variant="secondary"
@@ -674,12 +679,12 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
                       <h3 className="font-bold text-white text-base">Quarterly Tax Scheduler</h3>
                     </div>
                     <div className="text-[11px] text-gray-400">
-                      Quarterly Estimated IRS Taxes for 2026
+                      Quarterly Estimated IRS Taxes for {currentYear}
                     </div>
                   </div>
                   <div className="flex flex-col items-end">
                     <span className="text-xs bg-brand-amber/10 text-brand-amber px-2.5 py-0.5 rounded-full font-semibold border border-brand-amber/25">
-                      Q{currentQuarterNum} 2026
+                      Q{currentQuarterNum} {currentYear}
                     </span>
                   </div>
                 </div>
@@ -790,7 +795,11 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
                 <TrendingUp className="w-5 h-5 text-brand-green" />
                 <div>
                   <h3 className="font-bold text-white text-base">Rate Performance Tracker</h3>
-                  <p className="text-xs text-gray-400">8-Week Average $/mile rate trends vs standards</p>
+                  <p className="text-xs text-gray-400">
+                    {hasRateHistory
+                      ? 'Your $/mile each week for the last 8 weeks, against your target'
+                      : 'No loads in the last 8 weeks yet — your $/mile will chart here as you log them'}
+                  </p>
                 </div>
               </div>
               
@@ -802,10 +811,6 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
                 <div className="flex items-center gap-1.5">
                   <span className="w-3 h-0.5 bg-brand-amber border-dashed border-brand-amber inline-block" style={{ borderBottom: '2px dashed' }} />
                   <span className="text-gray-300">Target ($2.50)</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-0.5 bg-gray-500 inline-block" />
-                  <span className="text-gray-300">National Avg ($2.30)</span>
                 </div>
               </div>
             </div>
@@ -862,14 +867,6 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
                     strokeDasharray="5 5" 
                     dot={false}
                     name="Target Rate"
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="nationalAverage" 
-                    stroke="#64748B" 
-                    strokeWidth={2} 
-                    dot={false}
-                    name="National Avg"
                   />
                 </LineChart>
               </ResponsiveContainer>

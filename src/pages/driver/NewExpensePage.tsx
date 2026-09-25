@@ -189,11 +189,14 @@ export default function NewExpensePage() {
   // Load odometer reading automatically when category becomes maintenance
   useEffect(() => {
     if (selectedCategory === 'maintenance' && user?.id) {
-      getOdometer(user.id).then((val) => {
-        if (val && !getValues('odometer')) {
-          setValue('odometer', val);
-        }
-      });
+      getOdometer(user.id)
+        .then((val) => {
+          if (val && !getValues('odometer')) {
+            setValue('odometer', val);
+          }
+        })
+        // Prefilling is a convenience; the driver can still type the reading.
+        .catch((err) => console.error('Could not prefill odometer:', err));
     }
   }, [selectedCategory, user?.id, setValue, getValues]);
 
@@ -225,51 +228,56 @@ export default function NewExpensePage() {
   };
 
   const onSubmit = async (data: ExpenseFormValues) => {
+    if (!user) {
+      showError('You need to be signed in to log an expense.');
+      return;
+    }
     setIsSubmitting(true);
-    const driverId = user?.id || 'mock-driver';
+    const driverId = user.id;
 
-    try {
-      // 1. Upload receipt if present
-      let receiptUrl = '';
-      if (receiptFile) {
-        try {
-          const fileExt = receiptFile.name.split('.').pop() || 'jpg';
-          const filePath = `${driverId}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+    // 1. Upload receipt if present. A failed upload doesn't block the expense;
+    // it's reported once the expense itself is saved.
+    let receiptUrl = '';
+    if (receiptFile) {
+      try {
+        const fileExt = receiptFile.name.split('.').pop() || 'jpg';
+        const filePath = `${driverId}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
 
-          const { error: uploadError } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
+          .from('receipts')
+          .upload(filePath, receiptFile, { contentType: receiptFile.type || undefined });
+
+        if (uploadError) {
+          console.error('Receipt upload error:', uploadError.message);
+        } else {
+          const { data: signed } = await supabase.storage
             .from('receipts')
-            .upload(filePath, receiptFile, { contentType: receiptFile.type || undefined });
-
-          if (uploadError) {
-            console.error('Receipt upload error:', uploadError.message);
-          } else {
-            const { data: signed } = await supabase.storage
-              .from('receipts')
-              .createSignedUrl(filePath, RECEIPT_URL_TTL);
-            receiptUrl = signed?.signedUrl ?? '';
-          }
-        } catch (storageErr) {
-          console.error('Receipt upload threw:', storageErr);
+            .createSignedUrl(filePath, RECEIPT_URL_TTL);
+          receiptUrl = signed?.signedUrl ?? '';
         }
+      } catch (storageErr) {
+        console.error('Receipt upload threw:', storageErr);
       }
+    }
 
-      // 2. Format details/description
-      let detailedNotes = data.notes || '';
-      if (data.category === 'food' || data.category === 'lodging') {
-        detailedNotes += data.perDiemEligible ? ' (Per Diem Eligible)' : '';
-      } else if (data.category === 'fuel') {
-        detailedNotes += data.iftaFuelPurchase ? ' (IFTA Fuel Purchase)' : '';
-      }
+    // 2. Format details/description
+    let detailedNotes = data.notes || '';
+    if (data.category === 'food' || data.category === 'lodging') {
+      detailedNotes += data.perDiemEligible ? ' (Per Diem Eligible)' : '';
+    } else if (data.category === 'fuel') {
+      detailedNotes += data.iftaFuelPurchase ? ' (IFTA Fuel Purchase)' : '';
+    }
 
-      const description = [
-        data.vendor,
-        data.city && data.state ? `${data.city}, ${data.state}` : data.city || data.state,
-        detailedNotes,
-      ]
-        .filter(Boolean)
-        .join(' - ');
+    const description = [
+      data.vendor,
+      data.city && data.state ? `${data.city}, ${data.state}` : data.city || data.state,
+      detailedNotes,
+    ]
+      .filter(Boolean)
+      .join(' - ');
 
-      // 3. Create expense
+    // 3. Create expense
+    try {
       await createExpense({
         driver_id: driverId,
         category: data.category,
@@ -279,24 +287,37 @@ export default function NewExpensePage() {
         is_deductible: true,
         receipt_url: receiptUrl || undefined,
       });
-
-      // 4. Update odometer if category is maintenance
-      if (data.category === 'maintenance' && typeof data.odometer === 'number' && !isNaN(data.odometer)) {
-        await updateOdometer(driverId, data.odometer);
-      }
-
-      if (receiptFile && !receiptUrl) {
-        showError("Expense saved, but the receipt photo couldn't be uploaded.");
-      } else {
-        showSuccess('Expense logged successfully!');
-      }
-      navigate('/driver/expenses');
     } catch (error) {
+      // The form stays filled in so the driver can retry.
       console.error('Failed to log expense:', error);
       showError('Failed to log expense. Please try again.');
-    } finally {
       setIsSubmitting(false);
+      return;
     }
+
+    // The expense is saved from here on, so anything else that goes wrong is
+    // reported as a partial save — calling it a failure would invite a retry
+    // and duplicate the expense.
+    const problems: string[] = [];
+    if (receiptFile && !receiptUrl) problems.push("the receipt photo couldn't be uploaded");
+
+    // 4. Update odometer if category is maintenance
+    if (data.category === 'maintenance' && typeof data.odometer === 'number' && !isNaN(data.odometer)) {
+      try {
+        const updated = await updateOdometer(driverId, data.odometer);
+        if (!updated) problems.push('there’s no truck on file to record the odometer reading on');
+      } catch (err) {
+        console.error('Odometer update failed:', err);
+        problems.push("the odometer reading couldn't be saved");
+      }
+    }
+
+    if (problems.length) {
+      showError(`Expense saved, but ${problems.join(' and ')}.`);
+    } else {
+      showSuccess('Expense logged successfully!');
+    }
+    navigate('/driver/expenses');
   };
 
   return (

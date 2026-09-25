@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Trash2, Receipt, DollarSign, Calendar, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, Receipt, DollarSign, Calendar, ChevronRight, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../hooks/useToast';
 import { getExpenses, deleteExpense } from '../../services/supabase/expenses';
@@ -10,6 +10,12 @@ import Button from '../../components/ui/Button';
 import ExpenseBadge from '../../components/ui/ExpenseBadge';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import EmptyState from '../../components/ui/EmptyState';
+
+function normalizeCategory(category: string): string {
+  if (category === 'tolls') return 'toll';
+  if (category === 'meals') return 'food';
+  return category;
+}
 
 interface SwipeableExpenseCardProps {
   expense: Expense;
@@ -167,25 +173,31 @@ export default function ExpensesListPage() {
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const driverId = user?.id || 'mock-driver';
+  const driverId = user?.id;
 
   useEffect(() => {
-    async function loadData() {
+    if (!driverId) return;
+    async function loadData(forDriver: string) {
+      setLoading(true);
+      setLoadError(false);
       try {
-        const fetchedExpenses = await getExpenses(driverId);
-        setExpenses(fetchedExpenses);
+        setExpenses(await getExpenses(forDriver));
       } catch (err) {
+        // Kept distinct from an empty list, which would claim the driver has
+        // tracked nothing.
         console.error('Error fetching expenses:', err);
-        showError('Failed to load expenses');
+        setLoadError(true);
       } finally {
         setLoading(false);
       }
     }
-    loadData();
-  }, [driverId, showError]);
+    loadData(driverId);
+  }, [driverId, reloadKey]);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this expense?')) return;
@@ -207,14 +219,21 @@ export default function ExpensesListPage() {
     }
   };
 
+  // Filters come from the categories actually present, so every expense is
+  // reachable and no pill leads to an empty list. The form logs 'toll' and
+  // 'food' while older rows and MilesBot use 'tolls' and 'meals'; each pair
+  // filters as one category.
+  const filterCategories = useMemo(() => {
+    const present = new Set(expenses.map((e) => normalizeCategory(e.category)));
+    return ['all', ...Array.from(present).sort()];
+  }, [expenses]);
+
   const filteredExpenses = useMemo(() => {
     return expenses.filter((expense) => {
       if (categoryFilter === 'all') return true;
-      return expense.category === categoryFilter;
+      return normalizeCategory(expense.category) === categoryFilter;
     });
   }, [expenses, categoryFilter]);
-
-  const filterCategories = ['all', 'fuel', 'tolls', 'meals', 'maintenance', 'other'];
 
   const rightAction = (
     <Link to="/driver/expenses/new">
@@ -262,6 +281,14 @@ export default function ExpensesListPage() {
           <div className="flex items-center justify-center py-20">
             <LoadingSpinner size="md" />
           </div>
+        ) : loadError ? (
+          <EmptyState
+            icon={AlertTriangle}
+            title="Couldn't load your expenses"
+            message="Check your connection and try again."
+            ctaLabel="Try again"
+            onCta={() => setReloadKey((k) => k + 1)}
+          />
         ) : filteredExpenses.length === 0 ? (
           <EmptyState
             icon={Receipt}

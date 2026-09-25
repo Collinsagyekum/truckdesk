@@ -11,45 +11,17 @@ export interface MaintenanceItem {
   notes?: string;
 }
 
+// Reads throw on a query error and return [] / null when there is no data.
+// Writes throw on failure so a save that didn't happen never looks like one.
+
 export async function getMaintenanceSchedule(driverId: string): Promise<MaintenanceItem[]> {
   const { data, error } = await supabase
     .from('maintenance_schedule')
     .select('*')
     .eq('driver_id', driverId);
 
-  if (error || !data || data.length === 0) {
-    return [
-      {
-        id: 'maint-1',
-        driver_id: driverId,
-        type: 'Oil Change & Filters',
-        last_service_date: '2026-04-10',
-        last_service_odometer: 145000,
-        due_odometer: 160000,
-        due_date: '2026-07-10',
-        notes: 'Shell Rotella T4 15W-40',
-      },
-      {
-        id: 'maint-2',
-        driver_id: driverId,
-        type: 'Tire Rotation & Brake Check',
-        last_service_date: '2025-12-15',
-        last_service_odometer: 130000,
-        due_odometer: 155000,
-        notes: 'Steer tire wear check',
-      },
-      {
-        id: 'maint-3',
-        driver_id: driverId,
-        type: 'DOT Annual Inspection',
-        last_service_date: '2025-06-20',
-        last_service_odometer: 120000,
-        due_odometer: 150000,
-        due_date: '2026-06-20',
-      },
-    ];
-  }
-  return data as MaintenanceItem[];
+  if (error) throw error;
+  return (data ?? []) as MaintenanceItem[];
 }
 
 export async function getMaintenanceDueSoon(driverId: string, currentOdometer: number): Promise<MaintenanceItem[]> {
@@ -65,30 +37,32 @@ export async function logMaintenanceService(serviceRecord: Omit<MaintenanceItem,
     .select()
     .single();
 
-  if (error || !data) {
-    return { ...serviceRecord, id: Math.random().toString(36).substr(2, 9) };
-  }
+  if (error) throw error;
   return data as MaintenanceItem;
 }
 
+// Returns false when the driver has no vehicle row to update: an update that
+// matches zero rows raises no error, so this checks what was actually written.
 export async function updateOdometer(driverId: string, odometer: number): Promise<boolean> {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('vehicles')
     .update({ current_odometer: odometer })
-    .eq('driver_id', driverId);
+    .eq('driver_id', driverId)
+    .select('driver_id');
 
-  return !error;
+  if (error) throw error;
+  return (data?.length ?? 0) > 0;
 }
 
-export async function getOdometer(driverId: string): Promise<number> {
+// Null when the driver has no vehicle or reading on file yet.
+export async function getOdometer(driverId: string): Promise<number | null> {
   const { data, error } = await supabase
     .from('vehicles')
     .select('current_odometer')
     .eq('driver_id', driverId)
-    .single();
+    .limit(1)
+    .maybeSingle();
 
-  if (error || !data) {
-    return 154620; // High-quality mock odometer reading
-  }
-  return data.current_odometer;
+  if (error) throw error;
+  return data?.current_odometer ?? null;
 }
