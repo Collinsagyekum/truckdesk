@@ -26,3 +26,28 @@ export const claudeAPI = async (prompt: string, systemPrompt?: string): Promise<
   if (!data?.text) throw new Error('claude-proxy returned no text')
   return data.text
 }
+
+export type ChatMessage = { role: 'user' | 'assistant'; content: string }
+
+// Multi-turn version of claudeAPI for the tax-advisor chat. `messages` is the
+// conversation so far and must end with the driver's latest question; `system`
+// carries their financial context. Throws on no session or proxy failure, same
+// as claudeAPI, so the caller can show an error bubble.
+export const claudeChat = async (messages: ChatMessage[], systemPrompt?: string): Promise<string> => {
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) throw new Error('Sign in to use AI features')
+
+  const { data, error } = await supabase.functions.invoke<{ text: string }>('claude-proxy', {
+    headers: { Authorization: `Bearer ${session.access_token}` },
+    body: { messages, system: systemPrompt },
+    timeout: 45_000,
+  })
+  if (error) {
+    const detail: string | undefined = error instanceof FunctionsHttpError
+      ? await error.context.json().then((body: { error?: string }) => body.error, () => undefined)
+      : undefined
+    throw new Error(detail ?? error.message)
+  }
+  if (!data?.text) throw new Error('claude-proxy returned no text')
+  return data.text
+}

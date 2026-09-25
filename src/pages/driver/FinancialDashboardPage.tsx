@@ -18,6 +18,7 @@ import {
 } from '../../services/supabase/expenses';
 import { getLoads } from '../../services/supabase/loads';
 import { claudeAPI } from '../../lib/claude';
+import TaxAdvisorChat from '../../components/driver/TaxAdvisorChat';
 import { formatCurrency } from '../../utils/formatting';
 import { updateUserProfile } from '../../services/supabase/users';
 import { 
@@ -39,10 +40,11 @@ import {
   Calendar, 
   AlertTriangle, 
   CheckCircle, 
-  Plus, 
-  RefreshCw, 
+  Plus,
+  RefreshCw,
   Clock,
-  ChevronRight
+  ChevronRight,
+  MessageCircle
 } from 'lucide-react';
 import type { Load, Expense } from '../../types';
 
@@ -87,6 +89,9 @@ export default function FinancialDashboardPage() {
   // show a driver an estimate (often $0) that is simply wrong.
   const [loadError, setLoadError] = useState<boolean>(false);
   const [reloadKey, setReloadKey] = useState<number>(0);
+
+  // Tax advisor chat sheet
+  const [chatOpen, setChatOpen] = useState<boolean>(false);
 
   // AI Advice State
   const [advice, setAdvice] = useState<string>('');
@@ -437,6 +442,38 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
   ];
   const DONUT_COLORS = ['#22C55E', '#162B55'];
 
+  // Grounds the chat in this driver's real figures so answers are specific to
+  // them, not generic tax trivia. Sent as the system prompt on every message.
+  const firstName = user?.full_name?.split(' ')[0] || 'there';
+  const advisorSystemPrompt = `You are TruckDesk's tax assistant for owner-operator truck drivers — as knowledgeable as a CPA who specializes in trucking. You're chatting with ${firstName} inside their TruckDesk app.
+
+Their numbers for tax year ${currentYear}, year to date:
+- Gross revenue: ${formatCurrency(totalRevenue)} across ${loads.length} loads
+- Deductible business expenses: ${formatCurrency(businessDeductions)}
+- Per diem deduction estimate: ${formatCurrency(perDiemDeduction)} (${daysAway} days away from home)
+- Net taxable profit: ${formatCurrency(netProfitForTaxes)}
+- Estimated quarterly tax due (Q${currentQuarterNum}): ${formatCurrency(totalEstimatedTax)} — self-employment tax ${formatCurrency(seTax)} plus about ${formatCurrency(incomeTaxEstimate)} income tax
+- Retirement contributed this year: ${formatCurrency(ytdContributions)} (Solo 401(k) ceiling $69,000)
+- Estimated net profit this week: ${formatCurrency(weeklyNet)}
+
+How to help:
+- Talk like a plain-spoken pro: short, warm, specific. No jargon dumps.
+- Use their actual numbers above when relevant. Never invent figures you weren't given; if you need something you don't have, ask for it.
+- These are estimates, not filed tax advice. For consequential moves (buying a truck, changing business entity, major elections) tell them to confirm with their own tax professional.
+- If asked something unrelated to taxes or trucking finances, answer briefly and steer back.
+- Keep answers under ~120 words unless they ask for detail.`;
+
+  const advisorOpening = advice
+    ? advice
+    : `Hi ${firstName} — I can see your TruckDesk numbers. Ask me anything about your taxes, deductions, or what to set aside.`;
+
+  const advisorSuggestions = [
+    'How much should I set aside from this week?',
+    'What write-offs might I be missing?',
+    'Explain my quarterly tax estimate',
+    'Should I contribute to my Solo 401(k)?',
+  ];
+
   return (
     <div className="min-h-screen bg-navy-900 pb-16">
       <PageHeader title="Financial Intelligence" />
@@ -476,19 +513,29 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
               </p>
               {adviceIsTemplate && !isLoadingAdvice && (
                 <p className="text-[11px] text-gray-400 mt-1">
-                  Couldn&apos;t reach the advisor, so this is a general tip. Tap Refresh to try again.
+                  Couldn&apos;t reach the advisor, so this is a general tip.
                 </p>
               )}
             </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              isLoading={isLoadingAdvice}
-              onClick={() => generateAIAdvice(weeklyNet, totalEstimatedTax, businessDeductions, daysAway)}
-              leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
-            >
-              Refresh Advice
-            </Button>
+            <div className="flex sm:flex-col items-center gap-2 shrink-0">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setChatOpen(true)}
+                leftIcon={<MessageCircle className="w-3.5 h-3.5" />}
+              >
+                Ask a question
+              </Button>
+              <button
+                onClick={() => generateAIAdvice(weeklyNet, totalEstimatedTax, businessDeductions, daysAway)}
+                disabled={isLoadingAdvice}
+                aria-label="Refresh advice"
+                title="Refresh advice"
+                className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-colors disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 ${isLoadingAdvice ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
           </div>
 
           {/* Financials Overview Grid */}
@@ -874,6 +921,14 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
           </div>
         </div>
       )}
+
+      <TaxAdvisorChat
+        open={chatOpen}
+        onClose={() => setChatOpen(false)}
+        systemPrompt={advisorSystemPrompt}
+        opening={advisorOpening}
+        suggestions={advisorSuggestions}
+      />
     </div>
   );
 }

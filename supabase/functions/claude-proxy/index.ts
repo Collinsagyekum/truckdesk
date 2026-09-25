@@ -17,10 +17,43 @@ import { corsHeaders } from 'npm:@supabase/supabase-js@2.116.0/cors'
 // Pinned here rather than taken from the request, so a signed-in user can't
 // use this endpoint as a general-purpose Claude API: callers only send text.
 const MODEL = 'claude-opus-5'
-// The app asks for one or two sentences; this leaves room for thinking while
-// capping what any single request can cost.
+// The app asks for short answers; this leaves room for thinking while capping
+// what any single request can cost.
 const MAX_TOKENS = 4096
-const MAX_PROMPT_CHARS = 4000
+// Covers a grounding system prompt (~1k chars) plus several turns of a tax-
+// advisor chat. Still a hard ceiling on what one request can cost.
+const MAX_INPUT_CHARS = 16000
+// A chat can't grow without bound; old turns are dropped client-side before this.
+const MAX_MESSAGES = 24
+
+type ChatMessage = { role: 'user' | 'assistant'; content: string }
+
+// Accepts either { prompt } (one-shot callers like the negotiation script) or
+// { messages } (the tax-advisor chat). Returns the validated turns, or a string
+// describing what's wrong with the request.
+function parseMessages(body: { prompt?: unknown; messages?: unknown }): ChatMessage[] | string {
+  if (Array.isArray(body.messages)) {
+    const raw = body.messages
+    if (raw.length === 0 || raw.length > MAX_MESSAGES) return `Expected 1..${MAX_MESSAGES} messages`
+    const out: ChatMessage[] = []
+    for (const m of raw) {
+      if (!m || (m.role !== 'user' && m.role !== 'assistant') || typeof m.content !== 'string' || !m.content.trim()) {
+        return 'Each message needs role "user" or "assistant" and non-empty content'
+      }
+      out.push({ role: m.role, content: m.content })
+    }
+    // Anthropic requires the first turn to be the user's; we always send the
+    // driver's new question last, so the reply answers it.
+    if (out[0].role !== 'user' || out[out.length - 1].role !== 'user') {
+      return 'Conversation must start and end with a user message'
+    }
+    return out
+  }
+  if (typeof body.prompt === 'string' && body.prompt.trim()) {
+    return [{ role: 'user', content: body.prompt }]
+  }
+  return 'Expected { prompt: string } or { messages: [{ role, content }] }'
+}
 
 // Hosted functions receive publishable keys as JSON ({"default": "sb_publishable_..."});
 // SUPABASE_ANON_KEY is the legacy equivalent.
@@ -51,14 +84,17 @@ async function handle(req: Request): Promise<Response> {
     return json({ error: 'Sign in to use AI features' }, 401)
   }
 
-  const body: { prompt?: unknown; system?: unknown } | null = await req.json().catch(() => null)
-  const prompt = body?.prompt
+  const body: { prompt?: unknown; messages?: unknown; system?: unknown } | null = await req.json().catch(() => null)
   const system = body?.system
-  if (typeof prompt !== 'string' || !prompt.trim() || (system !== undefined && typeof system !== 'string')) {
-    return json({ error: 'Expected { prompt: string, system?: string }' }, 400)
+  if (system !== undefined && typeof system !== 'string') {
+    return json({ error: 'system must be a string' }, 400)
   }
-  if (prompt.length + (system?.length ?? 0) > MAX_PROMPT_CHARS) {
-    return json({ error: 'Prompt is too long' }, 413)
+  const messages = parseMessages(body ?? {})
+  if (typeof messages === 'string') return json({ error: messages }, 400)
+
+  const totalChars = (system?.length ?? 0) + messages.reduce((n, m) => n + m.content.length, 0)
+  if (totalChars > MAX_INPUT_CHARS) {
+    return json({ error: 'Conversation is too long' }, 413)
   }
 
   const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
@@ -81,7 +117,7 @@ async function handle(req: Request): Promise<Response> {
       betas: ['server-side-fallback-2026-07-01'],
       fallbacks: 'default',
       ...(system ? { system } : {}),
-      messages: [{ role: 'user', content: prompt }],
+      messages,
     })
     console.log(JSON.stringify({ user: user.id, model: message.model, stop_reason: message.stop_reason, usage: message.usage }))
 
