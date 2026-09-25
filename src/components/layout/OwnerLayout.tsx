@@ -5,6 +5,7 @@ import {
   Shield,
   FileText,
   LogOut,
+  UserCircle,
 } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -51,7 +52,10 @@ export default function OwnerLayout() {
 
         {/* User / Sign-out */}
         <div className="p-4 border-t border-white/10">
-          <div className="flex items-center gap-3 mb-3">
+          <NavLink
+            to="/owner/account"
+            className="flex items-center gap-3 mb-3 -mx-2 px-2 py-1.5 rounded-lg hover:bg-white/5 transition-colors"
+          >
             <div className="w-8 h-8 rounded-full bg-brand-green/20 flex items-center justify-center">
               <Users className="w-4 h-4 text-brand-green" />
             </div>
@@ -61,7 +65,7 @@ export default function OwnerLayout() {
               </p>
               <p className="text-xs text-gray-500 truncate">{user?.email}</p>
             </div>
-          </div>
+          </NavLink>
           <button
             onClick={signOut}
             className="flex items-center gap-2 text-xs text-gray-400 hover:text-brand-red transition-colors"
@@ -80,6 +84,13 @@ export default function OwnerLayout() {
             <Truck className="w-5 h-5 text-brand-green" />
             <span className="font-semibold">TruckDesk</span>
           </div>
+          <NavLink
+            to="/owner/account"
+            aria-label="Account"
+            className="p-2 -mr-2 rounded-lg text-gray-400 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green transition-colors"
+          >
+            <UserCircle className="w-6 h-6" />
+          </NavLink>
         </header>
 
         <main className="flex-1 overflow-y-auto p-4 md:p-8">

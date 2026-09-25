@@ -16,6 +16,7 @@ interface AuthContextType {
   verifyOtp: (phone: string, token: string) => Promise<{ error: Error | null }>;
   signInWithEmail: (email: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<{ error: Error | null }>;
 }
 
 // Admin "view as driver": keeps the real (owner) Supabase session — so RLS still
@@ -35,13 +36,15 @@ const DEV_BYPASS_USER: AppUser = {
   updated_at: new Date().toISOString(),
 } as AppUser;
 
+// Dev-server-only login shortcut. `import.meta.env.DEV` is statically false in
+// production builds (web and Capacitor), so `?devbypass=` is ignored there.
 function isDevBypass(): boolean {
-  if (typeof window === 'undefined') return false;
+  if (!import.meta.env.DEV || typeof window === 'undefined') return false;
   return window.location.href.includes('devbypass=');
 }
 
 function isDevDriver(): boolean {
-  if (typeof window === 'undefined') return false;
+  if (!import.meta.env.DEV || typeof window === 'undefined') return false;
   return window.location.href.includes('devbypass=driver');
 }
 
@@ -85,6 +88,27 @@ async function resolveProfile(supabaseUser: SupabaseUser): Promise<AppUser | nul
   } catch (e) {
     console.warn('resolveProfile threw:', e);
     return null;
+  }
+}
+
+// App Review can't receive emailed codes, so this one account signs in with a password typed into the code boxes.
+const REVIEW_ACCOUNT_EMAIL = 'appreview@numdaanalytics.com';
+
+function isReviewAccount(email: string): boolean {
+  return email.trim().toLowerCase() === REVIEW_ACCOUNT_EMAIL;
+}
+
+const USER_FILE_BUCKETS = ['receipts', 'compliance-docs'];
+
+async function removeUserFiles(uid: string) {
+  for (const bucket of USER_FILE_BUCKETS) {
+    for (;;) {
+      const { data } = await supabase.storage.from(bucket).list(uid, { limit: 100 });
+      const paths = (data ?? []).filter((file) => file.id).map((file) => `${uid}/${file.name}`);
+      if (!paths.length) break;
+      const { data: removed, error } = await supabase.storage.from(bucket).remove(paths);
+      if (error || !removed?.length) break;
+    }
   }
 }
 
@@ -226,6 +250,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const verifyOtp = async (phoneOrEmail: string, token: string) => {
+    if (isReviewAccount(phoneOrEmail)) {
+      const { error } = await supabase.auth.signInWithPassword({ email: phoneOrEmail.trim(), password: token });
+      return { error: error as Error | null };
+    }
     const isEmail = phoneOrEmail.includes('@');
     const { error } = await supabase.auth.verifyOtp(
       isEmail
@@ -236,6 +264,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithEmail = async (email: string) => {
+    if (isReviewAccount(email)) return { error: null };
     const { error } = await supabase.auth.signInWithOtp({ email });
     return { error: error as Error | null };
   };
@@ -255,6 +284,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const effectiveUser = effectiveImpersonated ?? user;
   const effectiveRole = effectiveImpersonated ? 'driver' : role;
 
+  const deleteAccount = async () => {
+    // While impersonating, the session still belongs to the owner.
+    if (isImpersonating) {
+      return { error: new Error('Stop viewing as a driver before deleting your account.') };
+    }
+    const { data: { session: current } } = await supabase.auth.getSession();
+    if (!current) return { error: new Error('Sign in again to delete your account.') };
+    await removeUserFiles(current.user.id);
+    const { error } = await supabase.rpc('delete_my_account');
+    if (error) {
+      console.error('delete_my_account failed:', error.message);
+      return { error: new Error("We couldn't delete your account. Try again, or email info@numdaanalytics.com.") };
+    }
+    await signOut();
+    return { error: null };
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -270,6 +316,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         verifyOtp,
         signInWithEmail,
         signOut,
+        deleteAccount,
       }}
     >
       {children}

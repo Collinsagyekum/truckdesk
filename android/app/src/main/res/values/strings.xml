@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TruckDesk</string>
+    <string name="title_activity_main">TruckDesk</string>
+    <string name="package_name">com.numdanumda.truckdesk</string>
+    <string name="custom_url_scheme">com.numdanumda.truckdesk</string>
+</resources>

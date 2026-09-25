@@ -257,10 +257,13 @@ export default function DriverHomePage() {
       {/* HEADER SECTION */}
       <header className="flex items-center justify-between bg-navy-800/40 border border-white/5 rounded-2xl p-4 sm:p-6 backdrop-blur-md">
         <div className="flex items-center space-x-4">
-          {/* Initials Avatar */}
-          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-brand-green/30 to-brand-green/10 border border-brand-green/20 flex items-center justify-center font-sans font-semibold text-brand-green text-lg tracking-wider shadow-inner">
+          <Link
+            to="/driver/account"
+            aria-label="Account"
+            className="w-12 h-12 rounded-full bg-gradient-to-tr from-brand-green/30 to-brand-green/10 border border-brand-green/20 hover:border-brand-green/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green flex items-center justify-center font-sans font-semibold text-brand-green text-lg tracking-wider shadow-inner transition-colors"
+          >
             {getInitials(user.full_name)}
-          </div>
+          </Link>
           <div>
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest font-sans">
               Driver Hub

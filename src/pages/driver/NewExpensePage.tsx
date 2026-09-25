@@ -32,6 +32,9 @@ import { createExpense } from '../../services/supabase/expenses';
 import { updateOdometer, getOdometer } from '../../services/supabase/maintenance';
 import { supabase } from '../../lib/supabase';
 
+// The receipts bucket is private, so store a long-lived signed URL, as MilesBot does.
+const RECEIPT_URL_TTL = 60 * 60 * 24 * 365;
+
 // List of US States for selection
 const US_STATES = [
   { code: 'AL', name: 'Alabama' },
@@ -230,27 +233,23 @@ export default function NewExpensePage() {
       let receiptUrl = '';
       if (receiptFile) {
         try {
-          const fileExt = receiptFile.name.split('.').pop();
-          const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-          const filePath = `receipts/${driverId}/${fileName}`;
+          const fileExt = receiptFile.name.split('.').pop() || 'jpg';
+          const filePath = `${driverId}/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
 
-          const { data: uploadData, error: uploadError } = await supabase.storage
+          const { error: uploadError } = await supabase.storage
             .from('receipts')
-            .upload(filePath, receiptFile);
+            .upload(filePath, receiptFile, { contentType: receiptFile.type || undefined });
 
-          if (!uploadError && uploadData) {
-            const { data: urlData } = supabase.storage
+          if (uploadError) {
+            console.error('Receipt upload error:', uploadError.message);
+          } else {
+            const { data: signed } = await supabase.storage
               .from('receipts')
-              .getPublicUrl(filePath);
-            receiptUrl = urlData.publicUrl;
+              .createSignedUrl(filePath, RECEIPT_URL_TTL);
+            receiptUrl = signed?.signedUrl ?? '';
           }
         } catch (storageErr) {
-          console.error('Storage bucket unavailable, falling back to mock receipt url', storageErr);
-        }
-
-        // Mock fallback receipt url if real upload didn't execute/failed due to local env keys
-        if (!receiptUrl) {
-          receiptUrl = `https://supabase.co/storage/v1/object/public/receipts/mock-${Date.now()}.jpg`;
+          console.error('Receipt upload threw:', storageErr);
         }
       }
 
@@ -286,7 +285,11 @@ export default function NewExpensePage() {
         await updateOdometer(driverId, data.odometer);
       }
 
-      showSuccess('Expense logged successfully!');
+      if (receiptFile && !receiptUrl) {
+        showError("Expense saved, but the receipt photo couldn't be uploaded.");
+      } else {
+        showSuccess('Expense logged successfully!');
+      }
       navigate('/driver/expenses');
     } catch (error) {
       console.error('Failed to log expense:', error);

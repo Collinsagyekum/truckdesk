@@ -26,3 +26,9 @@ dist-ssr
 # Env / secrets
 .env
 .env.*
+*.keystore
+keystore.properties
+
+# Local tool state
+.claude/
+supabase/.temp/

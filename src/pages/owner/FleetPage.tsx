@@ -9,15 +9,12 @@ import { mockDb } from '../../utils/mockDb';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { formatCurrency, formatMiles, getInitials } from '../../utils/formatting';
 import type { User, Load, Expense } from '../../types';
-import { 
-  Search, 
-  Filter, 
-  ArrowUpDown,
+import {
+  Search,
+  Filter,
   ChevronRight,
   Shield,
   Truck,
-  TrendingUp,
-  UserCheck
 } from 'lucide-react';
 
 export default function FleetPage() {

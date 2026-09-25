@@ -31,6 +31,7 @@ export type LoadStatus =
 export interface Load {
   id: string;
   driver_id: string;
+  driver_name?: string;
   broker_name: string;
   origin: string;
   destination: string;

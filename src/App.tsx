@@ -11,6 +11,7 @@ import OwnerLayout from './components/layout/OwnerLayout';
 
 // Pages — Login
 import LoginPage from './pages/LoginPage';
+import AccountPage from './pages/AccountPage';
 
 // Pages — Driver
 import DriverHomePage from './pages/driver/DriverHomePage';
@@ -130,6 +131,7 @@ export default function App() {
               <Route path="compliance" element={<CompliancePage />} />
               <Route path="financial" element={<FinancialDashboardPage />} />
               <Route path="whatsapp-log" element={<WhatsAppLogPage />} />
+              <Route path="account" element={<AccountPage />} />
             </Route>
 
             {/* Owner routes */}
@@ -149,6 +151,7 @@ export default function App() {
               <Route path="driver/:id" element={<DriverDetailPage />} />
               <Route path="compliance" element={<OwnerCompliancePage />} />
               <Route path="invoices" element={<InvoicesPage />} />
+              <Route path="account" element={<AccountPage />} />
             </Route>
 
             {/* Catch-all */}

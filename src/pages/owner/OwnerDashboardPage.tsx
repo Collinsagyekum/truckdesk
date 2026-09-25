@@ -12,14 +12,10 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { formatCurrency, formatMiles, getInitials } from '../../utils/formatting';
 import { withTimeout } from '../../utils/withTimeout';
 import type { User, Load, Expense } from '../../types';
-import { 
-  Users, 
-  MapPin, 
-  DollarSign, 
-  AlertTriangle, 
-  Copy, 
+import {
+  Copy,
   Check,
-  TrendingUp, 
+  TrendingUp,
   ArrowRight,
   ShieldAlert,
   Clock
@@ -87,9 +83,6 @@ export default function OwnerDashboardPage() {
   // Helper: Filter loads this week
   const weeklyLoads = loads.filter((load) => new Date(load.pickup_date) >= startOfWeek);
   
-  // Helper: Filter expenses this week
-  const weeklyExpenses = expenses.filter((exp) => new Date(exp.date) >= startOfWeek);
-
   // 1. KPI Fleet Miles (this week) — loads + standalone mileage
   const weeklyMileageEntries = allMileage.filter((m) => new Date(m.log_date) >= startOfWeek);
   const fleetLoadMiles = weeklyLoads.reduce((sum, l) => sum + l.miles, 0);
@@ -99,12 +92,7 @@ export default function OwnerDashboardPage() {
   // 2. KPI Fleet Revenue (this week)
   const totalFleetRevenue = weeklyLoads.reduce((sum, l) => sum + l.rate, 0);
 
-  // 3. KPI Active Drivers count
-  // A driver is active if they have an active load or status is active
-  const activeDriversCount = drivers.length; // Default all drivers active for demo or filter:
-  const activeCount = drivers.filter(d => d.role === 'driver').length; // For the grid, we will detail their status badges
-
-  // 4. KPI Flagged Receipt Count
+  // 3. KPI Flagged Receipt Count
   const flaggedExpenses = expenses.filter((e) => e.flagged === true);
   const flaggedReceiptsCount = flaggedExpenses.length;
 
