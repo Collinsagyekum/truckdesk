@@ -1,5 +1,14 @@
 import { supabase } from '../../lib/supabase';
 
+// True when a query failed because the table isn't in the database at all
+// (PostgREST PGRST205), as opposed to a row-level or network error. The
+// odometer lives in a `vehicles` table that some deployments don't have yet;
+// when it's absent the feature is simply unavailable, not broken, so callers
+// treat this as "no data" rather than surfacing an alarming error.
+function isMissingTable(error: { code?: string; message?: string } | null): boolean {
+  return error?.code === 'PGRST205' || /Could not find the table/i.test(error?.message ?? '');
+}
+
 export interface MaintenanceItem {
   id: string;
   driver_id: string;
@@ -41,8 +50,8 @@ export async function logMaintenanceService(serviceRecord: Omit<MaintenanceItem,
   return data as MaintenanceItem;
 }
 
-// Returns false when the driver has no vehicle row to update: an update that
-// matches zero rows raises no error, so this checks what was actually written.
+// Returns false when the driver has no vehicle row to update (an update that
+// matches zero rows raises no error) or the vehicles table isn't provisioned.
 export async function updateOdometer(driverId: string, odometer: number): Promise<boolean> {
   const { data, error } = await supabase
     .from('vehicles')
@@ -50,11 +59,15 @@ export async function updateOdometer(driverId: string, odometer: number): Promis
     .eq('driver_id', driverId)
     .select('driver_id');
 
-  if (error) throw error;
+  if (error) {
+    if (isMissingTable(error)) return false;
+    throw error;
+  }
   return (data?.length ?? 0) > 0;
 }
 
-// Null when the driver has no vehicle or reading on file yet.
+// Null when the driver has no vehicle or reading on file yet, or the vehicles
+// table isn't provisioned in this database.
 export async function getOdometer(driverId: string): Promise<number | null> {
   const { data, error } = await supabase
     .from('vehicles')
@@ -63,6 +76,9 @@ export async function getOdometer(driverId: string): Promise<number | null> {
     .limit(1)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) {
+    if (isMissingTable(error)) return null;
+    throw error;
+  }
   return data?.current_odometer ?? null;
 }
