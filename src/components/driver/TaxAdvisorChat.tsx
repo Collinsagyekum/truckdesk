@@ -207,7 +207,10 @@ export default function TaxAdvisorChat({ open, onClose, systemPrompt, opening, s
             onKeyDown={onKeyDown}
             rows={1}
             placeholder="Ask about your taxes..."
-            className="flex-1 resize-none max-h-32 bg-navy-800 border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-green/50"
+            /* min-w-0 lets the textarea shrink below its content width; without
+               it a flex item defaults to min-width:auto and a long question
+               pushes the send button off the right edge. */
+            className="flex-1 min-w-0 resize-none max-h-32 bg-navy-800 border border-white/10 rounded-2xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-green/50"
           />
           <button
             type="submit"
