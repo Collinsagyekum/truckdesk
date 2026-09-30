@@ -36,13 +36,10 @@ export default function TaxAdvisorChat({ open, onClose, systemPrompt, opening, s
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Focus the input and reset scroll when the sheet opens.
-  useEffect(() => {
-    if (open) {
-      const t = setTimeout(() => inputRef.current?.focus(), 100);
-      return () => clearTimeout(t);
-    }
-  }, [open]);
+  // Intentionally no autofocus on open: raising the keyboard immediately shoves
+  // the fixed sheet up (iOS WebView) and buries the header, and it hides the
+  // suggested questions — which are the main way in. The driver taps a
+  // suggestion or the input when ready.
 
   // Keep the newest message in view as the thread grows.
   useEffect(() => {
@@ -112,7 +109,10 @@ export default function TaxAdvisorChat({ open, onClose, systemPrompt, opening, s
       aria-label="Tax advisor chat"
     >
       {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-navy-900/80 shrink-0 pt-[max(0.75rem,env(safe-area-inset-top))]">
+      {/* The app's viewport has no viewport-fit=cover, so env(safe-area-inset-*)
+          is 0 here; the min values clear the status bar and home indicator, and
+          env() still wins on devices where it's larger. */}
+      <header className="flex items-center justify-between px-4 py-3 border-b border-white/10 bg-navy-900/80 shrink-0 pt-[max(3.25rem,env(safe-area-inset-top))]">
         <div className="flex items-center gap-2.5">
           <div className="p-2 bg-brand-green/10 rounded-xl text-brand-green">
             <Sparkles className="w-5 h-5" />
@@ -197,7 +197,7 @@ export default function TaxAdvisorChat({ open, onClose, systemPrompt, opening, s
       {/* Composer */}
       <form
         onSubmit={onSubmit}
-        className="border-t border-white/10 bg-navy-900/80 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shrink-0"
+        className="border-t border-white/10 bg-navy-900/80 px-4 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] shrink-0"
       >
         <div className="flex items-end gap-2">
           <textarea
