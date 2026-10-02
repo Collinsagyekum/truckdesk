@@ -431,7 +431,7 @@ export default function CompliancePage() {
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2.5 text-sm font-semibold rounded-lg capitalize transition-all duration-200 ${
+            className={`flex-1 min-w-0 truncate py-2.5 text-sm font-semibold rounded-lg capitalize transition-all duration-200 ${
               activeTab === tab
                 ? 'bg-brand-green text-navy-900 shadow-lg shadow-brand-green/25 font-bold'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'

@@ -5,6 +5,13 @@
 @tailwind utilities;
 
 @layer base {
+  /* Never let a too-wide element make the whole page scroll sideways: on a
+     phone that shifts fixed UI (the bottom nav's last tab, the chat overlay)
+     off-screen, so tabs and the advisor "disappear" when the keyboard opens. */
+  html, body {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
   body {
     background-color: #0A1628;
     color: #ffffff;

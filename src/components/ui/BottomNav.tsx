@@ -24,21 +24,24 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 inset-x-0 bg-navy-800 border-t border-white/10 z-50">
-      <div className="flex items-center justify-around h-16 max-w-lg mx-auto">
+      <div className="flex items-center h-16 max-w-lg mx-auto">
         {navItems.map(({ to, icon: Icon, label }) => {
           const active = isActive(to);
           return (
             <Link
               key={to}
               to={to}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1 text-xs transition-colors ${
+              // flex-1 + min-w-0 makes the five tabs split the width evenly and
+              // shrink to fit, so the last one (Taxes) never overflows a narrow
+              // phone and requires scrolling to reach.
+              className={`flex-1 min-w-0 flex flex-col items-center gap-0.5 px-1 py-1 text-xs transition-colors ${
                 active
                   ? 'text-brand-green'
                   : 'text-gray-400 hover:text-gray-200'
               }`}
             >
-              <Icon className="w-5 h-5" />
-              <span className="font-sans">{label}</span>
+              <Icon className="w-5 h-5 shrink-0" />
+              <span className="font-sans truncate max-w-full">{label}</span>
             </Link>
           );
         })}
