@@ -92,6 +92,52 @@ email is sent; that code acts as the password for this account.
 - [ ] **I3** A failed load/read shows "couldn't load" + retry, distinct from "nothing here yet".
 - [ ] **I4** A failed save shows an error and keeps your input — it never reports a fake success.
 
+## K. MilesBot (WhatsApp) — what to send and where it should land
+
+MilesBot reads your plain-language WhatsApp message, figures out the type, and
+writes it straight into the app's tables. You type naturally — no codes. Send
+each message, then open the app and check the section listed.
+
+**Before you start — two things that decide whether you'll see anything:**
+- MilesBot matches you by the **phone number you text from** → it looks up
+  `users.phone` in Supabase and files the data under that driver. **You must be
+  logged into the app as that same driver** to see it. The `appreview@` Demo
+  Driver is an *email* account with no phone, so WhatsApp data will NOT show up
+  under that login — sign in as the driver whose `users.phone` is your WhatsApp
+  number.
+- Give it a few seconds after the WhatsApp reply, then pull-to-refresh / reopen
+  the screen in the app.
+
+| Text MilesBot something like… | Lands in table | Check this section |
+|---|---|---|
+| "Finished a load from Atlanta GA to Charlotte NC, 280 miles, got $1,840 from Echo Global" | `loads` | **Driver → Loads** (also Home activity & Taxes revenue; Owner → Fleet loads) |
+| "Fueled up at Pilot in Memphis TN, $180, 47.5 gallons" | `expenses` (fuel, IFTA) | **Driver → Expenses**; **Compliance → IFTA** (grouped under TN); Taxes write-offs |
+| "Paid $12 toll on I-40" | `expenses` (toll) | **Driver → Expenses** |
+| "$23 for dinner on the road" | `expenses` (food, per-diem) | **Driver → Expenses** |
+| *(send a photo of a receipt / fuel slip)* | `expenses` | **Driver → Expenses** (reads the amount/vendor/state off the image) |
+| "Drove 180 miles in Tennessee today" | `daily_mileage` | **Driver → Home → Daily Mileage Log** + Miles This Week; Owner fleet mileage |
+| "Put $500 into my Solo 401k" | `retirement_log` | **Driver → Taxes → Retirement Planning** |
+| "Echo Global just paid the $1,840 invoice" | `invoices` | **Owner → Invoices** |
+
+- [ ] **K1** Load message → appears in Driver → Loads with the right origin/destination/rate.
+- [ ] **K2** Fuel message with a state + gallons → appears in Expenses **and** Compliance → IFTA under that state.
+- [ ] **K3** Toll / food message → appears in Expenses with the right category.
+- [ ] **K4** Receipt photo → an expense is created from the image.
+- [ ] **K5** "Drove N miles in <state>" → appears in Home → Daily Mileage Log and Miles This Week.
+- [ ] **K6** Retirement message → appears in Taxes → Retirement Planning; YTD/donut update.
+- [ ] **K7** Invoice message → appears in Owner → Invoices with the right status.
+
+**Known gaps (expected — not bugs in your test):**
+- **The in-app "MilesBot Log" / WhatsApp Log page stays empty.** MilesBot writes
+  to the real tables (loads, expenses, …) but does **not** write to the
+  `whatsapp_submissions` table that page reads. So your messages show up in
+  Loads/Expenses/etc., not on that log page. (To make that page work, MilesBot
+  would also need to insert a `whatsapp_submissions` row per message.)
+- **Maintenance messages** ("tire repair $320 at 142000 mi") are logged to
+  Google Sheets only — **not** to Supabase — so they won't appear in the app's
+  Compliance → Maintenance schedule.
+- **"Weekly summary" requests** just get a text reply; nothing is written to the app.
+
 ## J. Platform
 - [ ] **J1** Works logged-in on the physical phone (ACE), not just the simulator.
 - [ ] **J2** The AI features reach the deployed `claude-proxy` (answers vary and reference your numbers) — not just fallback text.
