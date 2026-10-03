@@ -1,5 +1,6 @@
 import { supabase } from '../../lib/supabase';
 import type { Load } from '../../types';
+import { getFleetDriverIds } from './users';
 
 // ─── DB ↔ APP ADAPTERS ────────────────────────────────────────────────────────
 // The real `loads` table splits the route into city/state columns and has no
@@ -158,14 +159,16 @@ export async function deleteLoad(loadId: string): Promise<boolean> {
   return (data?.length ?? 0) > 0;
 }
 
-export async function getFleetLoads(companyId: string): Promise<Load[]> {
-  // NOTE: the real `users` table has no company_id column (no multi-tenancy in
-  // the DB today), so we can't scope by company. Single business = owner sees
-  // every driver's loads; RLS is the real security boundary here.
-  void companyId;
+// Loads across one owner's drivers only. `ownerId` is the owner's own user id;
+// we resolve it to their drivers' ids and filter by driver_id. RLS enforces the
+// same boundary server-side.
+export async function getFleetLoads(ownerId: string): Promise<Load[]> {
+  const driverIds = await getFleetDriverIds(ownerId);
+  if (!driverIds.length) return [];
   const { data, error } = await supabase
     .from('loads')
-    .select('*, users(full_name)');
+    .select('*, users(full_name)')
+    .in('driver_id', driverIds);
 
   if (error) throw error;
   return (data ?? []).map(rowToLoad);

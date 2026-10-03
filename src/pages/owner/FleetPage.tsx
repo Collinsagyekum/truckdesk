@@ -50,12 +50,13 @@ export default function FleetPage() {
       setLoading(true);
       setLoadError(false);
       try {
-        const companyId = user.company_id ?? '';
+        // Scope the fleet to this owner's own drivers (owner_id === their id).
+        const ownerId = user.id;
 
         const [driversData, loadsData, expensesData] = await Promise.all([
-          getFleetDrivers(companyId),
-          getFleetLoads(companyId),
-          getFleetExpenses(companyId),
+          getFleetDrivers(ownerId),
+          getFleetLoads(ownerId),
+          getFleetExpenses(ownerId),
         ]);
 
         setDrivers(driversData);

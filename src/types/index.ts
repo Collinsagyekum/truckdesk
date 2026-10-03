@@ -8,6 +8,9 @@ export interface User {
   phone?: string;
   full_name: string;
   role: UserRole;
+  // The owner this driver belongs to (users.owner_id === the owner's own id).
+  // Null/absent for owner accounts. This is the real multi-tenancy boundary.
+  owner_id?: string | null;
   company_id?: string;
   avatar_url?: string;
   created_at: string;

@@ -10,7 +10,7 @@ type StatusFilter = 'all' | 'draft' | 'sent' | 'paid' | 'overdue';
 export default function InvoicesPage() {
   const { user } = useAuth();
   const { showSuccess, showError } = useToast();
-  const companyId = user?.company_id ?? '';
+  const ownerId = user?.id ?? '';
 
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +24,7 @@ export default function InvoicesPage() {
     setLoading(true);
     setLoadError(false);
     try {
-      setInvoices(await getFleetInvoices(companyId));
+      setInvoices(await getFleetInvoices(ownerId));
     } catch (err) {
       console.error('Error loading invoices:', err);
       setLoadError(true);
@@ -36,7 +36,7 @@ export default function InvoicesPage() {
   useEffect(() => {
     fetchInvoices();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [companyId]);
+  }, [ownerId]);
 
   const handleMarkPaid = async (inv: Invoice) => {
     setUpdatingId(inv.id);

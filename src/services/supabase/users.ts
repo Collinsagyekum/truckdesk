@@ -25,16 +25,31 @@ export async function updateUserProfile(userId: string, updates: Partial<User>):
   return data as User;
 }
 
-export async function getFleetDrivers(companyId: string): Promise<User[]> {
-  // NOTE: the real `users` table has no company_id column, so we can't scope by
-  // company. Single business = every driver belongs to this fleet; RLS is the
-  // real security boundary.
-  void companyId;
+// The drivers that belong to one owner. Scoped by `users.owner_id` === the
+// owner's own id, which is the real multi-tenancy boundary (RLS enforces the
+// same rule server-side). `ownerId` is the owner's own user id.
+export async function getFleetDrivers(ownerId: string): Promise<User[]> {
+  if (!ownerId) return [];
   const { data, error } = await supabase
     .from('users')
     .select('*')
+    .eq('owner_id', ownerId)
     .eq('role', 'driver');
 
   if (error) throw error;
   return (data ?? []) as User[];
+}
+
+// Just the ids of this owner's drivers — used to scope fleet-wide reads on the
+// child tables (loads, expenses, invoices, mileage), which link via driver_id.
+export async function getFleetDriverIds(ownerId: string): Promise<string[]> {
+  if (!ownerId) return [];
+  const { data, error } = await supabase
+    .from('users')
+    .select('id')
+    .eq('owner_id', ownerId)
+    .eq('role', 'driver');
+
+  if (error) throw error;
+  return (data ?? []).map((r) => r.id as string);
 }

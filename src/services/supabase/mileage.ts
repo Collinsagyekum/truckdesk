@@ -1,4 +1,5 @@
 import { supabase } from '../../lib/supabase';
+import { getFleetDriverIds } from './users';
 
 export interface DailyMileage {
   id: string;
@@ -23,10 +24,14 @@ export async function getDailyMileage(driverId: string): Promise<DailyMileage[]>
   return (data ?? []) as DailyMileage[];
 }
 
-export async function getFleetMileage(): Promise<DailyMileage[]> {
+// Daily mileage across one owner's drivers only. RLS enforces the same boundary.
+export async function getFleetMileage(ownerId: string): Promise<DailyMileage[]> {
+  const driverIds = await getFleetDriverIds(ownerId);
+  if (!driverIds.length) return [];
   const { data, error } = await supabase
     .from('daily_mileage')
     .select('*')
+    .in('driver_id', driverIds)
     .order('log_date', { ascending: false });
 
   if (error) throw error;

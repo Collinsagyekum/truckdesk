@@ -50,13 +50,15 @@ export default function OwnerDashboardPage() {
     const fetchData = async () => {
       setLoading(true);
       setLoadError(false);
-      const companyId = user.company_id ?? '';
+      // An owner's fleet is scoped by their own user id (drivers carry
+      // owner_id === this id). RLS enforces the same boundary server-side.
+      const ownerId = user.id;
 
       const [driversR, loadsR, expensesR, mileageR] = await Promise.allSettled([
-        withTimeout(getFleetDrivers(companyId), 'getFleetDrivers'),
-        withTimeout(getFleetLoads(companyId), 'getFleetLoads'),
-        withTimeout(getFleetExpenses(companyId), 'getFleetExpenses'),
-        withTimeout(getFleetMileage(), 'getFleetMileage'),
+        withTimeout(getFleetDrivers(ownerId), 'getFleetDrivers'),
+        withTimeout(getFleetLoads(ownerId), 'getFleetLoads'),
+        withTimeout(getFleetExpenses(ownerId), 'getFleetExpenses'),
+        withTimeout(getFleetMileage(ownerId), 'getFleetMileage'),
       ]);
 
       if (driversR.status === 'fulfilled' && loadsR.status === 'fulfilled' && expensesR.status === 'fulfilled') {

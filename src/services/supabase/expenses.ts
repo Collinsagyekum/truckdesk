@@ -1,5 +1,6 @@
 import { supabase } from '../../lib/supabase';
 import type { Expense } from '../../types';
+import { getFleetDriverIds } from './users';
 
 // ─── DB ↔ APP ADAPTERS ────────────────────────────────────────────────────────
 // The real Supabase `expenses` table uses different column names than the app's
@@ -97,14 +98,14 @@ export async function updateExpense(expenseId: string, updates: Partial<Expense>
   return rowToExpense(data);
 }
 
-export async function getFleetExpenses(companyId: string): Promise<Expense[]> {
-  // NOTE: the real `users` table has no company_id column, so we can't scope by
-  // company. Single business = owner sees every driver's expenses; RLS is the
-  // real security boundary here.
-  void companyId;
+// Expenses across one owner's drivers only. RLS enforces the same boundary.
+export async function getFleetExpenses(ownerId: string): Promise<Expense[]> {
+  const driverIds = await getFleetDriverIds(ownerId);
+  if (!driverIds.length) return [];
   const { data, error } = await supabase
     .from('expenses')
-    .select('*, users(full_name)');
+    .select('*, users(full_name)')
+    .in('driver_id', driverIds);
 
   if (error) throw error;
   return (data ?? []).map(rowToExpense);

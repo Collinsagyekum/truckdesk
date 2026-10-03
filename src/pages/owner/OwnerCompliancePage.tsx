@@ -31,7 +31,7 @@ function describe(row: Row): string {
 export default function OwnerCompliancePage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const companyId = user?.company_id ?? '';
+  const ownerId = user?.id ?? '';
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -42,7 +42,7 @@ export default function OwnerCompliancePage() {
       setLoading(true);
       setLoadError(false);
       try {
-        const drivers = await getFleetDrivers(companyId);
+        const drivers = await getFleetDrivers(ownerId);
         // One driver's documents failing to load shouldn't hide the others.
         const results = await Promise.allSettled(drivers.map((d) => getComplianceDocs(d.id)));
         setRows(
@@ -61,7 +61,7 @@ export default function OwnerCompliancePage() {
       }
     };
     run();
-  }, [companyId, reloadKey]);
+  }, [ownerId, reloadKey]);
 
   const cfg = (s: Status) => {
     if (s === 'clear') return { label: 'Clear', cls: 'text-brand-green bg-brand-green/10 border-brand-green/20', Icon: CheckCircle2 };

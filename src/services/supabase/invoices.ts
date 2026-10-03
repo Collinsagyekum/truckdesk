@@ -1,5 +1,6 @@
 import { supabase } from '../../lib/supabase';
 import type { Invoice } from '../../types';
+import { getFleetDriverIds } from './users';
 
 // ─── DB ↔ APP ADAPTERS ────────────────────────────────────────────────────────
 // The real `invoices` table has no `status` column — status is derived from
@@ -52,14 +53,14 @@ function invoiceToRow(invoice: Partial<Invoice>): Record<string, any> {
 // Reads throw on a query error and return [] when there is simply no data.
 // Writes throw on failure so a save that didn't happen never looks like one.
 
-export async function getFleetInvoices(companyId: string): Promise<Invoice[]> {
-  // NOTE: the real `users` table has no company_id column, so we can't scope by
-  // company. Single business = owner sees every invoice; RLS is the real
-  // security boundary here.
-  void companyId;
+// Invoices across one owner's drivers only. RLS enforces the same boundary.
+export async function getFleetInvoices(ownerId: string): Promise<Invoice[]> {
+  const driverIds = await getFleetDriverIds(ownerId);
+  if (!driverIds.length) return [];
   const { data, error } = await supabase
     .from('invoices')
-    .select('*, users(full_name)');
+    .select('*, users(full_name)')
+    .in('driver_id', driverIds);
 
   if (error) throw error;
   return (data ?? []).map(rowToInvoice);
