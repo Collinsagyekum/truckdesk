@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Plus, Search, Truck, ArrowRight, DollarSign, Calendar, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { getLoads } from '../../services/supabase/loads';
+import { toLocalDate } from '../../utils/formatting';
 import type { Load } from '../../types';
 import PageHeader from '../../components/ui/PageHeader';
 import Button from '../../components/ui/Button';
@@ -163,7 +164,7 @@ export default function LoadsListPage() {
 
                   <div className="flex items-center gap-1.5 text-xs text-gray-400 font-sans">
                     <Calendar className="w-3.5 h-3.5" />
-                    <span>{new Date(load.pickup_date).toLocaleDateString(undefined, {
+                    <span>{toLocalDate(load.pickup_date).toLocaleDateString(undefined, {
                       month: 'short',
                       day: 'numeric',
                       year: 'numeric',

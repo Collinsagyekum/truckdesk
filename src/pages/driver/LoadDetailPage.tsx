@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toLocalDate } from '../../utils/formatting';
 import {
   Calendar,
   DollarSign,
@@ -208,7 +209,7 @@ export default function LoadDetailPage() {
                 <span className="font-semibold text-white block">{load.origin}</span>
                 <span className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
                   <Calendar className="w-3 h-3" />
-                  {new Date(load.pickup_date).toLocaleDateString(undefined, {
+                  {toLocalDate(load.pickup_date).toLocaleDateString(undefined, {
                     weekday: 'short',
                     month: 'short',
                     day: 'numeric',
@@ -229,7 +230,7 @@ export default function LoadDetailPage() {
                 <span className="font-semibold text-white block">{load.destination}</span>
                 <span className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
                   <Calendar className="w-3 h-3" />
-                  {load.delivery_date ? new Date(load.delivery_date).toLocaleDateString(undefined, {
+                  {load.delivery_date ? toLocalDate(load.delivery_date).toLocaleDateString(undefined, {
                     weekday: 'short',
                     month: 'short',
                     day: 'numeric',
@@ -333,7 +334,7 @@ export default function LoadDetailPage() {
                     <div className="flex items-center gap-2">
                       <ExpenseBadge category={expense.category} />
                       <span className="text-[10px] text-gray-400">
-                        {new Date(expense.date).toLocaleDateString(undefined, {
+                        {toLocalDate(expense.date).toLocaleDateString(undefined, {
                           month: 'short',
                           day: 'numeric',
                         })}

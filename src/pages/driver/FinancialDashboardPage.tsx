@@ -19,7 +19,7 @@ import {
 import { getLoads } from '../../services/supabase/loads';
 import { claudeAPI } from '../../lib/claude';
 import TaxAdvisorChat from '../../components/driver/TaxAdvisorChat';
-import { formatCurrency } from '../../utils/formatting';
+import { formatCurrency, toLocalDate } from '../../utils/formatting';
 import { updateUserProfile } from '../../services/supabase/users';
 import { 
   PieChart, 
@@ -698,7 +698,7 @@ How to help:
                           retirementLogs.slice(0, 4).map((log) => (
                             <tr key={log.id} className="hover:bg-white/5 transition-colors">
                               <td className="px-4 py-2 text-xs text-gray-300 font-mono">
-                                {new Date(log.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'})}
+                                {toLocalDate(log.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric', year: 'numeric'})}
                               </td>
                               <td className="px-4 py-2 text-xs text-white font-medium">{log.type}</td>
                               <td className="px-4 py-2 text-xs text-brand-green font-semibold text-right">

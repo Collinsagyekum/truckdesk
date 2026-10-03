@@ -4,6 +4,7 @@ import { Plus, Trash2, Receipt, DollarSign, Calendar, ChevronRight, AlertTriangl
 import { useAuth } from '../../hooks/useAuth';
 import { useToast } from '../../hooks/useToast';
 import { getExpenses, deleteExpense } from '../../services/supabase/expenses';
+import { toLocalDate } from '../../utils/formatting';
 import type { Expense } from '../../types';
 import PageHeader from '../../components/ui/PageHeader';
 import Button from '../../components/ui/Button';
@@ -112,7 +113,7 @@ function SwipeableExpenseCard({ expense, onDelete, deletingId }: SwipeableExpens
             <ExpenseBadge category={expense.category} />
             <span className="text-xs text-gray-400 flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5" />
-              {new Date(expense.date).toLocaleDateString(undefined, {
+              {toLocalDate(expense.date).toLocaleDateString(undefined, {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric',

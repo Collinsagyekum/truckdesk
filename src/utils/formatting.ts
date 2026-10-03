@@ -17,6 +17,20 @@ export function formatMiles(miles: number): string {
 }
 
 /**
+ * Parse a value into a Date for display. Date-only strings ("2026-10-03") are
+ * parsed by `new Date()` as UTC midnight, which renders as the PREVIOUS day in
+ * US/behind-UTC timezones. Anchoring them at local noon keeps the calendar date
+ * stable. Other inputs pass straight through. Use this instead of `new Date(x)`
+ * whenever formatting a date-only field for display.
+ */
+export function toLocalDate(date: Date | string | number): Date {
+  if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return new Date(date + 'T12:00:00');
+  }
+  return new Date(date);
+}
+
+/**
  * Formats a date string, object, or timestamp to a readable date (e.g., 'May 28, 2026').
  */
 export function formatDate(date: Date | string | number): string {
