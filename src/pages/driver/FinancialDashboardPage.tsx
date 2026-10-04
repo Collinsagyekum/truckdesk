@@ -387,12 +387,14 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
 
   // This week's real net. A slow or losing week shows as one — substituting a
   // historical average here would hide a loss from the driver.
-  const today = new Date();
-  const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
-  startOfWeek.setHours(0,0,0,0);
+  // Rolling last-7-days window (today + the previous 6 days), matching Home and
+  // the owner dashboard, so the advisor's "recent" net matches what Home shows.
+  const startOfWeek = new Date();
+  startOfWeek.setDate(startOfWeek.getDate() - 6);
+  startOfWeek.setHours(0, 0, 0, 0);
 
-  const weeklyLoads = loads.filter(l => new Date(l.pickup_date) >= startOfWeek);
-  const weeklyExpenses = expenses.filter(e => new Date(e.date) >= startOfWeek);
+  const weeklyLoads = loads.filter(l => toLocalDate(l.pickup_date) >= startOfWeek);
+  const weeklyExpenses = expenses.filter(e => toLocalDate(e.date) >= startOfWeek);
 
   const weeklyGross = weeklyLoads.reduce((sum, l) => sum + l.rate, 0);
   const weeklyExp = weeklyExpenses.reduce((sum, e) => sum + e.amount, 0);

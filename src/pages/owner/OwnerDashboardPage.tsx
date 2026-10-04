@@ -9,7 +9,7 @@ import { getFleetMileage } from '../../services/supabase/mileage';
 import type { DailyMileage } from '../../services/supabase/mileage';
 import StatCard from '../../components/ui/StatCard';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { formatCurrency, formatMiles, getInitials, timeAgo } from '../../utils/formatting';
+import { formatCurrency, formatMiles, getInitials, timeAgo, toLocalDate } from '../../utils/formatting';
 import { withTimeout } from '../../utils/withTimeout';
 import type { User, Load, Expense } from '../../types';
 import {
@@ -109,16 +109,18 @@ export default function OwnerDashboardPage() {
     );
   }
 
-  // Current week date threshold
+  // Rolling last-7-days window (today + the previous 6 days), matching the
+  // driver Home, so fleet totals don't reset on Sunday or diverge from what the
+  // driver sees. `startOfWeek` keeps its name but is now "7 days ago".
   const startOfWeek = new Date();
-  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+  startOfWeek.setDate(startOfWeek.getDate() - 6);
   startOfWeek.setHours(0, 0, 0, 0);
 
   // Helper: Filter loads this week
-  const weeklyLoads = loads.filter((load) => new Date(load.pickup_date) >= startOfWeek);
+  const weeklyLoads = loads.filter((load) => toLocalDate(load.pickup_date) >= startOfWeek);
   
   // 1. KPI Fleet Miles (this week) — loads + standalone mileage
-  const weeklyMileageEntries = allMileage.filter((m) => new Date(m.log_date) >= startOfWeek);
+  const weeklyMileageEntries = allMileage.filter((m) => toLocalDate(m.log_date) >= startOfWeek);
   const fleetLoadMiles = weeklyLoads.reduce((sum, l) => sum + l.miles, 0);
   const fleetStandaloneMiles = weeklyMileageEntries.reduce((sum, m) => sum + (m.miles || 0), 0);
   const totalFleetMiles = fleetLoadMiles + fleetStandaloneMiles;
@@ -135,11 +137,11 @@ export default function OwnerDashboardPage() {
     .filter((d) => d.role === 'driver')
     .map((driver) => {
       const driverLoads = loads.filter((l) => l.driver_id === driver.id);
-      const driverWeeklyLoads = driverLoads.filter((l) => new Date(l.pickup_date) >= startOfWeek);
+      const driverWeeklyLoads = driverLoads.filter((l) => toLocalDate(l.pickup_date) >= startOfWeek);
       const driverExpenses = expenses.filter((e) => e.driver_id === driver.id);
-      const driverWeeklyExpenses = driverExpenses.filter((e) => new Date(e.date) >= startOfWeek);
+      const driverWeeklyExpenses = driverExpenses.filter((e) => toLocalDate(e.date) >= startOfWeek);
 
-      const driverMileageEntries = allMileage.filter((m) => m.driver_id === driver.id && new Date(m.log_date) >= startOfWeek);
+      const driverMileageEntries = allMileage.filter((m) => m.driver_id === driver.id && toLocalDate(m.log_date) >= startOfWeek);
       const milesThisWeek = driverWeeklyLoads.reduce((sum, l) => sum + l.miles, 0)
         + driverMileageEntries.reduce((sum, m) => sum + (m.miles || 0), 0);
       const revenueThisWeek = driverWeeklyLoads.reduce((sum, l) => sum + l.rate, 0);
@@ -216,7 +218,7 @@ export default function OwnerDashboardPage() {
             Fleet Overview
           </h1>
           <p className="text-xs text-gray-400 font-sans mt-1">
-            This week&apos;s miles, revenue and driver activity.
+            Miles, revenue and driver activity — last 7 days.
           </p>
         </div>
       </div>
@@ -224,19 +226,19 @@ export default function OwnerDashboardPage() {
       {/* KPI GRID */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          label="Fleet Miles (This Week)"
+          label="Fleet Miles (Last 7 Days)"
           value={mileageError ? '—' : formatMiles(totalFleetMiles)}
           subtext={mileageError ? "Couldn't load logged miles" : 'Combined logged miles'}
         />
         <StatCard
-          label="Fleet Revenue (This Week)"
+          label="Fleet Revenue (Last 7 Days)"
           value={formatCurrency(totalFleetRevenue)}
           subtext="Sum of active/delivered loads"
         />
         <StatCard
           label="Active Drivers"
           value={`${driverMetrics.filter(d => d.status === 'Active').length}/${driverMetrics.length}`}
-          subtext="With loads this week"
+          subtext="With loads in the last 7 days"
         />
         <StatCard
           label="Flagged Receipts"
@@ -301,13 +303,13 @@ export default function OwnerDashboardPage() {
 
                   <div className="grid grid-cols-2 gap-2 py-3 border-t border-white/5 mt-2">
                     <div>
-                      <span className="text-[10px] text-gray-500 font-sans">Miles this week</span>
+                      <span className="text-[10px] text-gray-500 font-sans">Miles (7d)</span>
                       <p className="text-sm font-semibold font-mono text-gray-200 mt-0.5">
                         {formatMiles(driver.milesThisWeek)}
                       </p>
                     </div>
                     <div>
-                      <span className="text-[10px] text-gray-500 font-sans">Profit this week</span>
+                      <span className="text-[10px] text-gray-500 font-sans">Profit (7d)</span>
                       <p className={`text-sm font-semibold font-mono mt-0.5 ${driver.netProfitThisWeek >= 0 ? 'text-brand-green' : 'text-brand-red'}`}>
                         {formatCurrency(driver.netProfitThisWeek)}
                       </p>

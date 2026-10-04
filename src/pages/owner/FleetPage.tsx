@@ -7,7 +7,7 @@ import { getFleetExpenses } from '../../services/supabase/expenses';
 import { getComplianceDocs, summarizeCompliance } from '../../services/supabase/compliance';
 import type { ComplianceStatus } from '../../services/supabase/compliance';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { formatCurrency, formatMiles, getInitials } from '../../utils/formatting';
+import { formatCurrency, formatMiles, getInitials, toLocalDate } from '../../utils/formatting';
 import type { User, Load, Expense } from '../../types';
 import {
   Search,
@@ -108,8 +108,10 @@ export default function FleetPage() {
   }
 
   // Date thresholds
+  // Rolling last-7-days window (today + the previous 6 days), matching the
+  // driver Home and owner dashboard.
   const startOfWeek = new Date();
-  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+  startOfWeek.setDate(startOfWeek.getDate() - 6);
   startOfWeek.setHours(0, 0, 0, 0);
 
   // Map drivers to their combined metrics
@@ -117,9 +119,9 @@ export default function FleetPage() {
     .filter((d) => d.role === 'driver')
     .map((driver) => {
       const driverLoads = loads.filter((l) => l.driver_id === driver.id);
-      const driverWeeklyLoads = driverLoads.filter((l) => new Date(l.pickup_date) >= startOfWeek);
+      const driverWeeklyLoads = driverLoads.filter((l) => toLocalDate(l.pickup_date) >= startOfWeek);
       const driverExpenses = expenses.filter((e) => e.driver_id === driver.id);
-      const driverWeeklyExpenses = driverExpenses.filter((e) => new Date(e.date) >= startOfWeek);
+      const driverWeeklyExpenses = driverExpenses.filter((e) => toLocalDate(e.date) >= startOfWeek);
 
       const milesThisWeek = driverWeeklyLoads.reduce((sum, l) => sum + l.miles, 0);
       const revenueThisWeek = driverWeeklyLoads.reduce((sum, l) => sum + l.rate, 0);

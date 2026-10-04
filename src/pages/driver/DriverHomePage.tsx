@@ -9,7 +9,7 @@ import { getWeeklyMileage, getDailyMileage } from '../../services/supabase/milea
 import type { DailyMileage } from '../../services/supabase/mileage';
 import StatCard from '../../components/ui/StatCard';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import { formatCurrency, formatMiles, formatDate, getInitials } from '../../utils/formatting';
+import { formatCurrency, formatMiles, formatDate, getInitials, toLocalDate } from '../../utils/formatting';
 import { calculateSolo401kContribution } from '../../utils/irs';
 import { milesBotChatUrl } from '../../lib/milesbot';
 import type { Load, Expense } from '../../types';
@@ -150,7 +150,7 @@ export default function DriverHomePage() {
   startOfWeek.setHours(0, 0, 0, 0);
 
   const weeklyExpenses = expenses.filter((exp) => {
-    const expDate = new Date(exp.date);
+    const expDate = toLocalDate(exp.date);
     return expDate >= startOfWeek;
   });
 

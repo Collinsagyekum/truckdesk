@@ -1,6 +1,7 @@
 import { supabase } from '../../lib/supabase';
 import type { Load } from '../../types';
 import { getFleetDriverIds } from './users';
+import { toLocalDate } from '../../utils/formatting';
 
 // ─── DB ↔ APP ADAPTERS ────────────────────────────────────────────────────────
 // The real `loads` table splits the route into city/state columns and has no
@@ -111,7 +112,9 @@ export async function getWeeklyLoads(driverId: string): Promise<Load[]> {
   if (error) throw error;
   return (data ?? [])
     .map(rowToLoad)
-    .filter((load) => new Date(load.pickup_date) >= since);
+    // toLocalDate anchors date-only values at local noon so a load dated "today"
+    // isn't shoved into yesterday by UTC-midnight parsing at the window edge.
+    .filter((load) => toLocalDate(load.pickup_date) >= since);
 }
 
 export async function getLoad(loadId: string): Promise<Load | null> {
