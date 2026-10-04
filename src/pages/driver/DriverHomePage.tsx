@@ -143,9 +143,10 @@ export default function DriverHomePage() {
 
   const firstName = user.full_name ? user.full_name.split(' ')[0] : 'Driver';
 
-  // Current week calculations
+  // Rolling last-7-days window (today + the previous 6 days), matching
+  // getWeeklyLoads / getWeeklyMileage, so Home totals don't reset on Sunday.
   const startOfWeek = new Date();
-  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+  startOfWeek.setDate(startOfWeek.getDate() - 6);
   startOfWeek.setHours(0, 0, 0, 0);
 
   const weeklyExpenses = expenses.filter((exp) => {
@@ -420,25 +421,25 @@ export default function DriverHomePage() {
       {/* KPI ROW */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
-          label="Net Profit (This Week)"
+          label="Net Profit (Last 7 Days)"
           value={profitUnavailable ? '—' : formatCurrency(netProfit)}
           subtext={profitUnavailable ? "Couldn't load" : 'After logged expenses'}
         />
         <StatCard
-          label="Miles This Week"
+          label="Miles (Last 7 Days)"
           value={milesUnavailable ? '—' : formatMiles(totalMiles)}
           subtext={
             milesUnavailable
               ? "Couldn't load"
               : standaloneMiles > 0
               ? `${formatMiles(loadMiles)} from loads + ${formatMiles(standaloneMiles)} logged`
-              : 'From this week’s loads'
+              : 'From the last 7 days'
           }
         />
         <StatCard
           label="Active & Upcoming Loads"
           value={loadsUnavailable ? '—' : activeLoadsCount}
-          subtext={loadsUnavailable ? "Couldn't load" : 'Loads scheduled this week'}
+          subtext={loadsUnavailable ? "Couldn't load" : 'Active or upcoming'}
         />
       </section>
 

@@ -93,15 +93,16 @@ export async function getLoads(driverId: string): Promise<Load[]> {
 }
 
 export async function getWeeklyLoads(driverId: string): Promise<Load[]> {
-  const startOfWeek = new Date();
-  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-  startOfWeek.setHours(0, 0, 0, 0);
+  // Rolling last-7-days window (today + the previous 6 days) rather than a
+  // calendar week, so a load a driver ran on Saturday doesn't disappear from
+  // Home the moment the week ticks over on Sunday.
+  const since = new Date();
+  since.setDate(since.getDate() - 6);
+  since.setHours(0, 0, 0, 0);
 
-  // Fetch the driver's loads and filter "this week" in JS on the mapped date.
-  // Loads logged by MilesBot have a null pickup_date (only delivery_date is
-  // set), so filtering the raw pickup_date column in SQL silently drops them.
-  // rowToLoad falls pickup_date back to created_at, which is exactly how the
-  // owner dashboard decides "this week" — so the two views stay consistent.
+  // Filter in JS on the mapped date: loads logged by MilesBot have a null
+  // pickup_date (only delivery_date), so filtering the raw pickup_date column in
+  // SQL silently drops them. rowToLoad falls pickup_date back to created_at.
   const { data, error } = await supabase
     .from('loads')
     .select('*')
@@ -110,7 +111,7 @@ export async function getWeeklyLoads(driverId: string): Promise<Load[]> {
   if (error) throw error;
   return (data ?? [])
     .map(rowToLoad)
-    .filter((load) => new Date(load.pickup_date) >= startOfWeek);
+    .filter((load) => new Date(load.pickup_date) >= since);
 }
 
 export async function getLoad(loadId: string): Promise<Load | null> {

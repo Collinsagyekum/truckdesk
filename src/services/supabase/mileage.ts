@@ -39,9 +39,12 @@ export async function getFleetMileage(ownerId: string): Promise<DailyMileage[]> 
 }
 
 export async function getWeeklyMileage(driverId: string): Promise<DailyMileage[]> {
-  const startOfWeek = new Date();
-  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-  const isoStart = startOfWeek.toISOString().split('T')[0];
+  // Rolling last-7-days window (today + the previous 6 days), matching
+  // getWeeklyLoads, so Home miles don't reset on Sunday.
+  const since = new Date();
+  since.setDate(since.getDate() - 6);
+  since.setHours(0, 0, 0, 0);
+  const isoStart = since.toISOString().split('T')[0];
 
   const { data, error } = await supabase
     .from('daily_mileage')
