@@ -212,7 +212,7 @@ export default function WhatsAppLogPage() {
                 onClick={() => handleFilterChange(filter)}
                 className={`px-4 py-2 text-xs font-semibold rounded-full capitalize transition-all duration-200 shrink-0 border border-white/5 active:scale-95 ${
                   isActive
-                    ? 'bg-brand-green text-navy-900 border-brand-green shadow-md shadow-brand-green/20'
+                    ? 'bg-brand-green text-[#0A1628] border-brand-green shadow-md shadow-brand-green/20'
                     : 'bg-navy-800 text-gray-400 hover:text-white hover:border-white/10'
                 }`}
               >

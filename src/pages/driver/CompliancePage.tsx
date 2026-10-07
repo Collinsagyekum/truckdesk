@@ -433,7 +433,7 @@ export default function CompliancePage() {
             onClick={() => setActiveTab(tab)}
             className={`flex-1 min-w-0 truncate py-2.5 text-sm font-semibold rounded-lg capitalize transition-all duration-200 ${
               activeTab === tab
-                ? 'bg-brand-green text-navy-900 shadow-lg shadow-brand-green/25 font-bold'
+                ? 'bg-brand-green text-[#0A1628] shadow-lg shadow-brand-green/25 font-bold'
                 : 'text-gray-400 hover:text-white hover:bg-white/5'
             }`}
           >
@@ -802,7 +802,7 @@ export default function CompliancePage() {
                     onClick={() => setSelectedQuarter(q)}
                     className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all duration-200 ${
                       selectedQuarter === q
-                        ? 'bg-brand-green text-navy-900 shadow shadow-brand-green/20'
+                        ? 'bg-brand-green text-[#0A1628] shadow shadow-brand-green/20'
                         : 'text-gray-400 hover:text-white'
                     }`}
                   >

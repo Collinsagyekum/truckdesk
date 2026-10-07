@@ -105,7 +105,7 @@ export default function DriverDetailPage() {
           {loadError && (
             <button
               onClick={() => setReloadKey((k) => k + 1)}
-              className="text-sm font-semibold text-navy-900 bg-brand-green hover:bg-brand-green/90 px-5 py-2.5 rounded-xl"
+              className="text-sm font-semibold text-[#0A1628] bg-brand-green hover:bg-brand-green/90 px-5 py-2.5 rounded-xl"
             >
               Try again
             </button>

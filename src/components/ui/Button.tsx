@@ -29,9 +29,9 @@ export function Button({
   // - secondary: Navy-700 (#162B55)
   // - danger: Brand red (#EF4444)
   const variantClasses = {
-    primary: 'bg-brand-green text-navy-900 shadow-[0_4px_12px_rgba(34,197,94,0.2)] hover:bg-[#2efc73] hover:shadow-[0_6px_16px_rgba(34,197,94,0.35)] focus:ring-brand-green/50',
+    primary: 'bg-brand-green text-[#0A1628] shadow-[0_4px_12px_rgba(34,197,94,0.2)] hover:bg-[#2efc73] hover:shadow-[0_6px_16px_rgba(34,197,94,0.35)] focus:ring-brand-green/50',
     secondary: 'bg-navy-700 text-white border border-white/10 hover:bg-navy-600 hover:border-white/20 hover:shadow-[0_4px_12px_rgba(0,0,0,0.25)] focus:ring-navy-700/50',
-    danger: 'bg-brand-red text-white shadow-[0_4px_12px_rgba(239,68,68,0.2)] hover:bg-[#ff5555] hover:shadow-[0_6px_16px_rgba(239,68,68,0.35)] focus:ring-brand-red/50',
+    danger: 'bg-brand-red text-[#fff] shadow-[0_4px_12px_rgba(239,68,68,0.2)] hover:bg-[#ff5555] hover:shadow-[0_6px_16px_rgba(239,68,68,0.35)] focus:ring-brand-red/50',
   };
 
   // Size classes

@@ -16,7 +16,7 @@ export default function ImpersonationBanner() {
   };
 
   return (
-    <div className="sticky top-0 z-50 bg-brand-amber text-navy-900 px-4 py-2 flex items-center justify-center gap-3 text-sm font-semibold">
+    <div className="sticky top-0 z-50 bg-brand-amber text-[#0A1628] px-4 py-2 flex items-center justify-center gap-3 text-sm font-semibold">
       <Eye className="w-4 h-4 shrink-0" />
       <span className="truncate">
         Viewing as driver: {user?.full_name || 'driver'} (admin preview)

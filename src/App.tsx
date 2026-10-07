@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
 import { useAuth } from './hooks/useAuth';
@@ -95,10 +96,11 @@ function RedirectIfAuthenticated({ children }: { children: ReactNode }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <ToastProvider>
-          <ImpersonationBanner />
+    <ThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <ToastProvider>
+            <ImpersonationBanner />
           <Routes>
             {/* Public */}
             <Route
@@ -157,8 +159,9 @@ export default function App() {
             {/* Catch-all */}
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
-        </ToastProvider>
-      </AuthProvider>
-    </BrowserRouter>
+          </ToastProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }

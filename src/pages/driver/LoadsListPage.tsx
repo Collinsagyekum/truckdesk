@@ -66,7 +66,7 @@ export default function LoadsListPage() {
       <Button
         variant="primary"
         size="sm"
-        leftIcon={<Plus className="w-4 h-4 text-navy-900" />}
+        leftIcon={<Plus className="w-4 h-4 text-[#0A1628]" />}
       >
         Create Load
       </Button>
@@ -99,7 +99,7 @@ export default function LoadsListPage() {
                 onClick={() => setStatusFilter(status)}
                 className={`px-4 py-1.5 rounded-full text-xs font-semibold border capitalize whitespace-nowrap transition-all duration-200 ${
                   statusFilter === status
-                    ? 'bg-brand-green text-navy-900 border-brand-green shadow-[0_2px_8px_rgba(34,197,94,0.2)]'
+                    ? 'bg-brand-green text-[#0A1628] border-brand-green shadow-[0_2px_8px_rgba(34,197,94,0.2)]'
                     : 'bg-navy-800 text-gray-400 border-white/5 hover:text-white hover:bg-navy-700'
                 }`}
               >

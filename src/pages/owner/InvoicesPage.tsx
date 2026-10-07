@@ -115,7 +115,7 @@ export default function InvoicesPage() {
         <div className="flex gap-1.5 bg-navy-900 p-1 rounded-xl border border-white/5">
           {(['all', 'draft', 'sent', 'paid', 'overdue'] as StatusFilter[]).map((s) => (
             <button key={s} onClick={() => setStatusFilter(s)}
-              className={`px-3 py-2 text-xs font-semibold rounded-lg capitalize transition-all ${statusFilter === s ? 'bg-brand-green text-navy-900' : 'text-gray-400 hover:text-white'}`}>
+              className={`px-3 py-2 text-xs font-semibold rounded-lg capitalize transition-all ${statusFilter === s ? 'bg-brand-green text-[#0A1628]' : 'text-gray-400 hover:text-white'}`}>
               {s}
             </button>
           ))}

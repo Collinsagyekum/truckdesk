@@ -143,7 +143,7 @@ export default function TaxAdvisorChat({ open, onClose, systemPrompt, opening, s
         {messages.map((m) =>
           m.role === 'user' ? (
             <div key={m.id} className="flex justify-end">
-              <div className="max-w-[85%] bg-brand-green text-navy-900 rounded-2xl rounded-tr-sm px-4 py-3">
+              <div className="max-w-[85%] bg-brand-green text-[#0A1628] rounded-2xl rounded-tr-sm px-4 py-3">
                 <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap">{m.content}</p>
               </div>
             </div>
@@ -216,7 +216,7 @@ export default function TaxAdvisorChat({ open, onClose, systemPrompt, opening, s
             type="submit"
             disabled={!input.trim() || sending}
             aria-label="Send"
-            className="shrink-0 w-10 h-10 rounded-full bg-brand-green text-navy-900 flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-green/90 transition-colors"
+            className="shrink-0 w-10 h-10 rounded-full bg-brand-green text-[#0A1628] flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-green/90 transition-colors"
           >
             <Send className="w-4 h-4" />
           </button>

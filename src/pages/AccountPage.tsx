@@ -1,8 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertTriangle, Loader2, LogOut, Trash2 } from 'lucide-react';
+import { AlertTriangle, Loader2, LogOut, Trash2, Sun, Moon, Monitor } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
+import { useTheme } from '../hooks/useTheme';
+import type { ThemePreference } from '../context/ThemeContext';
+
+const THEME_OPTIONS: { value: ThemePreference; label: string; Icon: typeof Monitor }[] = [
+  { value: 'system', label: 'System', Icon: Monitor },
+  { value: 'light', label: 'Light', Icon: Sun },
+  { value: 'dark', label: 'Dark', Icon: Moon },
+];
 
 const DELETED_DATA = [
   'Your profile and sign-in',
@@ -16,6 +24,7 @@ const DELETED_DATA = [
 export default function AccountPage() {
   const { realUser, isImpersonating, signOut, deleteAccount } = useAuth();
   const { showSuccess, showError } = useToast();
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -59,6 +68,34 @@ export default function AccountPage() {
         </button>
       </section>
 
+      <section className="bg-navy-800 border border-white/5 rounded-2xl p-5 space-y-3">
+        <div>
+          <h2 className="text-base font-semibold text-white font-sans">Appearance</h2>
+          <p className="text-sm text-gray-400 mt-1">Choose how TruckDesk looks. "System" follows your phone.</p>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {THEME_OPTIONS.map(({ value, label, Icon }) => {
+            const active = theme === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setTheme(value)}
+                aria-pressed={active}
+                className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-xl border text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green ${
+                  active
+                    ? 'border-brand-green bg-brand-green/15 text-brand-green'
+                    : 'border-white/10 text-gray-400 hover:bg-white/5'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
       <section className="bg-navy-800 border border-brand-red/20 rounded-2xl p-5 space-y-4">
         <div>
           <h2 className="text-base font-semibold text-white font-sans">Delete account</h2>
@@ -96,7 +133,7 @@ export default function AccountPage() {
                 type="button"
                 onClick={handleDelete}
                 disabled={deleting}
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-brand-red text-white text-sm font-bold hover:bg-brand-red/90 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-brand-red text-[#fff] text-sm font-bold hover:bg-brand-red/90 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white transition-colors"
               >
                 {deleting ? (
                   <>

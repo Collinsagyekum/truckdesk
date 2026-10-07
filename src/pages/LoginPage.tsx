@@ -117,11 +117,11 @@ export default function LoginPage() {
           <>
             <div className="grid grid-cols-2 bg-navy-900/60 p-1.5 rounded-2xl border border-white/5 mb-6">
               <button type="button" onClick={() => { setActiveTab('owner'); setPhone(''); }}
-                className={`py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'owner' ? 'bg-brand-green text-navy-900 shadow-lg' : 'text-gray-400 hover:text-white'}`}>
+                className={`py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'owner' ? 'bg-brand-green text-[#0A1628] shadow-lg' : 'text-gray-400 hover:text-white'}`}>
                 <Mail className="w-3.5 h-3.5" /> Email
               </button>
               <button type="button" onClick={() => { setActiveTab('driver'); setEmail(''); }}
-                className={`py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'driver' ? 'bg-brand-green text-navy-900 shadow-lg' : 'text-gray-400 hover:text-white'}`}>
+                className={`py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${activeTab === 'driver' ? 'bg-brand-green text-[#0A1628] shadow-lg' : 'text-gray-400 hover:text-white'}`}>
                 <Phone className="w-3.5 h-3.5" /> Phone (SMS)
               </button>
             </div>
@@ -163,7 +163,7 @@ export default function LoginPage() {
                 </div>
               )}
               <button type="submit" disabled={loading || activeTab === 'driver'}
-                className="w-full bg-brand-green hover:bg-brand-green/95 text-navy-900 font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                className="w-full bg-brand-green hover:bg-brand-green/95 text-[#0A1628] font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
                 {loading ? (<><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>) : activeTab === 'driver' ? 'SMS Sign-In Unavailable' : 'Send Email Code'}
               </button>
             </form>
@@ -192,7 +192,7 @@ export default function LoginPage() {
                 ))}
               </div>
               <button type="submit" disabled={loading || otp.join('').length < 6}
-                className="w-full bg-brand-green hover:bg-brand-green/95 text-navy-900 font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
+                className="w-full bg-brand-green hover:bg-brand-green/95 text-[#0A1628] font-bold py-3.5 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed">
                 {loading ? (<><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</>) : 'Verify Security Code'}
               </button>
               <div className="text-center">

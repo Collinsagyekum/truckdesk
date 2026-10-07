@@ -329,7 +329,7 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
           {/* CTA */}
           <Button
             variant="primary"
-            className="w-full justify-center text-navy-900 font-bold text-base py-3"
+            className="w-full justify-center text-[#0A1628] font-bold text-base py-3"
             isLoading={isUpgrading}
             onClick={handleUpgrade}
             rightIcon={<ChevronRight className="w-5 h-5" />}
@@ -825,7 +825,7 @@ How to help:
                 {/* Mark as Paid Action */}
                 <Button
                   variant="primary"
-                  className="w-full justify-center py-2.5 text-navy-900 font-bold bg-brand-amber hover:bg-[#ffb020] hover:shadow-[0_4px_14px_rgba(245,158,11,0.3)] text-sm focus:ring-brand-amber/50"
+                  className="w-full justify-center py-2.5 text-[#0A1628] font-bold bg-brand-amber hover:bg-[#ffb020] hover:shadow-[0_4px_14px_rgba(245,158,11,0.3)] text-sm focus:ring-brand-amber/50"
                   isLoading={isPayingTax}
                   onClick={() => handleMarkTaxAsPaid(totalEstimatedTax)}
                   disabled={totalEstimatedTax <= 0}
