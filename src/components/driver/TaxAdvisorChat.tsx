@@ -118,7 +118,7 @@ export default function TaxAdvisorChat({ open, onClose, systemPrompt, opening, s
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-white leading-tight">Tax Advisor</h2>
+            <h2 className="text-sm font-bold text-white leading-tight">TruckDesk Tax Advisor</h2>
             <p className="text-[11px] text-gray-400 leading-tight">Ask about your taxes & deductions</p>
           </div>
         </div>

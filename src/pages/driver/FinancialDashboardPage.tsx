@@ -317,7 +317,7 @@ Keep it strictly under 25 words. Do not include introductory text, quotes, or ma
               'Automated SEP & Solo 401k calculations',
               'Estimated quarterly tax scheduling',
               'Historical Rate per Mile charts',
-              'Claude tax savings advisor'
+              'TruckDesk tax savings advisor'
             ].map((feature, i) => (
               <li key={i} className="flex items-start gap-3">
                 <CheckCircle className="w-5 h-5 text-brand-green shrink-0 mt-0.5" />
@@ -509,7 +509,7 @@ How to help:
             </div>
             <div className="flex-1 text-center sm:text-left">
               <div className="text-xs font-bold text-brand-green uppercase tracking-wider mb-0.5">
-                {adviceIsTemplate && !isLoadingAdvice ? 'General tax tip' : 'Claude Tax Advisor'}
+                {adviceIsTemplate && !isLoadingAdvice ? 'General tax tip' : 'TruckDesk Tax Advisor'}
               </div>
               <p className="text-sm font-medium text-white italic leading-relaxed">
                 {isLoadingAdvice ? 'Consulting tax code...' : `"${advice || 'No recommendations computed yet.'}"`}
